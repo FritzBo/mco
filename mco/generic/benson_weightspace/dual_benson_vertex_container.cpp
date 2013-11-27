@@ -26,10 +26,17 @@ DualBensonVertexContainer::DualBensonVertexContainer(Point &initial_value, unsig
 	for(unsigned int i = 0; i < dimension_ - 1; ++i) {
 		n = vertex_graph_.newNode();
 		p = new Point(dimension_ + 1);
-		for(unsigned int j = 0; j < dimension_; ++j)
+		for(unsigned int j = 0; j < dimension_ - 1; ++j) {
 			(*p)[j] = i == j ? 1 : 0;
+
+			if(i != j)
+				node_inequality_indices_[n].push_back(j);
+		}
 		(*p)[dimension_ - 1] = initial_value[i];
 		(*p)[dimension_] = 1;
+
+		node_inequality_indices_[n].push_back(dimension_ - 1);
+		node_inequality_indices_[n].push_back(dimension_);
 
 		point_nodes_.insert(make_pair(p, n));
 		node_points_[n] = p;
@@ -66,6 +73,11 @@ DualBensonVertexContainer::DualBensonVertexContainer(Point &initial_value, unsig
 	(*p)[dimension_ - 1] = initial_value[dimension_ - 1];
 	(*p)[dimension_] = 1;
 
+	for(unsigned int i = 0; i < dimension_ - 1; ++i)
+		node_inequality_indices_[n].push_back(i);
+
+	node_inequality_indices_[n].push_back(dimension_);
+
 	point_nodes_.insert(make_pair(p, n));
 	node_points_[n] = p;
 	unprocessed_projective_points_.push_back(p);
@@ -92,6 +104,9 @@ DualBensonVertexContainer::DualBensonVertexContainer(Point &initial_value, unsig
 	(*p)[dimension_ - 1] = -1;
 	(*p)[dimension_] = 0;
 
+	for(unsigned int i = 0; i < dimension_; ++i)
+		node_inequality_indices_[n].push_back(i);
+
 	point_nodes_.insert(make_pair(p, n));
 	node_points_[n] = p;
 
@@ -102,15 +117,20 @@ DualBensonVertexContainer::DualBensonVertexContainer(Point &initial_value, unsig
 		}
 	}
 
-//	cout << "inequalities:" << endl;
-//	for(auto ineq : list_of_inequalities_)
-//		cout << *ineq << endl;
-//
-//	cout << "vertices:" << endl;
-//	forall_nodes(v, vertex_graph_)
-//		cout << *node_points_[v] << endl;
-//
-//	cout << "graph has " << vertex_graph_.numberOfNodes() << " nodes and " << vertex_graph_.numberOfEdges() << " edges" << endl;
+	cout << "inequalities:" << endl;
+	for(auto ineq : list_of_inequalities_)
+		cout << *ineq << endl;
+
+	cout << "vertices:" << endl;
+	forall_nodes(v, vertex_graph_) {
+		cout << *node_points_[v] << endl;
+		cout << "Node inequalities:" << endl;
+			for(auto index: node_inequality_indices_[v])
+				cout << index << ", ";
+			cout << endl;
+	}
+
+	cout << "graph has " << vertex_graph_.numberOfNodes() << " nodes and " << vertex_graph_.numberOfEdges() << " edges" << endl;
 }
 
 } /* namespace mco */

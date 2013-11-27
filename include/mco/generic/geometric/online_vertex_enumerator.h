@@ -21,7 +21,6 @@ namespace mco {
 
 class OnlineVertexEnumerator {
 public:
-//	OnlineVertexEnumerator(std::list<Point> initial_inequalities, std::list<double> initial_rhs, unsigned int dimension, double epsilon);
 	OnlineVertexEnumerator() = delete;
 	virtual ~OnlineVertexEnumerator();
 
@@ -38,7 +37,8 @@ public:
 
 protected:
 	OnlineVertexEnumerator(unsigned int dimension, double epsilon) :
-	dimension_(dimension), epsilon_(epsilon), comp_(epsilon), point_nodes_(comp_), cycles_(0) {
+	dimension_(dimension), epsilon_(epsilon), comp_(epsilon), point_nodes_(comp_),
+	node_inequality_indices_(vertex_graph_), cycles_(0) {
 	}
 
 	const unsigned int dimension_;
@@ -51,6 +51,7 @@ protected:
 	std::list<Point *> unprocessed_projective_points_;
 
 	std::list<Point *> list_of_inequalities_;
+	ogdf::NodeArray<std::list<int>> node_inequality_indices_;
 
 	ogdf::node get_node(Point &non_projective_point);
 	Point * to_projective(Point &non_projective_point);
