@@ -19,9 +19,6 @@ using std::list;
 using std::set;
 using std::abs;
 
-//#include <setoper.h>
-//#include <cdd.h>
-
 #include <ogdf/basic/Graph.h>
 
 using ogdf::node;
@@ -30,97 +27,6 @@ using ogdf::NodeArray;
 using ogdf::AdjElement;
 
 namespace mco {
-
-//OnlineVertexEnumerator::OnlineVertexEnumerator(std::list<Point> initial_inequalities, list<double> initial_rhs, unsigned int dimension, double epsilon = 1E-6) :
-//		dimension_(dimension), epsilon_(epsilon), comp_(epsilon), point_nodes_(comp_) {
-//	node_points_.init(vertex_graph_);
-//
-//	dd_set_global_constants();
-//
-//	dd_MatrixPtr M, G;
-//	dd_PolyhedraPtr P;
-//	dd_ErrorType err;
-//
-//	M = dd_CreateMatrix(dimension_, dimension_ + 1);
-//
-//	auto inequality_iterator = initial_inequalities.begin();
-//	auto rhs_iterator = initial_rhs.begin();
-//
-//	unsigned int m = 0;
-//	while(inequality_iterator != initial_inequalities.end()) {
-//		for(unsigned int i = 0; i < dimension_; ++i)
-//			dd_set_d(M->matrix[m][i + 1], (*inequality_iterator)[i]);
-//		dd_set_d(M->matrix[m][0], *rhs_iterator);
-//
-//		m++;
-//		inequality_iterator++;
-//		rhs_iterator++;
-//		if(m >= dimension_)
-//			break;
-//	}
-//
-//	M->representation = dd_Inequality;
-//	P = dd_DDMatrix2Poly(M, &err);
-//	G = dd_CopyGenerators(P);
-//
-//	node finite_node, n;
-//	Point *finite_point;
-//	list<node> infinity_points;
-//
-//	cout << G->rowsize << endl;
-//
-//	for(unsigned int i = 0; i < G->rowsize; ++i) {
-//		Point *p = new Point(dimension_ + 1);
-//		for(unsigned int j = 1; j < dimension_ + 1; ++j)
-//			(*p)[j - 1] = dd_get_d(G->matrix[i][j]);
-//		(*p)[dimension_] = dd_get_d(G->matrix[i][0]);
-//
-//		cout << *p << endl;
-//
-//		n = vertex_graph_.newNode();
-//
-//		if((*p)[dimension_] == 1) {
-//			finite_node = n;
-//			finite_point = p;
-//		} else
-//			infinity_points.push_back(n);
-//
-//		node_points_[n] = p;
-//		point_nodes_.insert(make_pair(p, n));
-//	}
-//
-//	for(node n: infinity_points) {
-//		vertex_graph_.newEdge(n, finite_node);
-//		vertex_graph_.newEdge(finite_node, n);
-//	}
-//
-//	unprocessed_projective_points_.push_back(finite_point);
-//
-//	dd_FreeMatrix(M);
-//	dd_FreeMatrix(G);
-//	dd_FreePolyhedra(P);
-//
-//	dd_free_global_constants();
-//
-//	while(inequality_iterator != initial_inequalities.end()) {
-//		node n;
-//		Point *p;
-//		bool broken = false;
-//		forall_nodes(n, vertex_graph_) {
-//			p = node_points_[n];
-//			if((*inequality_iterator) * (*p) - (*rhs_iterator) * (*p)[dimension_] < -epsilon) {
-//				broken = true;
-//				break;
-//			}
-//		}
-//
-//		if(broken)
-//			add_hyperplane(*p, *inequality_iterator, *rhs_iterator);
-//
-//		inequality_iterator++;
-//		rhs_iterator++;
-//	}
-//}
 
 OnlineVertexEnumerator::~OnlineVertexEnumerator() {
 	node n;
