@@ -29,9 +29,7 @@ public:
 	virtual void add_hyperplane(Point& vertex, Point& normal, double rhs);
 
 	virtual unsigned int number_of_hyperplanes() {
-		dd_ErrorType err;
-		dd_rowset redundant_rows = dd_RedundantRows(h_representation_, &err);
-		return h_representation_->rowsize - set_card(redundant_rows);
+		return number_hyperplanes_;
 	}
 
 	double get_time() {

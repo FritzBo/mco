@@ -16,6 +16,10 @@ namespace mco {
 class DualBensonVertexContainerCDD : public OnlineVertexEnumeratorCDD {
 public:
 	DualBensonVertexContainerCDD(Point &initial_value, unsigned int dimension, double epsilon);
+
+	virtual unsigned int number_of_hyperplanes() {
+		return OnlineVertexEnumeratorCDD::number_of_hyperplanes() - (dimension_ - 1);
+	}
 };
 
 } /* namespace mco */
