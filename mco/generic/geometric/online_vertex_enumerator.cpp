@@ -343,6 +343,7 @@ unsigned int OnlineVertexEnumerator::number_of_hyperplanes() {
 	return list_of_inequalities_.size();
 }
 
+// TODO: Statt der Punkte, die Knoten übergeben. Mapping Knoten -> Punkt in konstanter Zeit!
 bool OnlineVertexEnumerator::inside_face(Point& p1, Point& p2, bool nondegenerate) {
 //	cout << "p1: " << p1 << " (" << point_nodes_[&p1] << "), p2: " << p2 << " (" << point_nodes_[&p2] << ")" << endl;
 	if(dimension_ == 2)
@@ -400,14 +401,17 @@ bool OnlineVertexEnumerator::inside_face(Point& p1, Point& p2, bool nondegenerat
 
 	} else if(dimension_ == 3 || nondegenerate) {
 
-		unsigned int tight_inequalities = 0;
-		for(auto inequality : list_of_inequalities_) {
-//			cout << abs((*inequality) * p1) << " && " << abs((*inequality) * p2) << endl;
-			if(abs((*inequality) * p1) < epsilon_ && abs((*inequality) * p2) < epsilon_)
-				tight_inequalities++;
-		}
+		list<int> inequality_intersection;
 
-//		cout << "tight inequalities: " << tight_inequalities << endl;
+		node n1 = point_nodes_[&p1];
+		node n2 = point_nodes_[&p2];
+		set_intersection(	node_inequality_indices_[n1]->begin(),
+							node_inequality_indices_[n1]->end(),
+							node_inequality_indices_[n2]->begin(),
+							node_inequality_indices_[n2]->end(),
+							back_inserter(inequality_intersection));
+
+		unsigned int tight_inequalities = inequality_intersection.size();
 
 		if(tight_inequalities == dimension_ - 1)
 			return false;
