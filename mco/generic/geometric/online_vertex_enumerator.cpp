@@ -31,8 +31,9 @@ namespace mco {
 OnlineVertexEnumerator::~OnlineVertexEnumerator() {
 	node n;
 
-	forall_nodes(n, vertex_graph_)
+	forall_nodes(n, vertex_graph_) {
 		delete node_points_[n];
+	}
 
 	for(auto inequality : list_of_inequalities_)
 		delete inequality;
@@ -70,10 +71,6 @@ Point OnlineVertexEnumerator::normalize_projective(Point projective_point) {
 node OnlineVertexEnumerator::get_node(Point &non_projective_point) {
 	Point *projective_point = to_projective(non_projective_point);
 	node n = point_nodes_[projective_point];
-//	cout << n << endl;
-
-//	for(auto entity: point_nodes_)
-//		cout << *entity.first << " - " << entity.second << endl;
 
 	assert(node_points_[n]->is_equal(*projective_point, epsilon_));
 
@@ -209,7 +206,7 @@ void OnlineVertexEnumerator::add_hyperplane(Point &vertex, Point &normal, double
 //			cout << "neighbor to check: " << *projective_check_point << endl;
 
 //			for(auto n : new_face_nodes)
-//				cout << "1 face node: " << n << " with point: " << *node_points_[n] << " at adress " << (void *) n << endl;
+//				cout << "1 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
 
 			node new_node = nullptr;
 
@@ -248,7 +245,7 @@ void OnlineVertexEnumerator::add_hyperplane(Point &vertex, Point &normal, double
 					alpha /=  (*projective_normal) * diff_direction;
 
 //				for(auto n : new_face_nodes)
-//					cout << "2 face node: " << n << " with point: " << *node_points_[n] << " at adress " << (void *) n << endl;
+//					cout << "2 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
 
 //				cout << "diff direction: " << diff_direction << endl;
 //				cout << "alpha: " << alpha << endl;
@@ -256,7 +253,7 @@ void OnlineVertexEnumerator::add_hyperplane(Point &vertex, Point &normal, double
 				assert( alpha > epsilon_ && alpha < 1 + epsilon_);
 
 //				for(auto n : new_face_nodes)
-//					cout << "3 face node: " << n << " with point: " << *node_points_[n] << " at adress " << (void *) n << endl;
+//					cout << "3 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
 
 				diff_direction *= alpha;
 				Point *projective_cut_point = new Point(normalize_projective((*projective_vertex) + diff_direction));
@@ -266,13 +263,20 @@ void OnlineVertexEnumerator::add_hyperplane(Point &vertex, Point &normal, double
 				unprocessed_projective_points_.push_back(projective_cut_point);
 
 //				for(auto n : new_face_nodes)
-//					cout << "4 face node: " << n << " with point: " << *node_points_[n] << " at adress " << (void *) n << endl;
+//					cout << "4 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
 
 //				cout << adj->theEdge() << endl;
 				edge new_edge = vertex_graph_.split(adj->theEdge());
 //				cout << adj->theEdge() << endl;
 				new_node = new_edge->source();
+				node_inequality_indices_[new_node] = new list<int>();
 //				cout << (void *) new_node << endl;
+
+				set_intersection(	node_inequality_indices_[active_node]->begin(),
+									node_inequality_indices_[active_node]->end(),
+									node_inequality_indices_[neighbor]->begin(),
+									node_inequality_indices_[neighbor]->end(),
+									back_inserter(*node_inequality_indices_[new_node]));
 
 //				cout << "New node: " << new_node << endl;
 
@@ -281,24 +285,27 @@ void OnlineVertexEnumerator::add_hyperplane(Point &vertex, Point &normal, double
 				node_points_[new_node] = projective_cut_point;
 
 //				for(auto n : new_face_nodes)
-//					cout << "5 face node: " << n << " with point: " << *node_points_[n] << " at adress " << (void *) n << endl;
+//					cout << "5 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
 
 				point_nodes_.insert(make_pair(projective_cut_point, new_node));
 			}
 
 //			for(auto n : new_face_nodes)
-//				cout << "face node: " << n << " with point: " << *node_points_[n] << " at adress " << (void *) n << endl;
+//				cout << "face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
 
 			new_face_nodes.push_back(new_node);
+			node_inequality_indices_[new_node]->push_back(list_of_inequalities_.size() - 1);
 
 //			for(auto n : new_face_nodes)
-//				cout << "face node: " << n << " with point: " << *node_points_[n] << " at adress " << (void *) n << endl;
+//				cout << "face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
 
 		}	// forall_adj
 
 //		cout << "Deleting node: " << active_node << endl;
+		delete node_inequality_indices_[active_node];
 		vertex_graph_.delNode(active_node);
 		point_nodes_.erase(projective_vertex);
+//		delete projective_vertex;
 
 	}	// active node
 

@@ -16,6 +16,7 @@ namespace mco {
 class DualBensonVertexContainer : public OnlineVertexEnumerator {
 public:
 	DualBensonVertexContainer(Point &initial_value, unsigned int dimension, double epsilon);
+	virtual ~DualBensonVertexContainer();
 };
 
 } /* namespace mco */
