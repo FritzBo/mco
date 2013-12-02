@@ -14,7 +14,7 @@
 
 #include <ogdf/basic/Graph.h>
 
-#include <mco/Point.h>
+#include <mco/point.h>
 #include <mco/est/abstract_est_solver.h>
 #include <mco/vector_weighted_graph.h>
 #include <mco/generic/benson_weightspace/dual_benson_scalarizer.h>
