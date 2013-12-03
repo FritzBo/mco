@@ -55,14 +55,14 @@ protected:
 	std::map<Point *, ogdf::node, LexicographicPointComparator> point_nodes_;
 	std::list<Point *> unprocessed_projective_points_;
 
-	std::list<Point *> list_of_inequalities_;
+	std::vector<Point *> list_of_inequalities_;
 	ogdf::NodeArray<std::list<int> *> node_inequality_indices_;
 
 	ogdf::node get_node(Point &non_projective_point);
 	Point * to_projective(Point &non_projective_point);
 	Point normalize_projective(Point projective_point);
 
-	bool inside_face(Point &p1, Point &p2, bool nondegenerate);
+	bool inside_face(ogdf::node n1, ogdf::node n2, bool nondegenerate);
 
 	clock_t cycles_;
 };

@@ -320,7 +320,7 @@ void OnlineVertexEnumerator::add_hyperplane(Point &vertex, Point &normal, double
 			if(n == node)
 				continue;
 
-			if(inside_face(*node_points_[n], *node_points_[node], nondegenerate))
+			if(inside_face(n, node, nondegenerate))
 				continue;
 
 			vertex_graph_.newEdge(node, n);
@@ -343,51 +343,59 @@ unsigned int OnlineVertexEnumerator::number_of_hyperplanes() {
 	return list_of_inequalities_.size();
 }
 
-// TODO: Statt der Punkte, die Knoten übergeben. Mapping Knoten -> Punkt in konstanter Zeit!
-bool OnlineVertexEnumerator::inside_face(Point& p1, Point& p2, bool nondegenerate) {
+bool OnlineVertexEnumerator::inside_face(node n1, node n2, bool nondegenerate) {
 //	cout << "p1: " << p1 << " (" << point_nodes_[&p1] << "), p2: " << p2 << " (" << point_nodes_[&p2] << ")" << endl;
+
+	Point p1 = *node_points_[n1];
+	Point p2 = *node_points_[n2];
+
 	if(dimension_ == 2)
 		return false;
 
 	else if(dimension_ > 3 || !nondegenerate) {
 
-		assert(!p1.is_equal(p2, epsilon_));
+		assert(n1 != n2);
 
 		if(abs(p1[dimension_]) < epsilon_ && abs(p2[dimension_]) < epsilon_)
 			return false;
 
 		set<Point *, LexicographicPointComparator> common_vertices(comp_);
+
 		unsigned int i = 0;
-		for(auto inequality : list_of_inequalities_) {
+		list<int> tight_inequalities;
+
+		set_intersection(	node_inequality_indices_[n1]->begin(),
+							node_inequality_indices_[n1]->end(),
+							node_inequality_indices_[n2]->begin(),
+							node_inequality_indices_[n2]->end(),
+							back_inserter(tight_inequalities));
+
+		for(auto inequality_index : tight_inequalities) {
+
+			auto inequality = list_of_inequalities_[inequality_index];
 
 			set<Point *, LexicographicPointComparator> new_vertices(comp_);
 
 //			cout << "inequality: " << *inequality << endl;
 
-			if(		abs((*inequality) * p1) < epsilon_ &&
-					abs((*inequality) * p2) < epsilon_) {
-
-				node n;
-				forall_nodes(n, vertex_graph_) {
+			node n;
+			forall_nodes(n, vertex_graph_) {
 //					cout << "checking node " << n << " with point " << *node_points_[n] << ": " << (*inequality) * (*node_points_[n]) << endl;
-					if(abs((*inequality) * (*node_points_[n])) < epsilon_)
-						new_vertices.insert(node_points_[n]);
-				}
+				if(abs((*inequality) * (*node_points_[n])) < epsilon_)
+					new_vertices.insert(node_points_[n]);
+			}
 
-				if(common_vertices.empty())
-					common_vertices.insert(new_vertices.begin(), new_vertices.end());
-				else {
-					list<Point *> temp_points;
-					set_intersection(common_vertices.begin(), common_vertices.end(), new_vertices.begin(), new_vertices.end(), back_inserter(temp_points), comp_);
+			if(common_vertices.empty())
+				common_vertices.insert(new_vertices.begin(), new_vertices.end());
+			else {
+				list<Point *> temp_points;
+				set_intersection(common_vertices.begin(), common_vertices.end(), new_vertices.begin(), new_vertices.end(), back_inserter(temp_points), comp_);
 //					cout << "intersection size: "<< temp_points.size() << endl;
-					common_vertices.clear();
-					common_vertices.insert(temp_points.begin(), temp_points.end());
-				}
+				common_vertices.clear();
+				common_vertices.insert(temp_points.begin(), temp_points.end());
+			}
 
 //				cout << "current number of common vertices: " << common_vertices.size() << endl;
-
-			} else
-				assert(i < list_of_inequalities_.size() - 1);
 
 			i += 1;
 		}
@@ -405,6 +413,7 @@ bool OnlineVertexEnumerator::inside_face(Point& p1, Point& p2, bool nondegenerat
 
 		node n1 = point_nodes_[&p1];
 		node n2 = point_nodes_[&p2];
+
 		set_intersection(	node_inequality_indices_[n1]->begin(),
 							node_inequality_indices_[n1]->end(),
 							node_inequality_indices_[n2]->begin(),
