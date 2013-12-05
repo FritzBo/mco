@@ -314,24 +314,28 @@ void OnlineVertexEnumerator::add_hyperplane(Point &vertex, Point &normal, double
 //		cout << n << ", ";
 //	cout << endl;
 
-	for(auto n : new_face_nodes) {
-		for(auto node : new_face_nodes) {
+	for(auto iter1 = new_face_nodes.begin(); iter1 != new_face_nodes.end(); ++iter1) {
+		auto n1 = *iter1;
 
-			if(n == node)
+		for(auto iter2 = iter1; iter2 != new_face_nodes.end(); ++iter2) {
+
+			auto n2 = *iter2;
+
+			if(n1 == n2)
 				continue;
 
-			if(inside_face(n, node, nondegenerate))
+			if(inside_face(n1, n2, nondegenerate))
 				continue;
 
-			vertex_graph_.newEdge(node, n);
-			vertex_graph_.newEdge(n, node);
+			vertex_graph_.newEdge(n1, n2);
+			vertex_graph_.newEdge(n2, n1);
 		}
 
 		if(dimension_ == 2)
-			assert((n->indeg() >= 2 && n->outdeg() >= 2) || abs((*node_points_[n])[dimension_]) < epsilon_);
+			assert((n1->indeg() >= 2 && n1->outdeg() >= 2) || abs((*node_points_[n1])[dimension_]) < epsilon_);
 		else
-			if((n->indeg() < 3 || n->outdeg() < 3) && abs((*node_points_[n])[dimension_]) > epsilon_) {
-				cout << "node " << n << " with point " << *node_points_[n] << " has indegree " << n->indeg() << " and outdegree " << n->outdeg() << endl;
+			if((n1->indeg() < 3 || n1->outdeg() < 3) && abs((*node_points_[n1])[dimension_]) > epsilon_) {
+				cout << "node " << n1 << " with point " << *node_points_[n1] << " has indegree " << n1->indeg() << " and outdegree " << n1->outdeg() << endl;
 				assert(false);
 			}
 	}
