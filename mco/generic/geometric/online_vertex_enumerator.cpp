@@ -334,7 +334,7 @@ void OnlineVertexEnumerator::add_hyperplane(Point &vertex, Point &normal, double
 		if(dimension_ == 2)
 			assert((n1->indeg() >= 2 && n1->outdeg() >= 2) || abs((*node_points_[n1])[dimension_]) < epsilon_);
 		else
-			if((n1->indeg() < 3 || n1->outdeg() < 3) && abs((*node_points_[n1])[dimension_]) > epsilon_) {
+			if(((unsigned int) n1->indeg() < dimension_ || (unsigned int) n1->outdeg() < dimension_) && abs((*node_points_[n1])[dimension_]) > epsilon_) {
 				cout << "node " << n1 << " with point " << *node_points_[n1] << " has indegree " << n1->indeg() << " and outdegree " << n1->outdeg() << endl;
 				assert(false);
 			}
@@ -373,6 +373,10 @@ bool OnlineVertexEnumerator::inside_face(node n1, node n2, bool nondegenerate) {
 							node_inequality_indices_[n2]->begin(),
 							node_inequality_indices_[n2]->end(),
 							back_inserter(tight_inequalities));
+
+		// [FP96] NC1
+		if(tight_inequalities.size() < dimension_ - 2)
+			return true;
 
 		for(auto inequality_index : tight_inequalities) {
 
