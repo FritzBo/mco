@@ -209,7 +209,10 @@ std::ostream & operator<<(std::ostream &os, const Point &point) {
 }
 
 bool LexicographicPointComparator::operator()(const Point * point1, const Point * point2) const {
-	return point1->is_lexicographic_less(*point2, epsilon_);
+	if(less_)
+		return point1->is_lexicographic_less(*point2, epsilon_);
+	else
+		return !point1->is_less_or_equal(*point2, epsilon_);
 }
 
 }

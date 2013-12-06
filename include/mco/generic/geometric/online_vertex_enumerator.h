@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <map>
+#include <queue>
 #include <list>
 
 #include <ogdf/basic/Graph.h>
@@ -42,7 +43,9 @@ protected:
 		node_points_(vertex_graph_, nullptr),
 		comp_(epsilon),
 		point_nodes_(comp_),
+		unprocessed_projective_points_(LexicographicPointComparator(epsilon, false)),
 		node_inequality_indices_(vertex_graph_, nullptr),
+		birth_index_(vertex_graph_, -1),
 		cycles_(0) {
 	}
 
@@ -53,10 +56,11 @@ protected:
 
 	LexicographicPointComparator comp_;
 	std::map<Point *, ogdf::node, LexicographicPointComparator> point_nodes_;
-	std::list<Point *> unprocessed_projective_points_;
+	std::priority_queue<Point *, std::vector<Point *>, LexicographicPointComparator> unprocessed_projective_points_;
 
 	std::vector<Point *> list_of_inequalities_;
 	ogdf::NodeArray<std::list<int> *> node_inequality_indices_;
+	ogdf::NodeArray<unsigned int> birth_index_;
 
 	ogdf::node get_node(Point &non_projective_point);
 	Point * to_projective(Point &non_projective_point);

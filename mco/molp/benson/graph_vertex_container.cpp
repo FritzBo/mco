@@ -68,7 +68,7 @@ GraphVertexContainer::GraphVertexContainer(Point & ideal_point,	unsigned int dim
 		delete[] values;
 	}
 
-	unprocessed_projective_points_.push_back(projective_ideal_point);
+	unprocessed_projective_points_.push(projective_ideal_point);
 
 }
 

@@ -81,8 +81,8 @@ node OnlineVertexEnumerator::get_node(Point &non_projective_point) {
 }
 
 bool OnlineVertexEnumerator::has_next() {
-	while(!unprocessed_projective_points_.empty() && point_nodes_.count(unprocessed_projective_points_.front()) == 0)
-			unprocessed_projective_points_.pop_front();
+	while(!unprocessed_projective_points_.empty() && point_nodes_.count(unprocessed_projective_points_.top()) == 0)
+			unprocessed_projective_points_.pop();
 
 	return !unprocessed_projective_points_.empty();
 }
@@ -91,15 +91,15 @@ Point * OnlineVertexEnumerator::next_vertex() {
 	Point *point;
 
 //	cout << *unprocessed_projective_points_.front() << " noch im Graphen: " << point_nodes_.count(unprocessed_projective_points_.front()) << endl;
-	while(!unprocessed_projective_points_.empty() && point_nodes_.count(unprocessed_projective_points_.front()) == 0)
-		unprocessed_projective_points_.pop_front();
+	while(!unprocessed_projective_points_.empty() && point_nodes_.count(unprocessed_projective_points_.top()) == 0)
+		unprocessed_projective_points_.pop();
 
 //	cout << *node_points_[point_nodes_[unprocessed_projective_points_.front()]] << endl;
 
 	if(unprocessed_projective_points_.empty())
 		return nullptr;
 
-	point = unprocessed_projective_points_.front();
+	point = unprocessed_projective_points_.top();
 //	cout << *point << ", dim: " << point->dimension() << endl;
 	Point * new_point = new Point(dimension_);
 
@@ -116,7 +116,7 @@ Point * OnlineVertexEnumerator::next_vertex() {
 	for(unsigned int i = 0; i < dimension_; ++i)
 		(*new_point)[i] = (*point)[i];
 
-	unprocessed_projective_points_.pop_front();
+	unprocessed_projective_points_.pop();
 
 	return new_point;
 }
@@ -132,6 +132,7 @@ void OnlineVertexEnumerator::add_hyperplane(Point &vertex, Point &normal, double
 	(*projective_normal)[dimension_] = -rhs;
 
 	list_of_inequalities_.push_back(projective_normal);
+//	cout << *projective_normal << endl;
 
 	// Check if redundancy is introduced
 //	dd_set_global_constants();
@@ -170,6 +171,7 @@ void OnlineVertexEnumerator::add_hyperplane(Point &vertex, Point &normal, double
 	list<node> new_face_nodes;
 
 	NodeArray<bool> already_active(vertex_graph_, false);
+	NodeArray<node> father_node(vertex_graph_, nullptr);
 
 	bool nondegenerate = true;
 
@@ -260,7 +262,7 @@ void OnlineVertexEnumerator::add_hyperplane(Point &vertex, Point &normal, double
 
 //				cout << "new cut vertex: " << *projective_cut_point << endl;
 
-				unprocessed_projective_points_.push_back(projective_cut_point);
+				unprocessed_projective_points_.push(projective_cut_point);
 
 //				for(auto n : new_face_nodes)
 //					cout << "4 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
@@ -283,6 +285,8 @@ void OnlineVertexEnumerator::add_hyperplane(Point &vertex, Point &normal, double
 				vertex_graph_.newEdge(neighbor, new_node);
 
 				node_points_[new_node] = projective_cut_point;
+				father_node[new_node] = neighbor;
+				birth_index_[new_node] = list_of_inequalities_.size() - 1;
 
 //				for(auto n : new_face_nodes)
 //					cout << "5 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
@@ -324,8 +328,9 @@ void OnlineVertexEnumerator::add_hyperplane(Point &vertex, Point &normal, double
 			if(n1 == n2)
 				continue;
 
-			if(inside_face(n1, n2, nondegenerate))
-				continue;
+			if(father_node[n1] != n2 && father_node[n2] != n1)
+				if(inside_face(n1, n2, nondegenerate))
+					continue;
 
 			vertex_graph_.newEdge(n1, n2);
 			vertex_graph_.newEdge(n2, n1);
@@ -366,13 +371,26 @@ bool OnlineVertexEnumerator::inside_face(node n1, node n2, bool nondegenerate) {
 		set<Point *, LexicographicPointComparator> common_vertices(comp_);
 
 		unsigned int i = 0;
-		list<int> tight_inequalities;
+		list<unsigned int> tight_inequalities;
 
 		set_intersection(	node_inequality_indices_[n1]->begin(),
 							node_inequality_indices_[n1]->end(),
 							node_inequality_indices_[n2]->begin(),
 							node_inequality_indices_[n2]->end(),
 							back_inserter(tight_inequalities));
+
+		unsigned int k = max(birth_index_[n1], birth_index_[n2]);
+		bool nc2 = false;
+
+		for(auto index: tight_inequalities)
+			if(index >= k && index <= list_of_inequalities_.size() - 1) {
+				nc2 = true;
+				break;
+			}
+
+		// [FP96] NC2
+		if(!nc2)
+			return true;
 
 		// [FP96] NC1
 		if(tight_inequalities.size() < dimension_ - 2)

@@ -78,12 +78,13 @@ class LexicographicPointComparator {
 public:
 	LexicographicPointComparator() = delete;
 
-	LexicographicPointComparator(double epsilon) : epsilon_(epsilon) {}
+	LexicographicPointComparator(double epsilon, bool less = true) : epsilon_(epsilon), less_(less) {}
 
 	bool operator()(const Point * point1, const Point * point2) const;
 
 private:
 	double epsilon_;
+	bool less_;
 };
 
 }

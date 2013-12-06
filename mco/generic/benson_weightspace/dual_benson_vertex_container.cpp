@@ -40,10 +40,11 @@ DualBensonVertexContainer::DualBensonVertexContainer(Point &initial_value, unsig
 
 		node_inequality_indices_[n]->push_back(dimension_ - 1);
 		node_inequality_indices_[n]->push_back(dimension_);
+		birth_index_[n] = dimension_;
 
 		point_nodes_.insert(make_pair(p, n));
 		node_points_[n] = p;
-		unprocessed_projective_points_.push_back(p);
+		unprocessed_projective_points_.push(p);
 
 		p = new Point(dimension_ + 1);
 		for(unsigned int j = 0; j < dimension_; ++j)
@@ -81,10 +82,11 @@ DualBensonVertexContainer::DualBensonVertexContainer(Point &initial_value, unsig
 		node_inequality_indices_[n]->push_back(i);
 
 	node_inequality_indices_[n]->push_back(dimension_);
+	birth_index_[n] = dimension_;
 
 	point_nodes_.insert(make_pair(p, n));
 	node_points_[n] = p;
-	unprocessed_projective_points_.push_back(p);
+	unprocessed_projective_points_.push(p);
 
 	forall_nodes(v, vertex_graph_) {
 		if(v != n) {
@@ -111,6 +113,8 @@ DualBensonVertexContainer::DualBensonVertexContainer(Point &initial_value, unsig
 
 	for(unsigned int i = 0; i < dimension_; ++i)
 		node_inequality_indices_[n]->push_back(i);
+
+	birth_index_[n] = dimension_ - 1;
 
 	point_nodes_.insert(make_pair(p, n));
 	node_points_[n] = p;
