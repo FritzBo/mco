@@ -13,8 +13,6 @@
 #include <set>
 #include <deque>
 
-#include <gurobi_c++.h>
-
 #include <mco/ap/AbstractAPSolver.h>
 #include <mco/generic/benson_weightspace/dual_benson_scalarizer.h>
 
