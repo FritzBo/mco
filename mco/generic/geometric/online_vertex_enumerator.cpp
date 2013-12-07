@@ -171,6 +171,7 @@ void OnlineVertexEnumerator::add_hyperplane(Point &vertex, Point &normal, double
 	list<node> new_face_nodes;
 
 	NodeArray<bool> already_active(vertex_graph_, false);
+	NodeArray<bool> already_on_face(vertex_graph_, false);
 	NodeArray<node> father_node(vertex_graph_, nullptr);
 
 	bool nondegenerate = true;
@@ -225,13 +226,11 @@ void OnlineVertexEnumerator::add_hyperplane(Point &vertex, Point &normal, double
 				nondegenerate = false;
 				new_node = neighbor;
 //				cout << "neighbor " << new_node << " resides on hyperplane" << endl;
-				bool already_on_face = false;
-				for(auto n : new_face_nodes) {
-					if(new_node->index() == n->index())
-						already_on_face = true;
-				}
-				if(already_on_face)
+
+				if(already_on_face[new_node])
 					continue;
+
+				already_on_face[new_node] = true;
 
 			} else {
 
