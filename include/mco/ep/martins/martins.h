@@ -10,15 +10,21 @@
 #ifndef MARTINS_B_H_
 #define MARTINS_B_H_
 
-#include "../abstract_ep_solver.h"
+#include <mco/ep/basic/abstract_ep_solver.h>
 
 namespace mco {
 
 class EpSolverMartins : public AbstractEpSolver {
 
 public:
-	explicit EpSolverMartins(mco::EpInstance &instance);
+	explicit EpSolverMartins(mco::EpInstance &instance,
+                             double epsilon = 0)
+    : AbstractEpSolver(instance), epsilon_(epsilon) { }
+    
 	virtual void Solve();
+    
+private:
+    const double epsilon_;
 
 };
 

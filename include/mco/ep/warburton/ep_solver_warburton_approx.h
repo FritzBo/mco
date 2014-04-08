@@ -9,8 +9,8 @@
 #ifndef EP_SOLVER_WARBURTON_APPROX_H_
 #define EP_SOLVER_WARBURTON_APPROX_H_
 
-#include <mco/ep/abstract_ep_solver.h>
-#include <mco/ep/ep_instance.h>
+#include <mco/ep/basic/abstract_ep_solver.h>
+#include <mco/ep/basic/ep_instance.h>
 
 namespace mco {
 

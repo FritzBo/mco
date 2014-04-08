@@ -24,20 +24,16 @@ using ogdf::node;
 using ogdf::edge;
 using ogdf::NodeArray;
 
-#include <mco/ep/ep_instance.h>
-#include <mco/point.h>
+#include <mco/ep/basic/ep_instance.h>
+#include <mco/core/point.h>
 #include <mco/ep/martins/label.h>
 
 namespace mco {
 
-EpSolverMartins::EpSolverMartins(EpInstance &instance): AbstractEpSolver(instance) {
-
-}
-
 // TODO: Functor or lambda
 bool lexicographic_smaller_label(const Label *p1, const Label *p2) {
-	//return *p1->point < *p2->point;
-	return p1->point->is_less(*p2->point, 1E-6);
+    // return *p1->point < *p2->point;
+    return LexPointComparator::is_lex_le(*p1->point, *p2->point, 0);
 }
 
 using LabelPriorityQueue = priority_queue<const Label *, vector<const Label *>, decltype(&lexicographic_smaller_label)>;
@@ -45,9 +41,11 @@ using LabelPriorityQueue = priority_queue<const Label *, vector<const Label *>, 
 // TODO: FIXME
 void EpSolverMartins::Solve() {
 	LabelPriorityQueue lex_min_label(&lexicographic_smaller_label);
-	NodeArray<list<Label *>> labels(*instance().graph());
+	NodeArray<list<Label *>> labels(instance().graph());
 
 	set<const Label *> labels_in_queue;
+    
+    ComponentwisePointComparator comp_leq(epsilon_, false);
 
 	Label *null_label = new Label(Point::Null(instance().dimension()), instance().source(), nullptr);
 	labels[instance().source()].push_back(null_label);
@@ -85,7 +83,7 @@ void EpSolverMartins::Solve() {
 
 //			cout << v << ", ";
 
-			const Point *edge_cost = (*instance().weights())[e];
+			const Point *edge_cost = instance().weights()(e);
 			const Point *new_cost = new Point(*edge_cost + *label_cost);			// Owner
 
 			list<Label *> nondominatedLabels;
@@ -96,12 +94,12 @@ void EpSolverMartins::Solve() {
 
 				Label * target_label = *i;
 
-				if(target_label->point->is_less_or_equal(*new_cost, 1E-6)) {
+				if(comp_leq(target_label->point, new_cost)) {
 					dominated = true;
 					break;
 				}
 
-				if(new_cost->is_less_or_equal(*target_label->point, 1E-6)) {
+				if(comp_leq(new_cost, target_label->point)) {
 					if(labels_in_queue.count(target_label) > 0) {
 						target_label->mark_dominated = true;
 						++i;
@@ -148,7 +146,7 @@ void EpSolverMartins::Solve() {
 //	}
 
 	node n;
-	forall_nodes(n, *instance().graph()) {
+	forall_nodes(n, instance().graph()) {
 		for(auto &label : labels[n])
 			delete label;
 	}

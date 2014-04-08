@@ -24,47 +24,54 @@ using ogdf::edge;
 
 namespace mco {
 
-shared_ptr<AssignmentInstance> MCAPParser::get_instance() {
+// FIXME
+AssignmentInstance MCAPParser::
+get_instance(ogdf::Graph& graph,
+             ogdf::EdgeArray<Point *>& edge_costs,
+             std::set<ogdf::node>& agents) {
+    
 	ifstream file(filename_);
 
-	if(!file.good())
-		    cerr << "Could not open file " << filename_ << endl;
+	if(!file.good()) {
+        cerr << "Could not open file " << filename_ << endl;
+        throw string("Could not open file ") + filename_;
+    }
 
 	unsigned int num_agents, dim;
 
 	file >> num_agents; //number of nodes
 	file >> dim; 		//dimension of objective function;
 
-	auto graph = make_shared<Graph>();
-	auto edge_cost = make_shared<EdgeArray<Point *>>(*graph);
-	auto agents = make_shared<set<node>>();
 	list<node> jobs;
 
 	for(unsigned int i = 0; i < num_agents; ++i) {
-		node agent_node = graph->newNode();
-		agents->insert(agent_node);
+		node agent_node = graph.newNode();
+		agents.insert(agent_node);
 	}
 
 	for(unsigned int i = 0; i < num_agents; ++i) {
-		node job_node = graph->newNode();
+		node job_node = graph.newNode();
 		jobs.push_back(job_node);
-		for(auto agent : *agents)
-			graph->newEdge(agent, job_node);
+		for(auto agent : agents)
+			graph.newEdge(agent, job_node);
 	}
 
 	double value;
-	edge e;
-	for(unsigned int i = 0; i < dim; ++i)
-		for(auto agent : *agents)
-			forall_adj_edges(e, agent){
+    for(unsigned int i = 0; i < dim; ++i) {
+        for(node agent : agents) {
+            for(auto adj : agent->adjEdges) {
+                edge e = adj->theEdge();
+                
 				if(i == 0) {
-					edge_cost->operator [](e) = new Point(0.0, dim);
+					edge_costs[e] = new Point(0.0, dim);
 				}
 				file >> value;
-				edge_cost->operator [](e)->operator [](i) = value;
+				edge_costs[e]->operator [](i) = value;
 			}
+        }
+    }
 
-	auto instance = make_shared<AssignmentInstance>(graph, edge_cost, agents, dim);
+	AssignmentInstance instance(graph, edge_costs, agents, dim);
 
 	//close the file
 	file.close();

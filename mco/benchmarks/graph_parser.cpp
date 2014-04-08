@@ -19,7 +19,7 @@ using ogdf::node;
 using ogdf::edge;
 using ogdf::EdgeArray;
 
-#include <mco/point.h>
+#include <mco/core/point.h>
 
 using mco::Point;
 
@@ -29,11 +29,10 @@ void GraphParser::getGraph(Graph &graph, EdgeArray<Point *> &weights) {
 
 	ifstream file(filename_);
 
-	if(!file.good())
+	if(!file.good()) {
 	    cerr << "Could not open file " << filename_ << endl;
-
-//	if(weights.graphOf() != graph)
-//		cerr << "Must be the EdgeArray of the graph parameter";
+        throw string("Could not open file ") + filename_;
+    }
 
 	int n, m;
 

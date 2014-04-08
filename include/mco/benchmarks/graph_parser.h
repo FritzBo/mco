@@ -13,7 +13,7 @@
 
 #include <ogdf/basic/Graph.h>
 
-#include <mco/point.h>
+#include <mco/core/point.h>
 
 namespace mco {
 

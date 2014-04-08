@@ -8,6 +8,7 @@
 #include <vector>
 #include <limits>
 #include <cmath>
+#include <functional>
 
 using std::vector;
 using std::min;
@@ -17,6 +18,7 @@ using std::pow;
 using std::ceil;
 using std::floor;
 using std::numeric_limits;
+using std::function;
 
 #include <ogdf/basic/Graph.h>
 #include <ogdf/graphalg/ShortestPathWithBFM.h>
@@ -38,9 +40,9 @@ EpSolverWarburtonApprox::EpSolverWarburtonApprox(EpInstance &instance, const Poi
 
 void EpSolverWarburtonApprox::Solve() {
 	const unsigned int dimension = instance().dimension();
-	const unsigned int number_nodes = instance().graph()->numberOfNodes();
-	const Graph &graph = *instance().graph();
-	EdgeArray<Point *> &weights = *instance().weights();
+	const unsigned int number_nodes = instance().graph().numberOfNodes();
+	const Graph &graph = instance().graph();
+	const function<Point *(edge)> & weights = instance().weights();
 	const node source = instance().source();
 	const node target = instance().target();
 
@@ -61,7 +63,7 @@ void EpSolverWarburtonApprox::Solve() {
 	for(unsigned int k = 0; k < dimension - 1; ++k) {
 
 		forall_edges(e, graph) {
-			weight = (*weights[e])[k];
+			weight = (*weights(e))[k];
 			min_e[k] = min(min_e[k], weight);
 			max_e[k] = max(max_e[k], weight);
 		}
@@ -74,7 +76,7 @@ void EpSolverWarburtonApprox::Solve() {
 		for(int i = min_i; i < max_i; ++i) {
 			d = static_cast<double>(pow(2, max_i - i));
 			forall_edges(e, graph)
-				weight_functions[k][e] = static_cast<int>(floor((*weights[e])[k] * (number_nodes - 1) / (epsilon_[k] * d) ));
+				weight_functions[k][e] = static_cast<int>(floor((*weights(e))[k] * (number_nodes - 1) / (epsilon_[k] * d) ));
 
 			// TODO: Error Message / Exception
 			if(!shortest_path_module.call(graph, source, weight_functions[k], distances, predecessor))

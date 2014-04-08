@@ -9,11 +9,11 @@
 #ifndef BENSON_DUAL_H_
 #define BENSON_DUAL_H_
 
-#include <mco/abstract_solver.h>
+#include <mco/core/abstract_solver.h>
 
 namespace mco {
 
-class DualBensonMolpSolver : AbstractMOSolver {
+class DualBensonMolpSolver : AbstractSolver {
 public:
 	DualBensonMolpSolver();
 

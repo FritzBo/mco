@@ -11,7 +11,7 @@
 
 #include <memory>
 
-#include <mco/ap/assignment_instance.h>
+#include <mco/ap/basic/ap_instance.h>
 
 namespace mco {
 
@@ -22,7 +22,7 @@ public:
 	PGE10Parser3AP(std::string filename) :
 		filename_(filename) {}
 
-	std::shared_ptr<AssignmentInstance> get_instance();
+	AssignmentInstance * get_instance();
 
 private:
 	std::string filename_;

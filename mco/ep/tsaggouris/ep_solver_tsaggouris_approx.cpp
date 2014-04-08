@@ -11,6 +11,7 @@
 #include <list>
 #include <cmath>
 #include <stdexcept>
+#include <functional>
 
 using std::invalid_argument;
 using std::vector;
@@ -20,6 +21,7 @@ using std::floor;
 using std::max;
 using std::min;
 using std::numeric_limits;
+using std::function;
 
 #include <ogdf/basic/Graph.h>
 
@@ -29,7 +31,7 @@ using ogdf::NodeArray;
 using ogdf::EdgeArray;
 using ogdf::Graph;
 
-#include <mco/ep/ep_instance.h>
+#include <mco/ep/basic/ep_instance.h>
 #include <mco/ep/martins/label.h>
 
 namespace mco {
@@ -45,14 +47,14 @@ unsigned int EpSolverTsaggourisApprox::position(const Point &point) const {
 }
 
 void EpSolverTsaggourisApprox::ExtendAndMerge(vector<const Label *> &old_Py_n, const edge e, const node n, vector<const Label *> &new_Py_n) const {
-	EdgeArray<Point *> &weights = *instance().weights();
+	const function<Point *(edge)> & weights = instance().weights();
 	const unsigned int dimension = instance().dimension();
 
 	for(auto label : old_Py_n) {
 		if(label == nullptr)
 			continue;
 
-		const Label *new_label = new const Label(new Point(*label->point + *weights[e]), n, label);
+		const Label *new_label = new const Label(new Point(*label->point + *weights(e)), n, label);
 		const Label *old_label = new_Py_n[position(*new_label->point)];
 		if(old_label == nullptr || (*new_label->point)[dimension - 1] < (*old_label->point)[dimension - 1]) {
 			new_Py_n[position(*new_label->point)] = new_label;
@@ -64,8 +66,8 @@ void EpSolverTsaggourisApprox::ExtendAndMerge(vector<const Label *> &old_Py_n, c
 
 void EpSolverTsaggourisApprox::Solve() {
 	const unsigned int dimension = instance().dimension();
-	const Graph &graph = *instance().graph();
-	EdgeArray<Point *> &weights = *instance().weights();
+	const Graph &graph = instance().graph();
+	const function<Point *(edge)> & weights = instance().weights();
 
 	vector<double> c_max(dimension - 1);
 	c_min_.reserve(dimension - 1);
@@ -81,8 +83,8 @@ void EpSolverTsaggourisApprox::Solve() {
 			continue;
 
 		for(unsigned int i = 0; i < dimension - 1; ++i) {
-			c_max[i] = max(c_max[i], (*weights[e])[i]);
-			c_min_[i] = min(c_min_[i], (*weights[e])[i]);
+			c_max[i] = max(c_max[i], (*weights(e))[i]);
+			c_min_[i] = min(c_min_[i], (*weights(e))[i]);
 
 			if(c_min_[i] == 0)
 				throw invalid_argument("Edge cost 0 is not allowed.");

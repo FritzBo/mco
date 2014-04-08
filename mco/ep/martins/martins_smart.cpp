@@ -27,8 +27,8 @@ using ogdf::node;
 using ogdf::edge;
 using ogdf::NodeArray;
 
-#include <mco/ep/ep_instance.h>
-#include <mco/point.h>
+#include <mco/ep/basic/ep_instance.h>
+#include <mco/core/point.h>
 
 namespace mco {
 
@@ -47,20 +47,25 @@ struct LabelSmart {
 
 // TODO: Functor or lambda
 bool lexicographic_smaller_label_smart(shared_ptr<const LabelSmart> p1, shared_ptr<const LabelSmart> p2) {
-	return p1->point->is_less(*p2->point, 1E-6);
+	return LexPointComparator::is_lex_le(*p1->point, *p2->point, 0);
 }
 
-using LabelPriorityQueue = priority_queue<shared_ptr<const LabelSmart>, vector<shared_ptr<const LabelSmart>>, decltype(&lexicographic_smaller_label_smart)>;
-using LabelSet = set<shared_ptr<const LabelSmart>, decltype(&lexicographic_smaller_label_smart)>;
-using LabelList = list<shared_ptr<const LabelSmart>>;
-using LabelListNodeArray = NodeArray<list<shared_ptr<LabelSmart>>>;
+using LabelPriorityQueue    = priority_queue<shared_ptr<const LabelSmart>,
+                                             vector<shared_ptr<const LabelSmart>>,
+                                             decltype(&lexicographic_smaller_label_smart)>;
+    
+using LabelSet              = set<shared_ptr<const LabelSmart>, decltype(&lexicographic_smaller_label_smart)>;
+using LabelList             = list<shared_ptr<const LabelSmart>>;
+using LabelListNodeArray    = NodeArray<list<shared_ptr<LabelSmart>>>;
 
 void EpSolverMartinsSmart::Solve() {
 	LabelPriorityQueue lex_min_label(&lexicographic_smaller_label_smart);
-	LabelListNodeArray labels(*instance().graph());
+	LabelListNodeArray labels(instance().graph());
 
 	shared_ptr<const LabelSmart> null_label = make_shared<LabelSmart>(shared_ptr<const Point>(Point::Null(instance().dimension())), instance().source(), nullptr);
 	lex_min_label.push(null_label);
+    
+    ComponentwisePointComparator comp_leq(0.0, false);
 
 	while(!lex_min_label.empty()) {
 		shared_ptr<const LabelSmart> label = lex_min_label.top();
@@ -87,23 +92,24 @@ void EpSolverMartinsSmart::Solve() {
 			if(v == instance().source())
 				continue;
 
-			const Point * edge_cost = (*instance().weights())[e];
-			shared_ptr<const Point> new_cost = make_shared<const Point>(*edge_cost + *label_cost);
+			auto edge_cost = instance().weights()(e);
+			auto new_cost = make_shared<const Point>(*edge_cost + *label_cost);
 
 			list<shared_ptr<LabelSmart> > nondominatedLabels;
 			bool dominated = false;
 
 			for(auto &target_label : labels[v]) {
 
-				if(target_label->point->is_less_or_equal(*new_cost, 1E-6)) {
+				if(comp_leq(*target_label->point, *new_cost)) {
 					dominated = true;
 					break;
 				}
 
-				if(new_cost->is_less_or_equal(*target_label->point, 1E-6))
+				if(comp_leq(*new_cost, *target_label->point)) {
 					target_label->mark_dominated = true;
-				else
+				} else {
 					nondominatedLabels.emplace_back(target_label);
+                }
 			}
 
 			if(dominated)

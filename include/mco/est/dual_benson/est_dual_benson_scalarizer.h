@@ -14,16 +14,17 @@
 
 #include <ogdf/basic/Graph.h>
 
-#include <mco/point.h>
-#include <mco/est/abstract_est_solver.h>
-#include <mco/vector_weighted_graph.h>
+#include <mco/core/point.h>
+#include <mco/est/basic/abstract_est_solver.h>
+#include <mco/core/abstract_graph_instance.h>
 #include <mco/generic/benson_weightspace/dual_benson_scalarizer.h>
 
 namespace mco {
 
-class ESTDualBensonScalarizer : public AbstractESTSolver, public ScalarizationSolver {
+template<class OnlineVertexEnumerator>
+class ESTDualBensonScalarizer : public AbstractESTSolver {
 public:
-	ESTDualBensonScalarizer(VectorWeightedGraph &graph, double epsilon = 1E-6);
+	ESTDualBensonScalarizer(AbstractGraphInstance &graph, double epsilon = 1E-6);
 	virtual ~ESTDualBensonScalarizer();
 
 	virtual void Solve() {
@@ -52,7 +53,7 @@ public:
 
 private:
 	double epsilon_;
-	DualBensonScalarizer *benson_scalarizer_;
+	DualBensonScalarizer<OnlineVertexEnumerator> *benson_scalarizer_;
 
 	virtual double Solve_scalarization(Point &weights, Point &value);
 

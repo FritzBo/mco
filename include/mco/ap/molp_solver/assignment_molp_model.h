@@ -11,8 +11,8 @@
 
 #include <memory>
 
-#include <mco/molp/molp_model.h>
-#include <mco/ap/assignment_instance.h>
+#include <mco/molp/basic/molp_model.h>
+#include <mco/ap/basic/ap_instance.h>
 
 namespace mco {
 

@@ -19,21 +19,28 @@ using ogdf::EdgeArray;
 using ogdf::edge;
 using ogdf::node;
 
-#include <mco/point.h>
+#include <mco/core/point.h>
 
 namespace mco {
 
-ESTDualBensonScalarizer::ESTDualBensonScalarizer(VectorWeightedGraph& instance, double epsilon) :
-	AbstractESTSolver(instance), epsilon_(epsilon), parents_(*instance.graph()), cycles_(0) {
+template<typename OnlineVertexEnumerator>
+ESTDualBensonScalarizer<OnlineVertexEnumerator>::ESTDualBensonScalarizer(AbstractGraphInstance & instance,
+                                                                         double epsilon)
+    :   AbstractESTSolver(instance),
+        epsilon_(epsilon),
+        parents_(instance.graph()),
+        cycles_(0) {
 
-	benson_scalarizer_ = new DualBensonScalarizer(*this, instance.dimension(), epsilon);
+	benson_scalarizer_ = new DualBensonScalarizer<OnlineVertexEnumerator>(*this, instance.dimension(), epsilon);
 }
 
-ESTDualBensonScalarizer::~ESTDualBensonScalarizer() {
+template<typename OnlineVertexEnumerator>
+ESTDualBensonScalarizer<OnlineVertexEnumerator>::~ESTDualBensonScalarizer() {
 
 }
 
-double ESTDualBensonScalarizer::Solve_scalarization(Point &weighting, Point &value) {
+template<typename OnlineVertexEnumerator>
+double ESTDualBensonScalarizer<OnlineVertexEnumerator>::Solve_scalarization(Point &weighting, Point &value) {
 	clock_t start = clock();
 	unsigned int dim = instance().dimension();
 	EdgeArray<Point *> &weights = *instance().weights();
@@ -66,7 +73,8 @@ double ESTDualBensonScalarizer::Solve_scalarization(Point &weighting, Point &val
 	return kruskal_solver(sorted_edges, weighted_costs, value);
 }
 
-double ESTDualBensonScalarizer::kruskal_solver(vector<edge> &sorted_edges, EdgeArray<double> costs, Point &value) {
+template<typename OnlineVertexEnumerator>
+double ESTDualBensonScalarizer<OnlineVertexEnumerator>::kruskal_solver(vector<edge> &sorted_edges, EdgeArray<double> costs, Point &value) {
 	double cost = 0;
 
 	node n;
@@ -74,6 +82,7 @@ double ESTDualBensonScalarizer::kruskal_solver(vector<edge> &sorted_edges, EdgeA
 		make_set(n);
 	}
 
+	//TODO: Stop after n-1 edges have been added
 	for(edge e: sorted_edges) {
 		if(find_set(e->source()) != find_set(e->target())) {
 			set_union(e->source(), e->target());
@@ -85,11 +94,13 @@ double ESTDualBensonScalarizer::kruskal_solver(vector<edge> &sorted_edges, EdgeA
 	return cost;
 }
 
-void ESTDualBensonScalarizer::make_set(ogdf::node n) {
+template<typename OnlineVertexEnumerator>
+void ESTDualBensonScalarizer<OnlineVertexEnumerator>::make_set(ogdf::node n) {
 	parents_[n] = n;
 }
 
-ogdf::node ESTDualBensonScalarizer::find_set(ogdf::node n) {
+template<typename OnlineVertexEnumerator>
+ogdf::node ESTDualBensonScalarizer<OnlineVertexEnumerator>::find_set(ogdf::node n) {
 	node current = n;
 	list<node> path_nodes;
 
@@ -104,7 +115,8 @@ ogdf::node ESTDualBensonScalarizer::find_set(ogdf::node n) {
 	return current;
 }
 
-void ESTDualBensonScalarizer::set_union(ogdf::node u, ogdf::node v) {
+template<typename OnlineVertexEnumerator>
+void ESTDualBensonScalarizer<OnlineVertexEnumerator>::set_union(ogdf::node u, ogdf::node v) {
 	parents_[find_set(v)] = parents_[find_set(u)];
 }
 

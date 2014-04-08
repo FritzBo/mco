@@ -10,7 +10,7 @@
 using ogdf::randomDouble;
 
 #include <mco/benchmarks/correlated_random.h>
-#include <mco/point.h>
+#include <mco/core/point.h>
 
 namespace mco {
 

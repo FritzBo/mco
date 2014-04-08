@@ -9,13 +9,14 @@
 #ifndef EST_SOLVER2_TREES_H_
 #define EST_SOLVER2_TREES_H_
 
-#include "../abstract_est_solver.h"
+#include <mco/est/basic/abstract_est_solver.h>
+#include <mco/core/abstract_graph_instance.h>
 
 namespace mco {
 
 class ESTSolver2Trees : public mco::AbstractESTSolver {
 public:
-	ESTSolver2Trees(VectorWeightedGraph &instance) : mco::AbstractESTSolver(instance) {}
+	ESTSolver2Trees(AbstractGraphInstance &instance) : mco::AbstractESTSolver(instance) {}
 
 	virtual void Solve();
 };

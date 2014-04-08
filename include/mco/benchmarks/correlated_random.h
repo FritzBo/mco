@@ -13,13 +13,23 @@
 
 namespace mco {
 
-class CorrelatedObjectiveGenerator: public mco::AbstractObjectiveVectorGenerator {
+class CorrelatedObjectiveGenerator
+    : public AbstractObjectiveVectorGenerator {
+        
+        
 	double lower_bound_;
 	double upper_bound_;
 	double rho_;
 
 public:
-	CorrelatedObjectiveGenerator(double lower_bound, double upper_bound, double rho) : AbstractObjectiveVectorGenerator(2), lower_bound_(lower_bound), upper_bound_(upper_bound), rho_(rho) {}
+	CorrelatedObjectiveGenerator(double lower_bound,
+                                 double upper_bound,
+                                 double rho)
+    
+    : AbstractObjectiveVectorGenerator(2),
+    lower_bound_(lower_bound),
+    upper_bound_(upper_bound),
+    rho_(rho) {}
 
 	virtual Point * draw_point();
 };

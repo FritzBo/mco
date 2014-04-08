@@ -7,9 +7,11 @@
 
 #include <set>
 #include <memory>
+#include <functional>
 
 using std::set;
 using std::shared_ptr;
+using std::function;
 
 #include <ogdf/basic/Graph.h>
 
@@ -18,7 +20,7 @@ using ogdf::edge;
 using ogdf::node;
 using ogdf::EdgeArray;
 
-#include <mco/point.h>
+#include <mco/core/point.h>
 #include <mco/ap/molp_solver/assignment_molp_model.h>
 
 namespace mco {
@@ -26,16 +28,16 @@ namespace mco {
 AssignmentMolpModel::AssignmentMolpModel(shared_ptr<AssignmentInstance> instance) :
 	instance_(instance) {
 
-	const Graph &graph = *instance->graph();
-	const set<node> &agents = *instance->agents();
-	EdgeArray<Point *> &weights = *instance->weights();
+	const Graph &graph = instance->graph();
+	const set<node> &agents = instance->agents();
+    const function<Point *(edge)> & weights = instance->weights();
 
 	int number_of_agents = graph.numberOfNodes() / 2;
 	int number_of_edges = graph.numberOfEdges() / 2;
 
 	int number_of_constraints = number_of_agents * 4 + number_of_edges;
 	int number_of_variables = number_of_edges;
-	unsigned int number_of_objectives = weights[graph.firstEdge()]->dimension();
+	unsigned int number_of_objectives = weights(graph.firstEdge())->dimension();
 
 	int size_of_A = number_of_constraints * number_of_variables;
 	int size_of_C = number_of_variables * number_of_objectives;
@@ -69,7 +71,7 @@ AssignmentMolpModel::AssignmentMolpModel(shared_ptr<AssignmentInstance> instance
 			A_[start_index_work_negative + e->index() / 2 + number_of_variables * (e->source()->index() - number_of_agents)] = -1;
 		}
 
-		const Point * weight = weights[e];
+		const Point * weight = weights(e);
 		for(unsigned int i = 0; i < number_of_objectives; ++i)
 			C_[number_of_variables * i + e->index() / 2] = (*weight)[i];
 	}

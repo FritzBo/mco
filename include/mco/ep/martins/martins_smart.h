@@ -10,7 +10,7 @@
 #ifndef MARTINS_S_H_
 #define MARTINS_S_H_
 
-#include "../abstract_ep_solver.h"
+#include <mco/ep/basic/abstract_ep_solver.h>
 
 namespace mco {
 

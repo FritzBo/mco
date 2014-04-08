@@ -14,6 +14,7 @@
 #include <memory>
 #include <vector>
 #include <cassert>
+#include <functional>
 
 using std::queue;
 using std::list;
@@ -21,6 +22,7 @@ using std::vector;
 using std::unordered_set;
 using std::cout;
 using std::endl;
+using std::function;
 
 #include <ogdf/basic/Graph.h>
 
@@ -31,8 +33,8 @@ using ogdf::NodeArray;
 using ogdf::EdgeArray;
 using ogdf::AdjElement;
 
-#include <mco/point.h>
-#include <mco/ep/ep_instance.h>
+#include <mco/core/point.h>
+#include <mco/ep/basic/ep_instance.h>
 
 namespace mco {
 
@@ -41,9 +43,10 @@ namespace mco {
  * TODO: Using algorithm of Kung et al.
  */
 bool DominationPartition(const list<const Point *> &source1,
-		const list<const Point *> &source2,
-		list<const Point *> &nondominated_subset,
-		list<const Point *> &dominated_subset) {
+                         const list<const Point *> &source2,
+                         list<const Point *> &nondominated_subset,
+                         list<const Point *> &dominated_subset,
+                         double epsilon) {
 
 //	unsigned int dim = source1.front()->dimension();
 
@@ -84,6 +87,10 @@ bool DominationPartition(const list<const Point *> &source1,
 //	} else {
 
 		vector<bool> marker(source2.size());
+    
+        EqualityPointComparator eq_comp(epsilon);
+        ComponentwisePointComparator comp_leq(epsilon, false);
+        ParetoDominationPointComparator pareto_dominates(epsilon);
 
 		for(unsigned int i = 0; i < source2.size(); ++i)
 			marker[i] = false;
@@ -96,15 +103,16 @@ bool DominationPartition(const list<const Point *> &source1,
 			unsigned int i = 0;
 			for(auto label_source2: source2) {
 
-				if(label_source1->is_equal(*label_source2, 1E-6)) {
+				if(eq_comp(label_source1, label_source2)) {
 					dominated = true;
 					break;
 				}
 
-				if(label_source1->is_less_or_equal(*label_source2, 1E-6))
+				if(comp_leq(label_source1, label_source2)) {
 					marker[i] = true;
+                }
 
-				if(label_source2->is_less_or_equal(*label_source1, 1E-6)) {
+				if(comp_leq(label_source2, label_source2)) {
 					dominated = true;
 					break;
 				}
@@ -130,12 +138,18 @@ bool DominationPartition(const list<const Point *> &source1,
 //	}
 
 	for(auto dominated_label: dominated_subset) {
+        
 		dominated = false;
+        
 		for(auto nondominated_label: nondominated_subset)
-			if(nondominated_label->Dominates(*dominated_label, 1E-6) || nondominated_label->is_equal(*dominated_label, 1E-6)) {
+            
+			if(pareto_dominates(nondominated_label, dominated_label) ||
+               eq_comp(nondominated_label, dominated_label)) {
+                
 				dominated = true;
 				break;
 			}
+        
 		if(!dominated) {
 			std::cout << "Source1:" << std::endl;
 			for(auto label: source1)
@@ -164,8 +178,8 @@ bool DominationPartition(const list<const Point *> &source1,
 }
 
 void EpSolverBS::Solve() {
-	const Graph &graph = *instance().graph();
-	EdgeArray<Point *> &weights(*instance().weights());
+	const Graph &graph = instance().graph();
+	const function<Point *(edge)> & weights(instance().weights());
 	unsigned int dim = instance().dimension();
 	const node source = instance().source();
 	const node target = instance().target();
@@ -206,7 +220,7 @@ void EpSolverBS::Solve() {
 			list<const Point *> new_labels;
 
 			for(auto &label : currentNodeLabels) {
-				Point * new_label = new Point(*label + *weights[e]);
+				Point * new_label = new Point(*label + *weights(e));
 				new_labels.push_back(new_label);
 			}
 
@@ -224,7 +238,7 @@ void EpSolverBS::Solve() {
 				list<const Point *> dominated_subset;
 				list<const Point *> nondominated_subset;
 
-				bool changed = DominationPartition(new_labels, labels[v], nondominated_subset, dominated_subset);
+				bool changed = DominationPartition(new_labels, labels[v], nondominated_subset, dominated_subset, epsilon_);
 
 				labels[v] = nondominated_subset;
 

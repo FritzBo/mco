@@ -23,7 +23,7 @@ using ogdf::edge;
 
 namespace mco {
 
-std::shared_ptr<AssignmentInstance> PGE10Parser3AP::get_instance() {
+AssignmentInstance * PGE10Parser3AP::get_instance() {
 	ifstream file(filename_);
 
 	if(!file.good())
@@ -34,9 +34,9 @@ std::shared_ptr<AssignmentInstance> PGE10Parser3AP::get_instance() {
 	file >> num_agents; //number of nodes
 	unsigned int dim = 3;
 
-	auto graph = make_shared<Graph>();
-	auto edge_cost = make_shared<EdgeArray<Point *>>(*graph);
-	auto agents = make_shared<set<node>>();
+	auto graph = new Graph();
+	auto edge_cost = new EdgeArray<Point *>(*graph);
+	auto agents = new set<node>();
 	list<node> jobs;
 
 	for(unsigned int i = 0; i < num_agents; ++i) {
@@ -63,7 +63,7 @@ std::shared_ptr<AssignmentInstance> PGE10Parser3AP::get_instance() {
 				edge_cost->operator [](e)->operator [](i) = value;
 			}
 
-	auto instance = make_shared<AssignmentInstance>(graph, edge_cost, agents, dim);
+	auto instance = new AssignmentInstance(*graph, *edge_cost, *agents, dim);
 
 	//close the file
 	file.close();

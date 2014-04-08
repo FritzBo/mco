@@ -20,27 +20,32 @@ using ogdf::node;
 
 namespace mco {
 
-APGRBBensonDualSolver::APGRBBensonDualSolver(std::shared_ptr<AssignmentInstance> instance, double epsilon):
-	AbstractAPSolver(instance), grb_env_(new GRBEnv()), epsilon_(epsilon), cycles_(0) {
+template<typename OnlineVertexEnumerator>
+APGRBBensonDualSolver<OnlineVertexEnumerator>::APGRBBensonDualSolver(AssignmentInstance & instance,
+                                                                     double epsilon)
+    :   AbstractAPSolver(instance),
+        grb_env_(new GRBEnv()),
+        epsilon_(epsilon),
+        cycles_(0) {
 
 	grb_env_ = new GRBEnv();
 	lp_model_ = new GRBModel(*grb_env_);
 	edge e;
 	node n;
 
-	variables_ = lp_model_->addVars(instance->graph()->numberOfEdges());
+	variables_ = lp_model_->addVars(instance.graph().numberOfEdges());
 
 	lp_model_->update();
 
-	for(int i = 0; i < instance->graph()->numberOfEdges(); ++i) {
+	for(int i = 0; i < instance.graph().numberOfEdges(); ++i) {
 		variables_[i].set(GRB_DoubleAttr_UB, GRB_INFINITY);
 		variables_[i].set(GRB_DoubleAttr_LB, 0);
 	}
 
-	forall_nodes(n, *instance->graph()) {
+	forall_nodes(n, instance.graph()) {
 		GRBLinExpr c = 0;
 		unsigned int i = 0;
-		forall_edges(e, *instance->graph()) {
+		forall_edges(e, instance.graph()) {
 			if(e->isIncident(n))
 				c += variables_[i];
 			++i;
@@ -50,15 +55,17 @@ APGRBBensonDualSolver::APGRBBensonDualSolver(std::shared_ptr<AssignmentInstance>
 
 	lp_model_->update();
 
-	dual_benson_solver_ = new DualBensonScalarizer(*this, instance->dimension(), epsilon);
+	dual_benson_solver_ = new DualBensonScalarizer<OnlineVertexEnumerator>(*this, instance.dimension(), epsilon);
 }
 
-APGRBBensonDualSolver::~APGRBBensonDualSolver() {
+template<typename OnlineVertexEnumerator>
+APGRBBensonDualSolver<OnlineVertexEnumerator>::~APGRBBensonDualSolver() {
 	delete lp_model_;
 	delete grb_env_;
 }
 
-double APGRBBensonDualSolver::Solve_scalarization(Point& weights, Point& value) {
+template<typename OnlineVertexEnumerator>
+double APGRBBensonDualSolver<OnlineVertexEnumerator>::Solve_scalarization(Point& weights, Point& value) {
 	clock_t start = clock();
 	edge e;
 	GRBLinExpr obj = 0;

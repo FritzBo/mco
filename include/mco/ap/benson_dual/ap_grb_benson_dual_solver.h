@@ -13,14 +13,17 @@
 
 #include <gurobi_c++.h>
 
-#include <mco/ap/AbstractAPSolver.h>
+#include <mco/ap/basic/Abstract_ap_solver.h>
 #include <mco/generic/benson_weightspace/dual_benson_scalarizer.h>
 
 namespace mco {
 
-class APGRBBensonDualSolver : public AbstractAPSolver, public ScalarizationSolver {
+template<typename OnlineVertexEnumerator>
+class APGRBBensonDualSolver :
+    public AbstractAPSolver {
+        
 public:
-	APGRBBensonDualSolver(std::shared_ptr<AssignmentInstance> instance, double epsilon = 1E-6);
+	APGRBBensonDualSolver(AssignmentInstance & instance, double epsilon = 1E-8);
 
 	virtual ~APGRBBensonDualSolver();
 
@@ -46,7 +49,7 @@ private:
 
 	double epsilon_;
 
-	DualBensonScalarizer *dual_benson_solver_;
+	DualBensonScalarizer<OnlineVertexEnumerator> *dual_benson_solver_;
 
 	clock_t cycles_;
 };

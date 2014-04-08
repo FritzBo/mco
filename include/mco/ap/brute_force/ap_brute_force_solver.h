@@ -14,13 +14,13 @@
 
 #include <ogdf/basic/Graph.h>
 
-#include <mco/ap/AbstractAPSolver.h>
+#include <mco/ap/basic/abstract_ap_solver.h>
 
 namespace mco {
 
 class APBruteForceSolver : public AbstractAPSolver {
 public:
-	APBruteForceSolver(std::shared_ptr<AssignmentInstance> instance) :
+	APBruteForceSolver(AssignmentInstance & instance) :
 		AbstractAPSolver(instance) {}
 
 	void Solve();

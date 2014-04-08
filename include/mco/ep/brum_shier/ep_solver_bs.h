@@ -9,14 +9,17 @@
 #ifndef BSSSA_H_
 #define BSSSA_H_
 
-#include "../abstract_ep_solver.h"
+#include "../basic/abstract_ep_solver.h"
 
 namespace mco {
 
-class EpSolverBS : public mco::AbstractEpSolver {
+class EpSolverBS : public AbstractEpSolver {
 public:
-	explicit EpSolverBS(mco::EpInstance &instance) : AbstractEpSolver(instance) {}
+	explicit EpSolverBS(EpInstance &instance, double epsilon) : AbstractEpSolver(instance), epsilon_(epsilon) {}
 	virtual void Solve();
+    
+private:
+    const double epsilon_;
 };
 
 }

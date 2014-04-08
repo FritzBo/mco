@@ -29,12 +29,15 @@ using ogdf::NodeArray;
 #include <setoper.h>
 #include <cdd.h>
 
-#include <mco/point.h>
+#include <mco/core/point.h>
 
 namespace mco {
 
-GraphVertexContainer::GraphVertexContainer(Point & ideal_point,	unsigned int dimension, double epsilon) :
-		OnlineVertexEnumerator(dimension, epsilon) {
+GraphVertexContainer::GraphVertexContainer(Point & ideal_point,
+                                           unsigned int dimension,
+                                           double epsilon)
+    :   OnlineVertexEnumerator(dimension, epsilon) {
+        
 	node_points_.init(vertex_graph_);
 
 	node ideal_node = vertex_graph_.newNode();

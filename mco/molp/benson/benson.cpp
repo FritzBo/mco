@@ -27,18 +27,19 @@ using ogdf::Graph;
 using ogdf::randomDoubleNormal;
 using ogdf::randomDouble;
 
-#include <mco/molp/molp_model.h>
-#include <mco/molp/benson/graph_vertex_container.h>
+#include <mco/molp/basic/molp_model.h>
 
 namespace mco {
 
-PrimalBensonMolpSolver::PrimalBensonMolpSolver(const MolpModel &model, double epsilon) :
+template<typename OnlineVertexEnumerator>
+PrimalBensonMolpSolver<OnlineVertexEnumerator>::PrimalBensonMolpSolver(const MolpModel &model, double epsilon) :
 		epsilon_(epsilon), p_hat_(nullptr), model_(model), grb_env_(nullptr), p1_(nullptr), p2_(nullptr), d2_(nullptr) {
 
 	state_ = CONSTRUCTED;
 }
 
-void PrimalBensonMolpSolver::Init() {
+template<typename OnlineVertexEnumerator>
+void PrimalBensonMolpSolver<OnlineVertexEnumerator>::Init() {
 	if(state_ != CONSTRUCTED)
 		return;
 
@@ -51,7 +52,8 @@ void PrimalBensonMolpSolver::Init() {
 	state_ = INITIALIZED;
 }
 
-void PrimalBensonMolpSolver::Solve() {
+template<typename OnlineVertexEnumerator>
+void PrimalBensonMolpSolver<OnlineVertexEnumerator>::Solve() {
 	if(state_ == CONSTRUCTED)
 		return;
 
@@ -90,7 +92,7 @@ void PrimalBensonMolpSolver::Solve() {
 
 	// Done finding ideal point
 
-	GraphVertexContainer vertex_container(ideal_point, dimension, epsilon_);
+	OnlineVertexEnumerator vertex_container(ideal_point, dimension, epsilon_);
 
 	unsigned int iterations = 0;
 
@@ -239,7 +241,7 @@ void PrimalBensonMolpSolver::Solve() {
 	cout << "Number of inequalities: " << vertex_container.number_of_hyperplanes() << endl;
 }
 
-PrimalBensonMolpSolver::P1::P1(GRBEnv *grb_env, const MolpModel &model) :
+P1::P1(GRBEnv *grb_env, const MolpModel &model) :
 				SupplementLP(grb_env, model), l_(nullptr) {
 
 	grb_model_ = new GRBModel(*grb_env);
@@ -263,7 +265,7 @@ PrimalBensonMolpSolver::P1::P1(GRBEnv *grb_env, const MolpModel &model) :
 	grb_model_->write("test.lp");
 }
 
-void PrimalBensonMolpSolver::P1::set_weights(double *l) {
+void P1::set_weights(double *l) {
 	l_ = l;
 
 	GRBLinExpr obj = 0;
@@ -275,7 +277,7 @@ void PrimalBensonMolpSolver::P1::set_weights(double *l) {
 	grb_model_->setObjective(obj, GRB_MINIMIZE);
 }
 
-PrimalBensonMolpSolver::P2::P2(GRBEnv *grb_env, P1 *p1, const MolpModel &molp_model) :
+P2::P2(GRBEnv *grb_env, P1 *p1, const MolpModel &molp_model) :
 		SupplementLP(grb_env, molp_model), p_hat_(nullptr) {
 
 	y_ = nullptr;
@@ -289,11 +291,11 @@ PrimalBensonMolpSolver::P2::P2(GRBEnv *grb_env, P1 *p1, const MolpModel &molp_mo
 	grb_model_->setObjective(z_ + 0, GRB_MINIMIZE);
 }
 
-void PrimalBensonMolpSolver::P2::set_p_hat(Point *p_hat) {
+void P2::set_p_hat(Point *p_hat) {
 	p_hat_ = p_hat;
 }
 
-void PrimalBensonMolpSolver::P2::set_y(Point &y) {
+void P2::set_y(Point &y) {
 	if(p_hat_ == nullptr)
 		return;
 
@@ -321,7 +323,7 @@ void PrimalBensonMolpSolver::P2::set_y(Point &y) {
 	grb_model_->update();
 }
 
-Point * PrimalBensonMolpSolver::P2::get_x() {
+Point * P2::get_x() {
 	double *x = new double[molp_model_.variables()];
 
 	for(unsigned int i = 0; i < molp_model_.variables(); ++i)
@@ -333,7 +335,7 @@ Point * PrimalBensonMolpSolver::P2::get_x() {
 	return point;
 }
 
-Point * PrimalBensonMolpSolver::P2::get_l() {
+Point * P2::get_l() {
 	double *l = new double[molp_model_.objectives()];
 
 	for(unsigned int i = 0; i < molp_model_.objectives(); ++i)
@@ -345,7 +347,7 @@ Point * PrimalBensonMolpSolver::P2::get_l() {
 	return point;
 }
 
-Point * PrimalBensonMolpSolver::P2::get_u() {
+Point * P2::get_u() {
 	double *u = new double[molp_model_.constraints()];
 
 	for(unsigned int i = 0; i < molp_model_.constraints(); ++i)
@@ -357,19 +359,19 @@ Point * PrimalBensonMolpSolver::P2::get_u() {
 	return point;
 }
 
-bool PrimalBensonMolpSolver::P2::is_outsider() {
+bool P2::is_outsider() {
 	for(unsigned int i = 0; i < molp_model_.objectives(); ++i)
 		if(y_constr_[i].get(GRB_DoubleAttr_Slack) > 1E-6)
 			return true;
 	return false;
 }
 
-PrimalBensonMolpSolver::P2::~P2() {
+P2::~P2() {
 	cout << "p2 destruct" << endl;
 	delete p_hat_;
 }
 
-PrimalBensonMolpSolver::D2::D2(GRBEnv *grb_env, const MolpModel &model) :
+D2::D2(GRBEnv *grb_env, const MolpModel &model) :
 		SupplementLP(grb_env, model), y_(nullptr), z_constr_(nullptr), lambda_lock_() {
 
 	grb_model_ = new GRBModel(*grb_env_);
@@ -405,7 +407,7 @@ PrimalBensonMolpSolver::D2::D2(GRBEnv *grb_env, const MolpModel &model) :
 	grb_model_->addConstr(l_sum, GRB_EQUAL, 1);
 }
 
-void PrimalBensonMolpSolver::D2::set_y(Point &y) {
+void D2::set_y(Point &y) {
 	y_ = &y;
 
 	GRBLinExpr obj = 0;
@@ -417,7 +419,7 @@ void PrimalBensonMolpSolver::D2::set_y(Point &y) {
 	grb_model_->update();
 }
 
-Point * PrimalBensonMolpSolver::D2::get_l() {
+Point * D2::get_l() {
 	double *l = new double[molp_model_.objectives()];
 
 	for(unsigned int i = 0; i < molp_model_.objectives(); ++i)
@@ -430,7 +432,7 @@ Point * PrimalBensonMolpSolver::D2::get_l() {
 
 }
 
-Point * PrimalBensonMolpSolver::D2::get_u() {
+Point * D2::get_u() {
 	double *u = new double[molp_model_.constraints()];
 
 	for(unsigned int i = 0; i < molp_model_.constraints(); ++i)

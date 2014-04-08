@@ -23,7 +23,7 @@ using std::make_pair;
 #include <cdd.h>
 
 #include <mco/molp/weightset/weightset_solver.h>
-#include <mco/molp/molp_model.h>
+#include <mco/molp/basic/molp_model.h>
 
 namespace mco {
 

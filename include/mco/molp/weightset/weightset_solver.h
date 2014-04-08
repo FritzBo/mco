@@ -13,12 +13,12 @@
 
 #include <gurobi_c++.h>
 
-#include <mco/molp/molp_model.h>
-#include <mco/abstract_solver.h>
+#include <mco/molp/basic/molp_model.h>
+#include <mco/core/abstract_solver.h>
 
 namespace mco {
 
-class WeightSetMolpSolver : AbstractMOSolver {
+class WeightSetMolpSolver : AbstractSolver {
 	const MolpModel &molp_model_;
 	GRBEnv *grb_env_;
 	GRBModel *grb_model_;
