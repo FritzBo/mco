@@ -9,7 +9,6 @@
 
 #include <queue>
 #include <list>
-#include <unordered_set>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -19,7 +18,6 @@
 using std::queue;
 using std::list;
 using std::vector;
-using std::unordered_set;
 using std::cout;
 using std::endl;
 using std::function;
@@ -181,14 +179,15 @@ void EpSolverBS::Solve(Graph graph,
                        std::function<const Point*(const ogdf::edge)> weights,
                        unsigned dim,
                        const ogdf::node source,
-                       const ogdf::node target) {
+                       const ogdf::node target,
+                       bool directed) {
 
 	queue<node> queue;
-	unordered_set<node> nodes_in_queue;
+	NodeArray<bool> nodes_in_queue(graph, false);
 	NodeArray<list<const Point *>> labels(graph);
 
 	queue.push(source);
-	nodes_in_queue.insert(source);
+	nodes_in_queue[source] = true;
 
 	labels[source].push_back(Point::Null(dim));
 
@@ -199,20 +198,29 @@ void EpSolverBS::Solve(Graph graph,
 
 		list<const Point *> &currentNodeLabels = labels[n];
 
-		AdjElement *adj;
-		forall_adj(adj, n) {
-			edge e = adj->theEdge();
-
-			if(e->isSelfLoop())
+        for(auto e : graph.edges) {
+            
+			if(e->isSelfLoop()) {
 				continue;
+            }
+            
+            node v;
+            
+            if(directed) {
 
-			node v = e->target();
+                v = e->target();
 
-			if(v == n)
-				continue;
-
-			if(v == source)
-				continue;
+                if(v == n)
+                    continue;
+                
+            } else {
+                
+                v = e->target() == n ? e->source() : e->target();
+            }
+            
+            if(v == source) {
+                continue;
+            }
 
 //			cout << v << ", ";
 
@@ -227,9 +235,9 @@ void EpSolverBS::Solve(Graph graph,
 
 				labels[v].insert(labels[v].begin(), new_labels.begin(), new_labels.end());
 
-				if(nodes_in_queue.count(v) == 0 && v != target) {
+				if(!nodes_in_queue[v] && v != target) {
 					queue.push(v);
-					nodes_in_queue.insert(v);
+					nodes_in_queue[v] = true;
 				}
 
 			} else {
@@ -244,16 +252,16 @@ void EpSolverBS::Solve(Graph graph,
 				for(auto label : dominated_subset)
 					delete label;
 
-				if(changed && nodes_in_queue.count(v) == 0 && v != target) {
+				if(changed && !nodes_in_queue[v] && v != target) {
 					queue.push(v);
-					nodes_in_queue.insert(v);
+					nodes_in_queue[v] = true;
 				}
 			}
 
 		}
 
 		queue.pop();
-		nodes_in_queue.erase(n);
+		nodes_in_queue[n] = false;
 
 		assert(queue.size() <= static_cast<unsigned>(graph.numberOfNodes()));
 	}

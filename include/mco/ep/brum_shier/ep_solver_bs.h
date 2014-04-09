@@ -23,7 +23,8 @@ public:
                        std::function<const Point*(const ogdf::edge)> costs,
                        unsigned dimension,
                        const ogdf::node source,
-                       const ogdf::node target);
+                       const ogdf::node target,
+                       bool directed = true);
     
 private:
     const double epsilon_;
