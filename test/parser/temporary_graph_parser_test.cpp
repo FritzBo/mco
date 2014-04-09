@@ -43,7 +43,7 @@ protected:
 
 TEST_P(TemporaryGraphInstanceFixture, NodeEdgeMatch) {
     Graph graph;
-    EdgeArray<Point*> costs(graph);
+    EdgeArray<Point> costs(graph);
     unsigned dimension;
     node source;
     node target;
@@ -59,10 +59,6 @@ TEST_P(TemporaryGraphInstanceFixture, NodeEdgeMatch) {
     
     EXPECT_EQ(expected_number_of_nodes_, graph.numberOfNodes());
     EXPECT_EQ(expected_number_of_edges_, graph.numberOfEdges());
-    
-    for(auto e : graph.edges) {
-        delete costs(e);
-    }
 }
 
 INSTANTIATE_TEST_CASE_P(TemporaryGraphParsingTest,

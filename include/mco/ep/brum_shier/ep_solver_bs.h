@@ -16,10 +16,10 @@ namespace mco {
 class EpSolverBS : public AbstractSolver {
     
 public:
-	EpSolverBS(double epsilon = 1E-8)
+	EpSolverBS(double epsilon = 0)
     : epsilon_(epsilon) { }
     
-	virtual void Solve(ogdf::Graph graph,
+	virtual void Solve(const ogdf::Graph& graph,
                        std::function<const Point*(const ogdf::edge)> costs,
                        unsigned dimension,
                        const ogdf::node source,

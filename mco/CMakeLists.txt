@@ -16,6 +16,7 @@ set(SOURCE_FILES
 ../include/mco/core/abstract_solver.h
 ../include/mco/core/abstract_graph_instance.h
 ../include/mco/core/weight_function_adaptors.h
+../include/mco/core/utility.h
 
 # Assignment
 ../include/mco/ap/basic/abstract_ap_solver.h

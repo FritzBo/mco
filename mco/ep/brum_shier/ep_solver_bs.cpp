@@ -33,6 +33,7 @@ using ogdf::AdjElement;
 
 #include <mco/core/point.h>
 #include <mco/ep/basic/ep_instance.h>
+#include <mco/core/utility.h>
 
 namespace mco {
 
@@ -110,12 +111,12 @@ bool DominationPartition(const list<const Point *> &source1,
 					marker[i] = true;
                 }
 
-				if(comp_leq(label_source2, label_source2)) {
+				if(comp_leq(label_source2, label_source1)) {
 					dominated = true;
 					break;
 				}
 
-				i++;
+				++i;
 			}
 
 			if(!dominated) {
@@ -135,53 +136,53 @@ bool DominationPartition(const list<const Point *> &source1,
 		}
 //	}
 
-	for(auto dominated_label: dominated_subset) {
-        
-		dominated = false;
-        
-		for(auto nondominated_label: nondominated_subset)
-            
-			if(pareto_dominates(nondominated_label, dominated_label) ||
-               eq_comp(nondominated_label, dominated_label)) {
-                
-				dominated = true;
-				break;
-			}
-        
-		if(!dominated) {
-			std::cout << "Source1:" << std::endl;
-			for(auto label: source1)
-				std::cout << "(" << (*label)[0] << ", " << (*label)[1] << ")" << std::endl;
-
-			std::cout << "Source2:" << std::endl;
-			for(auto label: source2)
-				std::cout << "(" << (*label)[0] << ", " << (*label)[1] << ")" << std::endl;
-
-			std::cout << "Dominated:" << std::endl;
-			for(auto label: dominated_subset)
-				std::cout << "(" << (*label)[0] << ", " << (*label)[1] << ")" << std::endl;
-
-			std::cout << "Nondominated:" << std::endl;
-			for(auto label: nondominated_subset)
-				std::cout << "(" << (*label)[0] << ", " << (*label)[1] << ")" << std::endl;
-
-			std::cout << "New labels: " << new_labels << std::endl;
-
-			assert(false);
-		}
-	}
+//	for(auto dominated_label: dominated_subset) {
+//        
+//		dominated = false;
+//        
+//		for(auto nondominated_label: nondominated_subset)
+//            
+//			if(pareto_dominates(nondominated_label, dominated_label) ||
+//               eq_comp(nondominated_label, dominated_label)) {
+//                
+//				dominated = true;
+//				break;
+//			}
+//        
+//		if(!dominated) {
+//			std::cout << "Source1:" << std::endl;
+//			for(auto label: source1)
+//				std::cout << *label << std::endl;
+//
+//			std::cout << "Source2:" << std::endl;
+//			for(auto label: source2)
+//				std::cout << *label << std::endl;
+//
+//			std::cout << "Dominated:" << std::endl;
+//			for(auto label: dominated_subset)
+//				std::cout << *label << std::endl;
+//
+//			std::cout << "Nondominated:" << std::endl;
+//			for(auto label: nondominated_subset)
+//				std::cout << *label << std::endl;
+//
+//			std::cout << "New labels: " << new_labels << std::endl;
+//
+//			assert(false);
+//		}
+//	}
 
 
 	return new_labels;
 }
 
-void EpSolverBS::Solve(Graph graph,
+void EpSolverBS::Solve(const Graph& graph,
                        std::function<const Point*(const ogdf::edge)> weights,
                        unsigned dim,
                        const ogdf::node source,
                        const ogdf::node target,
                        bool directed) {
-
+    
 	queue<node> queue;
 	NodeArray<bool> nodes_in_queue(graph, false);
 	NodeArray<list<const Point *>> labels(graph);
@@ -194,11 +195,13 @@ void EpSolverBS::Solve(Graph graph,
 	while(!queue.empty()) {
 		node n = queue.front();
 
-//		cout << endl << n << ": ";
+//		cout << n << ": ";
 
 		list<const Point *> &currentNodeLabels = labels[n];
 
-        for(auto e : graph.edges) {
+        for(auto adj : n->adjEdges) {
+            
+            edge e = adj->theEdge();
             
 			if(e->isSelfLoop()) {
 				continue;
@@ -249,28 +252,34 @@ void EpSolverBS::Solve(Graph graph,
 
 				labels[v] = nondominated_subset;
 
-				for(auto label : dominated_subset)
+				for(auto label : dominated_subset) {
 					delete label;
+                }
 
 				if(changed && !nodes_in_queue[v] && v != target) {
 					queue.push(v);
 					nodes_in_queue[v] = true;
 				}
+                
 			}
 
 		}
 
 		queue.pop();
 		nodes_in_queue[n] = false;
+        
+//      cout << endl;
 
 		assert(queue.size() <= static_cast<unsigned>(graph.numberOfNodes()));
 	}
 
-	node n;
-	forall_nodes(n, graph)
-		if(n != target)
-			for(auto label : labels[n])
+    for(auto n : graph.nodes) {
+		if(n != target) {
+			for(auto label : labels[n]) {
 				delete label;
+            }
+        }
+    }
 
 	add_solutions(labels[target].begin(), labels[target].end());
 }

@@ -56,3 +56,4 @@ find_library(GUROBI
 
 add_subdirectory(mco)
 add_subdirectory(test)
+add_subdirectory(cli)

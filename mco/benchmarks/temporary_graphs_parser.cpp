@@ -28,7 +28,7 @@ namespace mco {
     
 void TemporaryGraphParser::getGraph(string filename,
                                     Graph &graph,
-                                    EdgeArray<Point *> &weights,
+                                    EdgeArray<Point> &weights,
                                     unsigned& dimension,
                                     ogdf::node& source,
                                     ogdf::node& target) {
@@ -50,11 +50,10 @@ void TemporaryGraphParser::getGraph(string filename,
     
     int node1_ref, node2_ref;
     node node1, node2;
-    double * objective_value;
     edge e;
     map<int, node> nodes_added;
     
-    for( int i = 0; i < num_edges; i++ ) {
+    for( int i = 0; i < num_edges; ++i ) {
         file >> node1_ref >> node2_ref;
         
         if(nodes_added.count(node1_ref) == 0) {
@@ -69,19 +68,27 @@ void TemporaryGraphParser::getGraph(string filename,
         } else
             node2 = nodes_added[node2_ref];
         
-        objective_value = new double[dimension];
-        for(int j = 0; j < dimension; j++) {
-            file >> objective_value[j];
+        // FIXME
+        Point new_point(dimension + 1);
+        file >> new_point[0];
+        new_point[0] += 1;
+        
+        for(int j = 1; j < dimension; j++) {
+            file >> new_point[j];
         }
         
-        e = graph.newEdge(node1, node2);
-        weights[e] = new Point(objective_value, dimension);
-        delete[] objective_value;
+        new_point[dimension] = 1;
         
+        e = graph.newEdge(node1, node2);
+        weights[e] = std::move(new_point);
     }
     
     source = nodes_added[source_id];
     target = nodes_added[target_id];
+    
+    //FIXME
+    ++dimension;
+    
     //close the file
     file.close();
 }

@@ -21,7 +21,7 @@ class TemporaryGraphParser {
 public:
     void getGraph(string filename,
                   ogdf::Graph &graph,
-                  ogdf::EdgeArray<mco::Point *> &weights,
+                  ogdf::EdgeArray<mco::Point> &weights,
                   unsigned& dimension,
                   ogdf::node& source,
                   ogdf::node& target);
