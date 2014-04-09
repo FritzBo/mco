@@ -26,8 +26,6 @@ public:
 
 	AbstractSolver & operator=(const AbstractSolver&) = delete;
 
-//	virtual void Solve(AbstractGraphInstance& instance) = 0;
-
 	const std::list<const Point *> & solutions() const { return solutions_; }
 
 protected:

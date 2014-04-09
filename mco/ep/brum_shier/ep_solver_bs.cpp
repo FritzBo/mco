@@ -177,12 +177,11 @@ bool DominationPartition(const list<const Point *> &source1,
 	return new_labels;
 }
 
-void EpSolverBS::Solve() {
-	const Graph &graph = instance().graph();
-	const function<Point *(edge)> & weights(instance().weights());
-	unsigned int dim = instance().dimension();
-	const node source = instance().source();
-	const node target = instance().target();
+void EpSolverBS::Solve(Graph graph,
+                       std::function<const Point*(const ogdf::edge)> weights,
+                       unsigned dim,
+                       const ogdf::node source,
+                       const ogdf::node target) {
 
 	queue<node> queue;
 	unordered_set<node> nodes_in_queue;

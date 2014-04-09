@@ -9,14 +9,21 @@
 #ifndef BSSSA_H_
 #define BSSSA_H_
 
-#include "../basic/abstract_ep_solver.h"
+#include <mco/core/abstract_solver.h>
 
 namespace mco {
 
-class EpSolverBS : public AbstractEpSolver {
+class EpSolverBS : public AbstractSolver {
+    
 public:
-	explicit EpSolverBS(EpInstance &instance, double epsilon) : AbstractEpSolver(instance), epsilon_(epsilon) {}
-	virtual void Solve();
+	EpSolverBS(double epsilon = 1E-8)
+    : epsilon_(epsilon) { }
+    
+	virtual void Solve(ogdf::Graph graph,
+                       std::function<const Point*(const ogdf::edge)> costs,
+                       unsigned dimension,
+                       const ogdf::node source,
+                       const ogdf::node target);
     
 private:
     const double epsilon_;
