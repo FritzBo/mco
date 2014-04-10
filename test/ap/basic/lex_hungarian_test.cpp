@@ -26,7 +26,7 @@ using ogdf::Graph;
 using ogdf::node;
 using ogdf::EdgeArray;
 
-#include <mco/core/point.h>
+#include <mco/basic/point.h>
 #include <mco/ap/basic/ap_instance.h>
 #include <mco/ap/basic/lex_hungarian.h>
 #include <mco/benchmarks/mcap_parser.h>

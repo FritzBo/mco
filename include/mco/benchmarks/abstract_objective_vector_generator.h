@@ -11,7 +11,7 @@
 
 #include <list>
 
-#include <mco/core/point.h>
+#include <mco/basic/point.h>
 
 namespace mco {
 

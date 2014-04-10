@@ -9,8 +9,8 @@
 
 using ogdf::randomDouble;
 
+#include <mco/basic/point.h>
 #include <mco/benchmarks/random_objective_generator.h>
-#include <mco/core/point.h>
 
 namespace mco {
 

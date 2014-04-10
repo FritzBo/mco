@@ -6,9 +6,9 @@
 //
 //
 
-#include <mco/generic/benson_weightspace/ove_fp_v2.h>
+#include <mco/generic/benson_dual/ove_fp_v2.h>
 
-#include <mco/core/point.h>
+#include <mco/basic/point.h>
 
 namespace mco {
 

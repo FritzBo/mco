@@ -14,7 +14,7 @@
 #include <gurobi_c++.h>
 
 #include <mco/molp/basic/molp_model.h>
-#include <mco/core/abstract_solver.h>
+#include <mco/basic/abstract_solver.h>
 
 namespace mco {
 

@@ -28,7 +28,7 @@ using ogdf::edge;
 using ogdf::NodeArray;
 
 #include <mco/ep/basic/ep_instance.h>
-#include <mco/core/point.h>
+#include <mco/basic/point.h>
 
 namespace mco {
 

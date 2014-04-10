@@ -20,7 +20,7 @@ using ogdf::EdgeArray;
 using ogdf::node;
 using ogdf::edge;
 
-#include <mco/core/point.h>
+#include <mco/basic/point.h>
 #include <mco/benchmarks/temporary_graphs_parser.h>
 #include <mco/ep/brum_shier/ep_solver_bs.h>
 

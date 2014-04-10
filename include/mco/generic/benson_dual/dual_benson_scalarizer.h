@@ -12,7 +12,7 @@
 #include <list>
 #include <functional>
 
-#include <mco/core/point.h>
+#include <mco/basic/point.h>
 
 namespace mco {
     

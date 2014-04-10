@@ -11,8 +11,8 @@
 
 #include <list>
 
-#include <mco/core/abstract_solver.h>
-#include <mco/core/abstract_graph_instance.h>
+#include <mco/basic/abstract_solver.h>
+#include <mco/basic/abstract_graph_instance.h>
 
 namespace mco {
 

@@ -9,7 +9,7 @@
 #ifndef BENSON_DUAL_H_
 #define BENSON_DUAL_H_
 
-#include <mco/core/abstract_solver.h>
+#include <mco/basic/abstract_solver.h>
 
 namespace mco {
 

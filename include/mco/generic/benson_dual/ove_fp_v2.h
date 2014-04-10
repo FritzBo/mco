@@ -11,7 +11,7 @@
 
 #include <queue>
 
-#include <mco/generic/benson_weightspace/abstract_online_vertex_enumerator.h>
+#include <mco/generic/benson_dual/abstract_online_vertex_enumerator.h>
 
 namespace mco {
 

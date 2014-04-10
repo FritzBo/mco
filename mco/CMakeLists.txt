@@ -8,15 +8,15 @@ set(SOURCE_FILES
 #### Header ####
 
 # Core
-../include/mco/core/point.h
-../include/mco/core/pareto_point_comparator.h
-../include/mco/core/componentwise_point_comparator.h
-../include/mco/core/equality_point_comparator.h
-../include/mco/core/lex_point_comparator.h
-../include/mco/core/abstract_solver.h
-../include/mco/core/abstract_graph_instance.h
-../include/mco/core/weight_function_adaptors.h
-../include/mco/core/utility.h
+../include/mco/basic/point.h
+../include/mco/basic/pareto_point_comparator.h
+../include/mco/basic/componentwise_point_comparator.h
+../include/mco/basic/equality_point_comparator.h
+../include/mco/basic/lex_point_comparator.h
+../include/mco/basic/abstract_solver.h
+../include/mco/basic/abstract_graph_instance.h
+../include/mco/basic/weight_function_adaptors.h
+../include/mco/basic/utility.h
 
 # Assignment
 ../include/mco/ap/basic/abstract_ap_solver.h
@@ -49,6 +49,9 @@ set(SOURCE_FILES
 ../include/mco/ep/tsaggouris/ep_solver_tsaggouris_approx.h
 ../include/mco/ep/warburton/ep_solver_warburton_approx.h
 ../include/mco/ep/warburton/product.h
+../include/mco/ep/basic/binary_heap.h
+../include/mco/ep/basic/dijkstra.h
+
 
 # MO Spanning Tree
 ../include/mco/est/basic/abstract_est_solver.h
@@ -57,12 +60,12 @@ set(SOURCE_FILES
 ../include/mco/est/dual_benson/est_dual_benson_scalarizer.h
 
 # Benson Dual
-../include/mco/generic/benson_weightspace/abstract_online_vertex_enumerator.h
-../include/mco/generic/benson_weightspace/dual_benson_scalarizer.h
-../include/mco/generic/benson_weightspace/ove_cdd.h
-../include/mco/generic/benson_weightspace/ove_node_lists.h
-../include/mco/generic/benson_weightspace/ove_edge_lists.h
-../include/mco/generic/benson_weightspace/ove_fp_v2.h
+../include/mco/generic/benson_dual/abstract_online_vertex_enumerator.h
+../include/mco/generic/benson_dual/dual_benson_scalarizer.h
+../include/mco/generic/benson_dual/ove_cdd.h
+../include/mco/generic/benson_dual/ove_node_lists.h
+../include/mco/generic/benson_dual/ove_edge_lists.h
+../include/mco/generic/benson_dual/ove_fp_v2.h
 
 # MO Linear Programming
 ../include/mco/molp/basic/molp_model.h
@@ -101,6 +104,7 @@ ep/martins/martins_smart.cpp
 ep/martins/martins.cpp
 ep/tsaggouris/ep_solver_tsaggouris_approx.cpp
 ep/warburton/ep_solver_warburton_approx.cpp
+ep/basic/dijkstra.cpp
 
 # MO Spanning Tree
 est/basic/kruskal_st_solver.cpp
@@ -108,10 +112,10 @@ est/2tree/est_solver2_trees.cpp
 est/dual_benson/est_dual_benson_scalarizer.cpp
 
 # Benson Dual
-generic/benson_weightspace/ove_cdd.cpp
-generic/benson_weightspace/ove_node_lists.cpp
-generic/benson_weightspace/ove_edge_lists.cpp
-generic/benson_weightspace/ove_fp_v2.cpp
+generic/benson_dual/ove_cdd.cpp
+generic/benson_dual/ove_node_lists.cpp
+generic/benson_dual/ove_edge_lists.cpp
+generic/benson_dual/ove_fp_v2.cpp
 
 # MO Linear Programming
 molp/basic/molp_model.cpp

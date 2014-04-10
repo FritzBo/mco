@@ -20,7 +20,7 @@ using ogdf::edge;
 using ogdf::node;
 using ogdf::EdgeArray;
 
-#include <mco/core/point.h>
+#include <mco/basic/point.h>
 #include <mco/ap/molp_solver/assignment_molp_model.h>
 
 namespace mco {

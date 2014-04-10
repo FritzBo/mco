@@ -15,8 +15,8 @@
 #include <setoper.h>
 #include <cdd.h>
 
-#include <mco/core/point.h>
-#include <mco/generic/benson_weightspace/abstract_online_vertex_enumerator.h>
+#include <mco/basic/point.h>
+#include <mco/generic/benson_dual/abstract_online_vertex_enumerator.h>
 
 namespace mco {
 

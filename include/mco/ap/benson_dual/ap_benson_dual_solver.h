@@ -11,12 +11,12 @@
 
 #include <functional>
 
-#include <mco/core/abstract_solver.h>
+#include <mco/basic/abstract_solver.h>
+#include <mco/basic/weight_function_adaptors.h>
 #include <mco/ap/basic/ap_instance.h>
-#include <mco/generic/benson_weightspace/dual_benson_scalarizer.h>
 #include <mco/ap/basic/lex_hungarian.h>
-#include <mco/core/weight_function_adaptors.h>
-#include <mco/generic/benson_weightspace/ove_node_lists.h>
+#include <mco/generic/benson_dual/dual_benson_scalarizer.h>
+#include <mco/generic/benson_dual/ove_node_lists.h>
 
 namespace mco {
 
