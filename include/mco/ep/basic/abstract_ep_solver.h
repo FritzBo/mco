@@ -13,7 +13,7 @@
 
 #include <ogdf/basic/Graph.h>
 
-#include <mco/core/abstract_solver.h>
+#include <mco/basic/abstract_solver.h>
 
 namespace mco {
 

@@ -14,10 +14,10 @@
 
 #include <ogdf/basic/Graph.h>
 
-#include <mco/core/point.h>
+#include <mco/basic/point.h>
+#include <mco/basic/abstract_graph_instance.h>
 #include <mco/est/basic/abstract_est_solver.h>
-#include <mco/core/abstract_graph_instance.h>
-#include <mco/generic/benson_weightspace/dual_benson_scalarizer.h>
+#include <mco/generic/benson_dual/dual_benson_scalarizer.h>
 
 namespace mco {
 

@@ -5,7 +5,7 @@
  *      Author: fritz
  */
 
-#include <mco/generic/benson_weightspace/ove_cdd.h>
+#include <mco/generic/benson_dual/ove_cdd.h>
 
 #include <iostream>
 #include <cassert>

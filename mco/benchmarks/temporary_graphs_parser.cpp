@@ -20,7 +20,7 @@ using ogdf::node;
 using ogdf::edge;
 using ogdf::EdgeArray;
 
-#include <mco/core/point.h>
+#include <mco/basic/point.h>
 
 using mco::Point;
 

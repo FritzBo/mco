@@ -26,7 +26,7 @@ using ogdf::Graph;
 using ogdf::node;
 using ogdf::EdgeArray;
 
-#include <mco/core/point.h>
+#include <mco/basic/point.h>
 #include <mco/benchmarks/temporary_graphs_parser.h>
 
 using mco::Point;

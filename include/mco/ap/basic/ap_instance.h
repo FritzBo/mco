@@ -14,7 +14,7 @@
 
 #include <ogdf/basic/Graph.h>
 
-#include <mco/core/abstract_graph_instance.h>
+#include <mco/basic/abstract_graph_instance.h>
 
 namespace mco {
 

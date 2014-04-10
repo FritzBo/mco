@@ -14,7 +14,7 @@
 #include <gurobi_c++.h>
 
 #include <mco/ap/basic/Abstract_ap_solver.h>
-#include <mco/generic/benson_weightspace/dual_benson_scalarizer.h>
+#include <mco/generic/benson_dual/dual_benson_scalarizer.h>
 
 namespace mco {
 

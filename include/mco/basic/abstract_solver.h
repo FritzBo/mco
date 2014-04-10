@@ -12,8 +12,8 @@
 #include <list>
 #include <iterator>
 
-#include <mco/core/point.h>
-#include <mco/core/abstract_graph_instance.h>
+#include <mco/basic/point.h>
+#include <mco/basic/abstract_graph_instance.h>
 
 namespace mco {
 

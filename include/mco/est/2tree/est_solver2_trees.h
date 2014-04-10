@@ -10,7 +10,7 @@
 #define EST_SOLVER2_TREES_H_
 
 #include <mco/est/basic/abstract_est_solver.h>
-#include <mco/core/abstract_graph_instance.h>
+#include <mco/basic/abstract_graph_instance.h>
 
 namespace mco {
 

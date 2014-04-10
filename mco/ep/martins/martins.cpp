@@ -24,8 +24,8 @@ using ogdf::node;
 using ogdf::edge;
 using ogdf::NodeArray;
 
+#include <mco/basic/point.h>
 #include <mco/ep/basic/ep_instance.h>
-#include <mco/core/point.h>
 #include <mco/ep/martins/label.h>
 
 namespace mco {

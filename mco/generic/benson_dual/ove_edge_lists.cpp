@@ -5,7 +5,7 @@
  *      Author: fritz
  */
 
-#include <mco/generic/benson_weightspace/ove_edge_lists.h>
+#include <mco/generic/benson_dual/ove_edge_lists.h>
 
 #include <cassert>
 #include <set>

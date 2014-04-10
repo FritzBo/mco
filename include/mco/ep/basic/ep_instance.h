@@ -13,9 +13,8 @@
 #include <string>
 
 #include <ogdf/basic/Graph.h>
-#include <ogdf/basic/EdgeArray.h>
 
-#include <mco/core/abstract_graph_instance.h>
+#include <mco/basic/abstract_graph_instance.h>
 
 namespace mco {
 

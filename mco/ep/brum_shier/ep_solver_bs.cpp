@@ -31,9 +31,9 @@ using ogdf::NodeArray;
 using ogdf::EdgeArray;
 using ogdf::AdjElement;
 
-#include <mco/core/point.h>
+#include <mco/basic/point.h>
 #include <mco/ep/basic/ep_instance.h>
-#include <mco/core/utility.h>
+#include <mco/basic/utility.h>
 
 namespace mco {
 

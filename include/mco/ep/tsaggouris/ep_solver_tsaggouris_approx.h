@@ -11,9 +11,9 @@
 
 #include <vector>
 
+#include <mco/basic/point.h>
 #include <mco/ep/basic/abstract_ep_solver.h>
 #include <mco/ep/martins/label.h>
-#include <mco/core/point.h>
 
 namespace mco {
 

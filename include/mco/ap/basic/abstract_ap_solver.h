@@ -11,7 +11,7 @@
 
 #include <memory>
 
-#include <mco/core/abstract_solver.h>
+#include <mco/basic/abstract_solver.h>
 #include <mco/ap/basic/ap_instance.h>
 
 namespace mco {

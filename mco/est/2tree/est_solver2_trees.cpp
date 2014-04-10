@@ -18,7 +18,7 @@ using ogdf::node;
 using ogdf::EdgeArray;
 using ogdf::AdjElement;
 
-#include <mco/core/point.h>
+#include <mco/basic/point.h>
 
 using mco::Point;
 

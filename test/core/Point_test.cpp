@@ -18,7 +18,7 @@ using std::isnan;
 using ::testing::Combine;
 using ::testing::Values;
 
-#include <mco/core/point.h>
+#include <mco/basic/point.h>
 
 using mco::Point;
 
