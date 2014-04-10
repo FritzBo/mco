@@ -69,15 +69,22 @@ void TemporaryGraphParser::getGraph(string filename,
             node2 = nodes_added[node2_ref];
         
         // FIXME
-        Point new_point(dimension + 1);
-        file >> new_point[0];
+        Point new_point(dimension + 1 - 1);
+        
+        file >> new_point[0];           // Autobahnen
         new_point[0] += 1;
         
-        for(int j = 1; j < dimension; j++) {
-            file >> new_point[j];
-        }
+        file >> new_point[1];           // Flughäfen
         
-        new_point[dimension] = 1;
+        double tmp;
+        file >> tmp;                    // Tagebau
+        
+        file >> new_point[2];           // VSG
+        new_point[2] += tmp;
+        
+        file >> new_point[3];           // WSG
+        
+        new_point[4] = 1;               // Einheitskosten pro Kante
         
         e = graph.newEdge(node1, node2);
         weights[e] = std::move(new_point);
@@ -87,7 +94,8 @@ void TemporaryGraphParser::getGraph(string filename,
     target = nodes_added[target_id];
     
     //FIXME
-    ++dimension;
+//    ++dimension;
+    --dimension;
     
     //close the file
     file.close();
