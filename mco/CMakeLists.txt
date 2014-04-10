@@ -51,6 +51,7 @@ set(SOURCE_FILES
 ../include/mco/ep/warburton/product.h
 ../include/mco/ep/basic/binary_heap.h
 ../include/mco/ep/basic/dijkstra.h
+../include/mco/ep/dual_benson/ep_dual_benson.h
 
 
 # MO Spanning Tree
@@ -105,6 +106,7 @@ ep/martins/martins.cpp
 ep/tsaggouris/ep_solver_tsaggouris_approx.cpp
 ep/warburton/ep_solver_warburton_approx.cpp
 ep/basic/dijkstra.cpp
+ep/dual_benson/ep_dual_benson.cpp
 
 # MO Spanning Tree
 est/basic/kruskal_st_solver.cpp
