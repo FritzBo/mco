@@ -11,12 +11,13 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DOGDF_DEBUG")
 
 ## OGDF and COIN ##
 find_library(OGDF
-    NAMES ogdf
+    NAMES libOGDF.a
     PATHS /usr/local/
+	~/.local/
 )
 
 find_library(OGDF-DBG
-    NAMES ogdf-dbg
+    NAMES OGDF-dbg
     PATHS /usr/local/
 )
 
@@ -26,12 +27,12 @@ find_path(OGDF_INCLUDE_PATH
 )
 
 find_library(COIN
-    NAMES coin
+    NAMES COIN
     PATHS /usr/local/
 )
 
 find_library(COIN-DBG
-    NAMES coin-dbg
+    NAMES COIN-dbg
     PATHS /usr/local/
 )
 
