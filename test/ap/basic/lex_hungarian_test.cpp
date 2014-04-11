@@ -76,12 +76,12 @@ TEST_P(InstanceTestFixture, PointMatch) {
 INSTANTIATE_TEST_CASE_P(InstanceTests,
                         InstanceTestFixture,
                         Values(
-                               make_tuple(string("/Users/fritz/Documents/research/multiobjective/workspace/mco/instances/ap/pge_3_50_10"),
+                               make_tuple(string("../../../instances/ap/pge_3_50_10"),
                                           Point({9, 458, 478})),
-                               make_tuple(string("/Users/fritz/Documents/research/multiobjective/workspace/mco/instances/ap/pge_3_40_2"),
+                               make_tuple(string("../../../instances/ap/pge_3_40_2"),
                                           Point({8, 344, 406})),
-                               make_tuple(string("/Users/fritz/Documents/research/multiobjective/workspace/mco//instances/ap/pge_3_05_5"),
+                               make_tuple(string("../../../instances/ap/pge_3_05_5"),
                                           Point({19, 69, 63})),
-                               make_tuple(string("/Users/fritz/Documents/research/multiobjective/workspace/mco//instances/ap/map_1_2_0"),
+                               make_tuple(string("../../../instances/ap/map_1_2_0"),
                                           Point({0}))
                         ));

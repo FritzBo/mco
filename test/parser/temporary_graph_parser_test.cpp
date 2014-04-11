@@ -64,22 +64,7 @@ TEST_P(TemporaryGraphInstanceFixture, NodeEdgeMatch) {
 INSTANTIATE_TEST_CASE_P(TemporaryGraphParsingTest,
                         TemporaryGraphInstanceFixture,
                         Values(
-                               make_tuple(string("/Users/fritz/Documents/research/strom/graphs/graph_1000_1000"),
+                               make_tuple(string("../../../instances/ep/graph_1000_1000"),
                                           (unsigned) 318,
-                                          (unsigned) 1166),
-                               make_tuple(string("/Users/fritz/Documents/research/strom/graphs/graph_500_500"),
-                                          (unsigned) 1273,
-                                          (unsigned) 4880),
-                               make_tuple(string("/Users/fritz/Documents/research/strom/graphs/graph_250_250"),
-                                          (unsigned) 5121,
-                                          (unsigned) 20058)
-//                               make_tuple(string("/Users/fritz/Documents/research/strom/graphs/graph_100_100"),
-//                                          (unsigned) 83908,
-//                                          (unsigned) 202879),
-//                               make_tuple(string("/Users/fritz/Documents/research/strom/graphs/graph_50_50"),
-//                                          (unsigned) 347360,
-//                                          (unsigned) 833615),
-//                               make_tuple(string("/Users/fritz/Documents/research/strom/graphs/graph_25_25"),
-//                                          (unsigned) 1310225,
-//                                          (unsigned) 3235520)
+                                          (unsigned) 1166)
                                ));
