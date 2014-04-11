@@ -15,27 +15,38 @@
 #include <mco/generic/benson_dual/abstract_online_vertex_enumerator.h>
 
 namespace mco {
-
-class GraphLessOVE :
+    
+class GraphlessOVE :
 public AbstractOnlineVertexEnumerator {
 public:
-    virtual ~GraphLessOVE();
+    virtual ~GraphlessOVE();
     
-    GraphLessOVE(const Point& initial_value, unsigned dimension, double epsilon);
+    GraphlessOVE(const Point& initial_value, unsigned dimension, double epsilon);
     
     bool has_next() { return !pending_points_.empty(); }
     
-    Point * next_vertex();
+    inline Point const * next_vertex() { return &pending_points_.top(); }
     
     void add_hyperplane(Point &vertex, Point &normal, double rhs);
     
-    unsigned int number_of_hyperplanes() { return hyperplanes_.size(); }
+    unsigned int number_of_hyperplanes() { return inequalities_.size(); }
 
 private:
-    std::priority_queue<Point, std::vector<Point>, LexPointComparator> pending_points_;
-    std::list<Point> permanent_points_;
+    class GraphlessPoint : public Point {
+    public:
+        GraphlessPoint(unsigned dimension)
+        :   Point(dimension) {}
+        
+        std::list<unsigned> active_inequalities_;
+        unsigned birth_index_;
+        GraphlessPoint* father_node_ = nullptr;
+    };
+
+    std::priority_queue<Point, std::vector<Point>, LexPointComparator>
+    pending_points_;
     
-    std::list<Point> hyperplanes_;
+    std::list<Point> permanent_points_;
+    std::list<Point> inequalities_;
 };
     
 }

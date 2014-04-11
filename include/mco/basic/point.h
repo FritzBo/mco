@@ -17,7 +17,7 @@
 
 namespace mco {
     
-class Point final {
+class Point {
 public:
 
     /// Destructor
