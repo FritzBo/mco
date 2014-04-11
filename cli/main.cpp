@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
 //    }
     
 //    string filename(argv[1]);
-    string filename("/Users/fritz/Documents/research/strom/graphs/graph_1000_1000");
+    string filename("../../instances/ep/graph_1000_1000");
 //    string filename("/Users/fritz/Desktop/grid70_100_7");
     Graph graph;
     EdgeArray<Point> costs(graph);
