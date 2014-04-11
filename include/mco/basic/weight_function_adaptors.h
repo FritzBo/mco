@@ -81,8 +81,6 @@ operator()(const ogdf::edge e) {
     
     weighted_costs_(e) = new_point;
     
-//    std::cout << *new_point << std::endl;
-    
     return new_point;
 }
 

@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef __mco__hungarian__
-#define __mco__hungarian__
+#ifndef __mco__lex__hungarian__
+#define __mco__lex__hungarian__
 
 #include <functional>
 #include <list>

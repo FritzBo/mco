@@ -84,7 +84,7 @@ public:
 			scalar_value = solver_(weighting, value);
 
 //			std::cout << "scalar value: " << scalar_value << std::endl;
-//			std::cout << "value vector: " << value << std::endl;
+//            std::cout << "value vector: " << value << std::endl;
 
 			if(scalar_value - (*candidate)[dimension_ - 1] > -epsilon_) {
 				weighting_counter++;

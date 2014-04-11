@@ -17,3 +17,4 @@ find_library(GTEST
 add_subdirectory(core)
 add_subdirectory(parser)
 add_subdirectory(ap)
+add_subdirectory(ep)

@@ -54,6 +54,21 @@ find_library(GUROBI
           /usr/local/
 )
 
+## CDD ##
+find_path(CDD_INCLUDE_PATH
+	NAMES cdd.h
+	PATHS 	/usr/
+		/usr/local/
+		/opt/local/
+)
+
+find_library(CDD
+	NAMES libcdd.a
+	PATHS	/usr/
+		/usr/local
+		/opt/local
+)
+
 add_subdirectory(mco)
 add_subdirectory(test)
 add_subdirectory(cli)
