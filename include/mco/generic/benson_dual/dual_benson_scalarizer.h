@@ -64,10 +64,15 @@ public:
 		while(vertex_container->has_next()) {
 			iteration_counter++;
 
-//			std::cout << "Iteration: " << iteration_counter << std::endl;
+#ifndef NDEBUG
+			std::cout << "Iteration: " << iteration_counter << std::endl;
+#endif
+            
 			candidate = vertex_container->next_vertex();
 
-//			std::cout << "New candidate: " << *candidate << std::endl;
+#ifndef NDEBUG
+			std::cout << "New candidate: " << *candidate << std::endl;
+#endif
 
 			double sum = 0;
 			for(unsigned int i = 0; i < dimension_ - 1; ++i) {
@@ -79,12 +84,16 @@ public:
 			for(unsigned int i = 0; i < dimension_; ++i)
 				value[i] = 0;
 
-//			std::cout << "weighting: " << weighting << std::endl;
+#ifndef NDEBUG
+			std::cout << "weighting: " << weighting << std::endl;
+#endif
 
 			scalar_value = solver_(weighting, value);
 
-//			std::cout << "scalar value: " << scalar_value << std::endl;
-//            std::cout << "value vector: " << value << std::endl;
+#ifndef NDEBUG
+			std::cout << "scalar value: " << scalar_value << std::endl;
+            std::cout << "value vector: " << value << std::endl;
+#endif
 
 			if(scalar_value - (*candidate)[dimension_ - 1] > -epsilon_) {
 				weighting_counter++;

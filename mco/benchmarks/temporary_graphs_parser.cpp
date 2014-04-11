@@ -69,15 +69,14 @@ void TemporaryGraphParser::getGraph(string filename,
             node2 = nodes_added[node2_ref];
         
         // FIXME
-        Point new_point(dimension + 1);
-        file >> new_point[0];
-        new_point[0] += 1;
-        
-        for(int j = 1; j < dimension; j++) {
+        Point new_point(dimension);
+        for(int j = 0; j < dimension - 1; j++) {
             file >> new_point[j];
         }
         
-        new_point[dimension] = 1;
+        double distance;
+        file >> distance;
+        new_point[dimension - 1] = distance / 10000.0;
         
         e = graph.newEdge(node1, node2);
         weights[e] = std::move(new_point);
@@ -85,9 +84,6 @@ void TemporaryGraphParser::getGraph(string filename,
     
     source = nodes_added[source_id];
     target = nodes_added[target_id];
-    
-    //FIXME
-    ++dimension;
     
     //close the file
     file.close();

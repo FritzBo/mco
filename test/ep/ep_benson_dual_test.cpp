@@ -67,12 +67,14 @@ TEST_P(ParetoInstanceTestFixture, CountMatch) {
                  weight_function,
                  source,
                  target);
-    
+
+#ifndef NDEBUG
     std::cout << solver.solutions().size() << std::endl;
     
     for(auto p : solver.solutions()) {
         std::cout << *p << std::endl;
     }
+#endif
     
     EXPECT_EQ(expected_number_of_minimizers_, solver.solutions().size());
 }
@@ -80,7 +82,7 @@ TEST_P(ParetoInstanceTestFixture, CountMatch) {
 INSTANTIATE_TEST_CASE_P(InstanceTests,
                         ParetoInstanceTestFixture,
                         Values(
-                               make_tuple(string("/Users/fritz/programmierung/mco/instances/ep/graph_1000_1000"), (unsigned) 644),
-                                make_tuple(string("/Users/fritz/programmierung/mco/instances/ep/grid50_1_1"), (unsigned) 1),
-                               make_tuple(string("/Users/fritz/programmierung/mco/instances/ep/grid50_50_7"), (unsigned) 11)
+                               make_tuple(string("/Users/fritz/programmierung/mco/instances/ep/graph_1000_1000"), (unsigned) 1421),
+                                make_tuple(string("/Users/fritz/programmierung/mco/instances/ep/grid50_1_1"), (unsigned) 2),
+                               make_tuple(string("/Users/fritz/programmierung/mco/instances/ep/grid50_50_7"), (unsigned) 13)
                                ));
