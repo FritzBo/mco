@@ -82,7 +82,7 @@ TEST_P(ParetoInstanceTestFixture, CountMatch) {
 INSTANTIATE_TEST_CASE_P(InstanceTests,
                         ParetoInstanceTestFixture,
                         Values(
-                               make_tuple(string("/Users/fritz/programmierung/mco/instances/ep/graph_1000_1000"), (unsigned) 1421),
-                                make_tuple(string("/Users/fritz/programmierung/mco/instances/ep/grid50_1_1"), (unsigned) 2),
-                               make_tuple(string("/Users/fritz/programmierung/mco/instances/ep/grid50_50_7"), (unsigned) 13)
+//                               make_tuple(string("../../../instances/ep/graph_1000_1000"), (unsigned) 1421),
+                               make_tuple(string("../../../instances/ep/grid50_1_1"), (unsigned) 2),
+                               make_tuple(string("../../../instances/ep/grid50_50_7"), (unsigned) 13)
                                ));
