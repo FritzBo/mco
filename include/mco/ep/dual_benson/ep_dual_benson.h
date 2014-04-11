@@ -22,10 +22,14 @@ namespace mco {
 
 class LexDijkstraSolverAdaptor {
 public:
-    inline LexDijkstraSolverAdaptor(const ogdf::Graph& graph,
-                                    std::function<const Point *(const ogdf::edge)> weights,
-                                    ogdf::node source,
-                                    ogdf::node target);
+    LexDijkstraSolverAdaptor(const ogdf::Graph& graph,
+                             std::function<const Point *(const ogdf::edge)> weights,
+                             ogdf::node source,
+                             ogdf::node target)
+    :   graph_(graph),
+        weights_(weights),
+        source_(source),
+        target_(target) {}
     
     inline double operator()(const Point& weighting,
                              Point& value);
@@ -58,17 +62,23 @@ private:
 inline double LexDijkstraSolverAdaptor::
 operator()(const Point& weighting, Point& value) {
     
-    ogdf::NodeArray<Point *> distance(graph_);
+    unsigned dimension = weights_(graph_.chooseEdge())->dimension();
+    
+    ogdf::NodeArray<Point *> distance(graph_, nullptr);
     ogdf::NodeArray<ogdf::edge> predecessor(graph_);
+    
+    for(auto n: graph_.nodes) {
+        distance[n] = new Point(dimension + 1);
+    }
     
     lex_dijkstra_solver_.singleSourceShortestPaths(graph_,
                                                    LexWeightFunctionAdaptor(graph_, weights_, weighting),
                                                    source_,
                                                    distance,
-                                                   predecessor);
+                                                   predecessor,
+                                                   DijkstraModes::Undirected);
     
     Point& target_cost = *distance[target_];
-    unsigned dimension = weights_(graph_.chooseEdge())->dimension();
     
     for(unsigned i = 0; i < dimension; ++i) {
         value[i] = target_cost[i + 1];
@@ -76,8 +86,8 @@ operator()(const Point& weighting, Point& value) {
     
     double weighted_value = target_cost[0];
     
-    for(auto p : distance) {
-        delete p;
+    for(auto p : graph_.nodes) {
+        delete distance[p];
     }
     
     return weighted_value;

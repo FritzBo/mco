@@ -58,7 +58,7 @@ void LexDijkstra::singleSourceShortestPaths(
         for(auto adj : v->adjEdges) {
             edge e = adj->theEdge();
             if(!mode(v, e)) continue;
-            node w = e->target();
+            node w = e->opposite(v);
             tmp = *distance[v];
             tmp += *weight(e);
             if(less(&tmp, distance[w])) {
