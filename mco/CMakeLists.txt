@@ -68,6 +68,9 @@ set(SOURCE_FILES
 ../include/mco/generic/benson_dual/ove_edge_lists.h
 ../include/mco/generic/benson_dual/ove_fp_v2.h
 
+# Geometry Tools
+../include/mco/geometric/projective_geometry_utilities.h
+
 # MO Linear Programming
 ../include/mco/molp/basic/molp_model.h
 ../include/mco/molp/benson/abstract_vertex_container.h
