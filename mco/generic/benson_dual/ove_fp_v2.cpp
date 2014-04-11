@@ -14,7 +14,8 @@ namespace mco {
 
 GraphLessOVE::
 GraphLessOVE(const Point& initial_value, unsigned dimension, double epsilon)
-:   AbstractOnlineVertexEnumerator(dimension, epsilon) {
+:   AbstractOnlineVertexEnumerator(dimension, epsilon),
+    pending_points_(LexPointComparator()) {
     
 }
 

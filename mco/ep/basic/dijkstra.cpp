@@ -41,7 +41,7 @@ void LexDijkstra::singleSourceShortestPaths(
     BinaryHeap2<Point *, node> queue(graph.numberOfNodes(), less);
     NodeArray<int> qpos(graph);
     for(auto v : graph.nodes) {
-        for(uint i = 0; i < dim; ++i) {
+        for(unsigned i = 0; i < dim; ++i) {
             (*distance[v])[i] = numeric_limits<double>::max();
         }
         predecessor[v] = nullptr;

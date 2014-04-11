@@ -10,6 +10,7 @@
 #define __mco__ove_fp_v2__
 
 #include <queue>
+#include <vector>
 
 #include <mco/generic/benson_dual/abstract_online_vertex_enumerator.h>
 
@@ -31,7 +32,7 @@ public:
     unsigned int number_of_hyperplanes() { return hyperplanes_.size(); }
 
 private:
-    std::priority_queue<Point> pending_points_;
+    std::priority_queue<Point, std::vector<Point>, LexPointComparator> pending_points_;
     std::list<Point> permanent_points_;
     
     std::list<Point> hyperplanes_;
