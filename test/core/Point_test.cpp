@@ -11,7 +11,6 @@
 #include <cmath>
 
 using std::get;
-using std::isnan;
 
 #include <gtest/gtest.h>
 
