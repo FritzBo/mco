@@ -11,7 +11,7 @@
 
 #include <functional>
 
-#include <ogdf/basic/Graph.H>
+#include <ogdf/basic/Graph.h>
 
 #include <mco/basic/point.h>
 
