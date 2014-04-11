@@ -69,24 +69,6 @@ void TemporaryGraphParser::getGraph(string filename,
             node2 = nodes_added[node2_ref];
         
         // FIXME
-<<<<<<< HEAD
-        Point new_point(dimension + 1 - 1);
-        
-        file >> new_point[0];           // Autobahnen
-        new_point[0] += 1;
-        
-        file >> new_point[1];           // Flughäfen
-        
-        double tmp;
-        file >> tmp;                    // Tagebau
-        
-        file >> new_point[2];           // VSG
-        new_point[2] += tmp;
-        
-        file >> new_point[3];           // WSG
-        
-        new_point[4] = 1;               // Einheitskosten pro Kante
-=======
         Point new_point(dimension);
         for(int j = 0; j < dimension - 1; j++) {
             file >> new_point[j];
@@ -95,7 +77,6 @@ void TemporaryGraphParser::getGraph(string filename,
         double distance;
         file >> distance;
         new_point[dimension - 1] = distance / 10000.0;
->>>>>>> ep_benson
         
         e = graph.newEdge(node1, node2);
         weights[e] = std::move(new_point);
@@ -104,13 +85,6 @@ void TemporaryGraphParser::getGraph(string filename,
     source = nodes_added[source_id];
     target = nodes_added[target_id];
     
-<<<<<<< HEAD
-    //FIXME
-//    ++dimension;
-    --dimension;
-    
-=======
->>>>>>> ep_benson
     //close the file
     file.close();
 }
