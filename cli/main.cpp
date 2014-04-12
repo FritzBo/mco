@@ -24,11 +24,13 @@ using ogdf::edge;
 #include <mco/benchmarks/temporary_graphs_parser.h>
 #include <mco/ep/brum_shier/ep_solver_bs.h>
 #include <mco/ep/dual_benson/ep_dual_benson.h>
+#include <mco/generic/benson_dual/ove_cdd.h>
 
 using mco::Point;
 using mco::TemporaryGraphParser;
 using mco::EpSolverBS;
 using mco::EPDualBensonSolver;
+using mco::OnlineVertexEnumeratorCDD;
 
 int main(int argc, char** argv) {
     if(argc != 3) {
@@ -59,7 +61,7 @@ int main(int argc, char** argv) {
     
     if (algorithm.compare("dual_benson") == 0) {
         
-        EPDualBensonSolver<> solver;
+        EPDualBensonSolver<OnlineVertexEnumeratorCDD> solver;
         
         solver.Solve(graph, cost_function, source, target);
         
