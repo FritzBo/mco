@@ -29,13 +29,12 @@ using mco::TemporaryGraphParser;
 using mco::EpSolverBS;
 
 int main(int argc, char** argv) {
-//    if(argc != 2) {
-//        cout << "Usage: " << argv[0] << " <file>" << endl;
-//    }
+    if(argc != 2) {
+        cout << "Usage: " << argv[0] << " <file>" << endl;
+    }
     
-//    string filename(argv[1]);
-    string filename("../../instances/ep/graph_1000_1000");
-//    string filename("/Users/fritz/Desktop/grid70_100_7");
+    string filename(argv[1]);
+
     Graph graph;
     EdgeArray<Point> costs(graph);
     node source;
