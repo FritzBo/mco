@@ -15,6 +15,7 @@ target_link_libraries(ap_test mco)
 target_link_libraries(ap_test debug ${OGDF-DBG} optimized ${OGDF})
 target_link_libraries(ap_test debug ${COIN-DBG} optimized ${COIN})
 target_link_libraries(ap_test ${GUROBI})
+target_link_libraries(ap_test ${CDD})
 target_link_libraries(ap_test pthread)
 target_link_libraries(ap_test ${GTEST} ${GTEST_MAIN})
 
