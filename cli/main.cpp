@@ -23,17 +23,20 @@ using ogdf::edge;
 #include <mco/basic/point.h>
 #include <mco/benchmarks/temporary_graphs_parser.h>
 #include <mco/ep/brum_shier/ep_solver_bs.h>
+#include <mco/ep/dual_benson/ep_dual_benson.h>
 
 using mco::Point;
 using mco::TemporaryGraphParser;
 using mco::EpSolverBS;
+using mco::EPDualBensonSolver;
 
 int main(int argc, char** argv) {
-    if(argc != 2) {
-        cout << "Usage: " << argv[0] << " <file>" << endl;
+    if(argc != 3) {
+        cout << "Usage: " << argv[0] << "<algorithm> <file>" << endl;
     }
     
-    string filename(argv[1]);
+    string algorithm(argv[1]);
+    string filename(argv[2]);
 
     Graph graph;
     EdgeArray<Point> costs(graph);
@@ -50,18 +53,35 @@ int main(int argc, char** argv) {
                     source,
                     target);
     
-    EpSolverBS solver;
-    
     auto cost_function = [costs] (edge e) {
         return &costs[e];
     };
     
-    solver.Solve(graph, cost_function, dimension, source, target, false);
+    if (algorithm.compare("dual_benson") == 0) {
+        
+        EPDualBensonSolver<> solver;
+        
+        solver.Solve(graph, cost_function, source, target);
+        
+        cout << solver.solutions().size() << endl;
     
-    cout << solver.solutions().size() << endl;
+        for(auto p : solver.solutions()) {
+            cout << *p << endl;
+        }
+        
+    } else if(algorithm.compare("label_correcting") == 0) {
     
-    for(auto p : solver.solutions()) {
-        cout << *p << endl;
+        EpSolverBS solver;
+        
+        solver.Solve(graph, cost_function, dimension, source, target, false);
+        
+        cout << solver.solutions().size() << endl;
+        
+        for(auto p : solver.solutions()) {
+            cout << *p << endl;
+        }
+    } else {
+        cout << "Unknown algorithm: " << algorithm << endl;
     }
     
     
