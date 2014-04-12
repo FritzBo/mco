@@ -13,6 +13,7 @@
 #include <vector>
 
 #include <mco/generic/benson_dual/abstract_online_vertex_enumerator.h>
+#include <mco/geometric/projective_geometry_utilities.h>
 
 namespace mco {
     
@@ -25,7 +26,9 @@ public:
     
     bool has_next() { return !pending_points_.empty(); }
     
-    inline Point const * next_vertex() { return &pending_points_.top(); }
+    Point const * next_vertex() {
+        return new Point(std::move(ProjectiveGeometry::from_projective<Point>(pending_points_.top())));
+    }
     
     void add_hyperplane(Point &vertex, Point &normal, double rhs);
     
