@@ -97,6 +97,9 @@ public:
 
 			if(scalar_value - (*candidate)[dimension_ - 1] > -epsilon_) {
 				weighting_counter++;
+#ifndef NDEBUG
+                std::cout << "found a new permanent extreme point. continuing." << std::endl;
+#endif
 				continue;
 			}
 
