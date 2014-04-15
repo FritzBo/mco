@@ -74,10 +74,6 @@ void TemporaryGraphParser::getGraph(string filename,
             file >> new_point[j];
         }
         
-        for(int j = 0; j < dimension - 1; ++j) {
-            new_point[j] *= new_point[dimension - 1];
-        }
-        
         e = graph.newEdge(node1, node2);
         weights[e] = std::move(new_point);
     }
