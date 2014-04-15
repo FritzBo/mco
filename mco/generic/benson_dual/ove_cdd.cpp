@@ -115,6 +115,7 @@ void OnlineVertexEnumeratorCDD::add_hyperplane(Point &vertex, Point &normal, dou
 	if(err != dd_NoError) {
 		dd_WriteErrorMessages(stdout, err);
 		assert(false);
+        exit(-1);
 	}
 
 	v_representation = dd_CopyGenerators(poly);
