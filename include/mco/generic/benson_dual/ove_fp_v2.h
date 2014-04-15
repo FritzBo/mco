@@ -12,6 +12,7 @@
 #include <queue>
 #include <vector>
 #include <algorithm>
+#include <set>
 
 #include <mco/generic/benson_dual/abstract_online_vertex_enumerator.h>
 #include <mco/geometric/projective_geometry_utilities.h>
@@ -56,15 +57,15 @@ private:
         
         std::list<unsigned> active_inequalities_;
         unsigned birth_index_;
-        GraphlessPoint* father_point_ = nullptr;
+        double* father_point_ = nullptr;
         bool removed = false;
     };
     
     bool check_adjacent(GraphlessPoint& point1,
                         const GraphlessPoint& point2);
     
-    GraphlessPoint add_cut_point(const GraphlessPoint& point1,
-                                 const GraphlessPoint& point2,
+    GraphlessPoint add_cut_point(const GraphlessPoint& outside_point,
+                                 GraphlessPoint& inside_point,
                                  const Point& inequality);
     
     std::vector<GraphlessPoint> pending_points_;
@@ -115,11 +116,22 @@ GraphlessOVE::GraphlessOVE(unsigned dimension,
 inline Point * GraphlessOVE::
 next_vertex() {
     
+    assert(is_heap(pending_points_.begin(),
+                   pending_points_.begin() + pending_points_.size(),
+                   LexPointComparator()));
+    
     while(top_pending().removed) {
         pop_pending();
     }
     
+#ifndef NDEBUG
+    const double* adress = pending_points_.front().cbegin();
+#endif
+    
     candidate_points_.push_back(std::move(top_pending()));
+    
+    assert(candidate_points_.back().begin() == adress);
+    
     pop_pending();
     
     return new Point(std::move(ProjectiveGeometry::from_projective<Point>(candidate_points_.back())));
@@ -127,6 +139,10 @@ next_vertex() {
     
 inline bool GraphlessOVE::
 has_next() {
+    assert(is_heap(pending_points_.begin(),
+                   pending_points_.end(),
+                   LexPointComparator(epsilon_)));
+
     while(!pending_points_.empty() && top_pending().removed) {
         pop_pending();
     }
@@ -137,10 +153,17 @@ has_next() {
 inline void GraphlessOVE::
 push_pending(GraphlessPoint&& point) {
     
+#ifndef NDEBUG
+    const double* adress = point.cbegin();
+#endif
+    
     pending_points_.push_back(std::move(point));
+    
+    assert(pending_points_.back().cbegin() == adress);
+    
     std::push_heap(pending_points_.begin(),
                    pending_points_.end(),
-                   LexPointComparator());
+                   LexPointComparator(epsilon_));
 }
 
 inline void GraphlessOVE::
@@ -148,7 +171,7 @@ pop_pending() {
     
     std::pop_heap(pending_points_.begin(),
                   pending_points_.end(),
-                  LexPointComparator());
+                  LexPointComparator(epsilon_));
     pending_points_.pop_back();
 }
 
