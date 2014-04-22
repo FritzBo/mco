@@ -494,7 +494,7 @@ bool NodeListVE::inside_face(node n1, node n2, bool nondegenerate) {
 		if(abs(p1[dimension_]) < epsilon_ && abs(p2[dimension_]) < epsilon_)
 			return false;
 
-		set<Point *, LexPointComparator> common_vertices(comp_);
+		set<Point *> common_vertices;
 
 		unsigned int i = 0;
 		list<unsigned int> tight_inequalities;
@@ -526,7 +526,7 @@ bool NodeListVE::inside_face(node n1, node n2, bool nondegenerate) {
 
 			auto inequality = list_of_inequalities_[inequality_index];
 
-			set<Point *, LexPointComparator> new_vertices(comp_);
+			set<Point *> new_vertices;
 
 //			cout << "inequality: " << *inequality << endl;
 
@@ -541,7 +541,7 @@ bool NodeListVE::inside_face(node n1, node n2, bool nondegenerate) {
 				common_vertices.insert(new_vertices.begin(), new_vertices.end());
 			else {
 				list<Point *> temp_points;
-				set_intersection(common_vertices.begin(), common_vertices.end(), new_vertices.begin(), new_vertices.end(), back_inserter(temp_points), comp_);
+				set_intersection(common_vertices.begin(), common_vertices.end(), new_vertices.begin(), new_vertices.end(), back_inserter(temp_points));
 //					cout << "intersection size: "<< temp_points.size() << endl;
 				common_vertices.clear();
 				common_vertices.insert(temp_points.begin(), temp_points.end());

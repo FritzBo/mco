@@ -99,18 +99,22 @@ public:
 				weighting_counter++;
 #ifndef NDEBUG
                 std::cout << "found a new permanent extreme point. continuing." << std::endl;
+                
 #endif
-				continue;
-			}
+			} else {
 
-			for(unsigned int i = 0; i < dimension_ - 1; ++i)
-				inequality[i] = value[i] - value[dimension_ - 1];
-			inequality[dimension_ - 1] = -1;
+                for(unsigned int i = 0; i < dimension_ - 1; ++i)
+                    inequality[i] = value[i] - value[dimension_ - 1];
+                inequality[dimension_ - 1] = -1;
 
-			vertex_container->add_hyperplane(*candidate, inequality, -value[dimension_ - 1]);
-			nondominated_values++;
+                vertex_container->add_hyperplane(*candidate, inequality, -value[dimension_ - 1]);
+                nondominated_values++;
 
-			solutions.push_back(new Point(value));
+                solutions.push_back(new Point(value));
+                
+            }
+            
+            delete candidate;
 
 		}
 
