@@ -351,7 +351,8 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
 			return false;
         }
         
-        set<GraphlessPoint*> common_vertices;
+        vector<bool> common_vertices(extreme_points_.size(), true);
+        unsigned global_common_count;
         
         assert(candidate_points_.empty());
         
@@ -359,8 +360,10 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
             
 			Point& inequality = inequalities_[inequality_index];
             
-			set<GraphlessPoint *> new_vertices;
+			list<GraphlessPoint *> new_vertices;
             
+            unsigned i = 0;
+            unsigned common_count = 0;
 			for(auto test_point : extreme_points_) {
                 
 #ifndef NDEBUG
@@ -370,13 +373,17 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
                 }
 #endif
                 
-				if(std::abs(inequality * *test_point) < epsilon_) {
-					new_vertices.insert(test_point);
+				if(std::abs(inequality * *test_point) > epsilon_) {
+					common_vertices[i] = false;
 #ifndef NDEBUG
                     if(debug_output) {
                         cout << " X" << endl;
                     }
 #endif
+                }
+                
+                if(common_vertices[i] == true) {
+                    ++common_count;
                 }
 #ifndef NDEBUG
                 else {
@@ -385,26 +392,11 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
                     }
                 }
 #endif
+                ++i;
 			}
             
-			if(common_vertices.empty()) {
-				common_vertices.insert(new_vertices.begin(),
-                                       new_vertices.end());
-			} else {
-				list<GraphlessPoint *> temp_points;
-				set_intersection(common_vertices.begin(),
-                                 common_vertices.end(),
-                                 new_vertices.begin(),
-                                 new_vertices.end(),
-                                 back_inserter(temp_points));
-#ifndef NDEBUG
-                if(debug_output) {
-                    cout << "intersection size: "<< temp_points.size() << endl;
-                }
-#endif
-				common_vertices.clear();
-				common_vertices.insert(temp_points.begin(), temp_points.end());
-			}
+            global_common_count = common_count;
+            
             
 #ifndef NDEBUG
             if(debug_output) {
@@ -422,7 +414,7 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
         }
 #endif
         
-		if(common_vertices.size() == 2)
+		if(global_common_count == 2)
 			return true;
 		else
 			return false;
