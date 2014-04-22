@@ -215,6 +215,8 @@ add_hyperplane(Point &vertex, Point &normal, double rhs) {
         extreme_points_.erase(point_it);
     }
     
+    delete last_candidate;
+    
     // put all new points in the priority queue and add them to the list
     // of extreme points
     for(auto point : new_points) {
