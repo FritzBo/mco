@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
     
     if (algorithm.compare("dual-benson") == 0) {
         
-        EPDualBensonSolver<mco::NodeListVE> solver;
+        EPDualBensonSolver<> solver;
         
         solver.Solve(graph, cost_function, source, target);
         
