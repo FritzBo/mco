@@ -36,7 +36,7 @@ public:
                  ConstIterator extreme_rays_end,
                  ConstIterator inequalities_begin,
                  ConstIterator inequalities_end,
-                 double epsilon = 1E-9);
+                 double epsilon = 1E-8);
     
     inline bool has_next();
     
@@ -55,27 +55,39 @@ private:
         GraphlessPoint(Point&& that)
         :   Point(std::move(that)) {}
         
+        GraphlessPoint(GraphlessPoint const &) = delete;
+        GraphlessPoint(GraphlessPoint&&) = delete;
+        GraphlessPoint& operator=(GraphlessPoint) = delete;
+        
+        inline virtual ~GraphlessPoint();
+        
         std::list<unsigned> active_inequalities_;
         unsigned birth_index_;
-        double* father_point_ = nullptr;
         bool removed = false;
+        
+        inline void set_father(GraphlessPoint* father);
+        
+        GraphlessPoint const * father() const { return father_point_; }
+    private:
+        GraphlessPoint* father_point_ = nullptr;
+        std::list<GraphlessPoint*> children_;
     };
     
     bool check_adjacent(GraphlessPoint& point1,
                         const GraphlessPoint& point2);
     
-    GraphlessPoint add_cut_point(const GraphlessPoint& outside_point,
-                                 GraphlessPoint& inside_point,
-                                 const Point& inequality);
+    GraphlessPoint* add_cut_point(const GraphlessPoint& outside_point,
+                                  GraphlessPoint& inside_point,
+                                  const Point& inequality);
     
-    std::vector<GraphlessPoint> pending_points_;
-    inline void push_pending(GraphlessPoint&& point);
+    std::vector<GraphlessPoint*> pending_points_;
+    inline void push_pending(GraphlessPoint* point);
     inline void pop_pending();
-    inline GraphlessPoint& top_pending();
+    inline GraphlessPoint* top_pending();
     
-    std::list<GraphlessPoint> candidate_points_;
+    std::list<GraphlessPoint*> candidate_points_;
     
-    std::list<GraphlessPoint> permanent_points_;
+    std::list<GraphlessPoint*> permanent_points_;
     std::vector<Point> inequalities_;
 };
     
@@ -90,22 +102,24 @@ GraphlessOVE::GraphlessOVE(unsigned dimension,
                            double epsilon)
 : AbstractOnlineVertexEnumerator(dimension, epsilon) {
     
+    GraphlessPoint* new_point;
     for(auto it = extreme_points_begin; it != extreme_points_end; ++it) {
-        Point new_point(dimension_ + 1);
-        std::copy(it->cbegin(), it->cend(), new_point.begin());
-        new_point[dimension_] = 1;
-        pending_points_.push_back(std::move(new_point));
+        new_point = new GraphlessPoint(dimension_ + 1);
+        std::copy(it->cbegin(), it->cend(), new_point->begin());
+        new_point->operator[](dimension_) = 1;
+        pending_points_.push_back(new_point);
     }
     
     make_heap(pending_points_.begin(),
               pending_points_.end(),
               LexPointComparator());
     
+    GraphlessPoint* new_ray;
     for(auto it = extreme_points_begin; it != extreme_points_end; ++it) {
-        Point new_ray(dimension_ + 1);
-        std::copy(it->cbegin(), it->cend(), new_ray.begin());
-        new_ray[dimension_] = 0;
-        pending_points_.push_back(std::move(new_ray));
+        new_ray = new GraphlessPoint(dimension_ + 1);
+        std::copy(it->cbegin(), it->cend(), new_ray->begin());
+        new_ray->operator[](dimension_) = 0;
+        pending_points_.push_back(new_ray);
     }
     
     std::copy(inequalities_begin,
@@ -117,24 +131,18 @@ inline Point * GraphlessOVE::
 next_vertex() {
     
     assert(is_heap(pending_points_.begin(),
-                   pending_points_.begin() + pending_points_.size(),
-                   LexPointComparator()));
+                   pending_points_.end(),
+                   LexPointComparator(epsilon_)));
     
-    while(top_pending().removed) {
+    while(top_pending()->removed) {
+        delete top_pending();
         pop_pending();
     }
     
-#ifndef NDEBUG
-    const double* adress = pending_points_.front().cbegin();
-#endif
-    
-    candidate_points_.push_back(std::move(top_pending()));
-    
-    assert(candidate_points_.back().begin() == adress);
-    
+    candidate_points_.push_back(top_pending());
     pop_pending();
     
-    return new Point(std::move(ProjectiveGeometry::from_projective<Point>(candidate_points_.back())));
+    return new Point(ProjectiveGeometry::from_projective<Point>(*candidate_points_.back()));
 }
     
 inline bool GraphlessOVE::
@@ -143,7 +151,8 @@ has_next() {
                    pending_points_.end(),
                    LexPointComparator(epsilon_)));
 
-    while(!pending_points_.empty() && top_pending().removed) {
+    while(!pending_points_.empty() && top_pending()->removed) {
+        delete top_pending();
         pop_pending();
     }
     
@@ -151,15 +160,9 @@ has_next() {
 }
     
 inline void GraphlessOVE::
-push_pending(GraphlessPoint&& point) {
+push_pending(GraphlessPoint* point) {
     
-#ifndef NDEBUG
-    const double* adress = point.cbegin();
-#endif
-    
-    pending_points_.push_back(std::move(point));
-    
-    assert(pending_points_.back().cbegin() == adress);
+    pending_points_.push_back(point);
     
     std::push_heap(pending_points_.begin(),
                    pending_points_.end(),
@@ -176,8 +179,27 @@ pop_pending() {
 }
 
 inline auto GraphlessOVE::
-top_pending() -> GraphlessPoint& {
+top_pending() -> GraphlessPoint* {
     return pending_points_.front();
+}
+    
+inline GraphlessOVE::GraphlessPoint::
+~GraphlessPoint() {
+    for(auto child : children_) {
+        assert(child->father_point_ == this);
+        child->father_point_ = nullptr;
+    }
+    
+    // FIXME more efficient
+    if(father_point_ != nullptr) {
+        father_point_->children_.remove(this);
+    }
+}
+    
+inline void GraphlessOVE::GraphlessPoint::
+set_father(GraphlessPoint* father) {
+    father_point_ = father;
+    father->children_.push_back(this);
 }
     
 }

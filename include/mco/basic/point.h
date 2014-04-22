@@ -21,7 +21,7 @@ class Point {
 public:
 
     /// Destructor
-    ~Point() noexcept { delete[] values_; }
+    virtual ~Point() noexcept { delete[] values_; }
     
     inline Point() : dimension_(0), values_(nullptr) { }
     inline explicit Point(unsigned int dimension);
