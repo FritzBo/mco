@@ -87,6 +87,8 @@ private:
     
     std::list<GraphlessPoint*> candidate_points_;
     
+    std::list<GraphlessPoint*> extreme_points_;
+    
     std::list<GraphlessPoint*> permanent_points_;
     std::vector<Point> inequalities_;
 };
@@ -108,6 +110,7 @@ GraphlessOVE::GraphlessOVE(unsigned dimension,
         std::copy(it->cbegin(), it->cend(), new_point->begin());
         new_point->operator[](dimension_) = 1;
         pending_points_.push_back(new_point);
+        extreme_points_.push_back(new_point);
     }
     
     make_heap(pending_points_.begin(),
@@ -115,11 +118,12 @@ GraphlessOVE::GraphlessOVE(unsigned dimension,
               LexPointComparator());
     
     GraphlessPoint* new_ray;
-    for(auto it = extreme_points_begin; it != extreme_points_end; ++it) {
+    for(auto it = extreme_rays_begin; it != extreme_rays_end; ++it) {
         new_ray = new GraphlessPoint(dimension_ + 1);
         std::copy(it->cbegin(), it->cend(), new_ray->begin());
         new_ray->operator[](dimension_) = 0;
-        pending_points_.push_back(new_ray);
+        permanent_points_.push_back(new_ray);
+        extreme_points_.push_back(new_ray);
     }
     
     std::copy(inequalities_begin,

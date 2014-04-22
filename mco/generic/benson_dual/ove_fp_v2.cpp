@@ -49,6 +49,7 @@ GraphlessOVE(const Point& initial_value, unsigned dimension, double epsilon)
         new_extreme_point->active_inequalities_.push_back(dimension_);
         new_extreme_point->birth_index_ = dimension_;
 
+        extreme_points_.push_back(new_extreme_point);
         push_pending(new_extreme_point);
         
         Point new_inequality(dimension_ + 1);
@@ -86,6 +87,7 @@ GraphlessOVE(const Point& initial_value, unsigned dimension, double epsilon)
     new_extreme_point->active_inequalities_.push_back(dimension_);
     new_extreme_point->birth_index_ = dimension_;
     
+    extreme_points_.push_back(new_extreme_point);
     push_pending(new_extreme_point);
     
     new_inequality = Point(dimension_ + 1);
@@ -113,24 +115,23 @@ GraphlessOVE(const Point& initial_value, unsigned dimension, double epsilon)
     new_extreme_point->birth_index_ = dimension_ - 1;
     new_extreme_point->set_father(new_extreme_point);
     
+    extreme_points_.push_back(new_extreme_point);
     permanent_points_.push_back(new_extreme_point);
-    
-    make_heap(pending_points_.begin(),
-              pending_points_.end(),
-              LexPointComparator(epsilon_));
     
     GraphlessPoint& infinity_point = *permanent_points_.front();
     
     for(GraphlessPoint* point : pending_points_) {
         point->set_father(&infinity_point);
     }
+    
 }
     
 void GraphlessOVE::
 add_hyperplane(Point &vertex, Point &normal, double rhs) {
     
-    is_heap(pending_points_.begin(), pending_points_.end(),
-            LexPointComparator(epsilon_));
+    assert(is_heap(pending_points_.begin(),
+                   pending_points_.end(),
+                   LexPointComparator(epsilon_)));
     
     
     // Create projective version of the given hyperplane
@@ -152,26 +153,27 @@ add_hyperplane(Point &vertex, Point &normal, double rhs) {
     
     // three sets of extreme points:
     // cutted points, on-plane points and inside points
-    list<GraphlessPoint*> inside_points;
-    list<GraphlessPoint*> cut_off_points;
-    
-    pending_points_.push_back(last_candidate);
+    list<list<GraphlessPoint*>::iterator> inside_points;
+    list<list<GraphlessPoint*>::iterator> cut_off_points;
     
     // Check for each pending point to which set it belongs
-    for(auto point : pending_points_) {
-        double distance = projective_hyperplane * *point;
+    for(auto it = extreme_points_.begin();
+        it != extreme_points_.end();
+        ++it) {
+        
+        double distance = projective_hyperplane * **it;
         
         // point is cut off by the inequality
         if(distance < -epsilon_) {
-            cut_off_points.push_back(point);
+            cut_off_points.push_back(it);
         
         // point is inside the inequality induced halfspace
         } else if(distance > epsilon_) {
-            inside_points.push_back(point);
+            inside_points.push_back(it);
             
         // point is on the inequality induced hyperplane
         } else {
-            point->active_inequalities_.push_back(inequalities_.size() - 1);
+            (*it)->active_inequalities_.push_back(inequalities_.size() - 1);
         }
     }
     
@@ -181,68 +183,43 @@ add_hyperplane(Point &vertex, Point &normal, double rhs) {
     // check for each cutted off pending point if there is a permanent
     // or another pending point strictly inside the polytope which makes them a
     // candidate pair
-    for(auto pending_it = cut_off_points.begin();
-        pending_it != cut_off_points.end();
-        ++pending_it) {
+    for(auto cut_off_it = cut_off_points.begin();
+        cut_off_it != cut_off_points.end();
+        ++cut_off_it) {
         
-        GraphlessPoint& pend_point = **pending_it;
+        GraphlessPoint& cut_off_point = ***cut_off_it;
         
-        assert(pend_point.active_inequalities_.size() >= dimension_);
+        assert(cut_off_point.active_inequalities_.size() >= dimension_);
         
-        if(pend_point.removed) {
-            continue;
-        }
-        
-        for(auto perm_point : permanent_points_) {
-            double distance = *perm_point * projective_hyperplane;
-            assert(perm_point->active_inequalities_.size() >= dimension_);
+        for(auto inside_it = inside_points.begin();
+            inside_it != inside_points.end();
+            ++inside_it) {
             
-            assert(distance > -epsilon_);
+            GraphlessPoint& inside_point = ***inside_it;
             
-            if(distance > epsilon_) {
-                if(check_adjacent(pend_point, *perm_point)) {
-                    
-                    new_points.push_back(add_cut_point(pend_point,
-                                                       *perm_point,
-                                                       projective_hyperplane)
-                                         );
-                }
+            assert(inside_point.active_inequalities_.size() >= dimension_);
+            
+            if(check_adjacent(cut_off_point, inside_point)) {
                 
-            } else {
-                perm_point->active_inequalities_.push_back(inequalities_.size() - 1);
-            }
-        }
-        
-        for(auto pending_it2 = inside_points.begin();
-            pending_it2 != inside_points.end();
-            ++pending_it2) {
-            
-            GraphlessPoint& pend_point2 = **pending_it2;
-            assert(pend_point2.active_inequalities_.size() >= dimension_);
-            
-            if(!pend_point2.removed) {
-                if(check_adjacent(pend_point, pend_point2)) {
-                    
-                    new_points.push_back(add_cut_point(pend_point,
-                                                       pend_point2,
-                                                       projective_hyperplane)
-                                         );
-                }
+                new_points.push_back(add_cut_point(cut_off_point,
+                                                   inside_point,
+                                                   projective_hyperplane)
+                                     );
             }
         }
     }
     
     // mark all cut off points as removed
-    for(auto point : cut_off_points) {
-        point->removed = true;
+    for(auto point_it : cut_off_points) {
+        (*point_it)->removed = true;
+        extreme_points_.erase(point_it);
     }
     
-    delete pending_points_.back();
-    pending_points_.pop_back();
-    
-    // put all new points in the priority queue
+    // put all new points in the priority queue and add them to the list
+    // of extreme points
     for(auto point : new_points) {
         push_pending(point);
+        extreme_points_.push_back(point);
     }
 }
     
@@ -382,13 +359,7 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
             
 			set<GraphlessPoint *> new_vertices;
             
-#ifndef NDEBUG
-            if(debug_output) {
-                cout << "Checking permanent points..." << endl;
-            }
-#endif
-            
-			for(auto test_point : permanent_points_) {
+			for(auto test_point : extreme_points_) {
                 
 #ifndef NDEBUG
                 if(debug_output) {
@@ -413,41 +384,6 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
                 }
 #endif
 			}
-            
-#ifndef NDEBUG
-            if(debug_output) {
-                cout << "Checking pending..." << endl;
-            }
-#endif
-            
-            for(auto test_point : pending_points_) {
-                
-                if(!test_point->removed) {
-#ifndef NDEBUG
-                    if(debug_output) {
-                        cout << "checking point " << *test_point << ": " <<
-                        inequality * *test_point;
-                    }
-#endif
-                    if(std::abs(inequality * *test_point) < epsilon_) {
-                        new_vertices.insert(test_point);
-#ifndef NDEBUG
-                        if(debug_output) {
-                            cout << " X" << endl;
-                        }
-#endif
-                    }
-#ifndef NDEBUG
-                    else {
-                        if(debug_output) {
-                            cout << endl;
-                        }
-                    }
-                    
-#endif
-                }   // removed check
-                
-			}   // pending points loop
             
 			if(common_vertices.empty()) {
 				common_vertices.insert(new_vertices.begin(),
@@ -520,29 +456,14 @@ add_cut_point(const GraphlessPoint& outside_point,
     GraphlessPoint* cut_point = new GraphlessPoint(outside_point + diff_direction);
     ProjectiveGeometry::normalize_projective(*cut_point);
     
-//    set_intersection(outside_point.active_inequalities_.cbegin(),
-//                     outside_point.active_inequalities_.cend(),
-//                     inside_point.active_inequalities_.cbegin(),
-//                     inside_point.active_inequalities_.cend(),
-//                     back_inserter(cut_point->active_inequalities_));
+    set_intersection(outside_point.active_inequalities_.cbegin(),
+                     outside_point.active_inequalities_.cend(),
+                     inside_point.active_inequalities_.cbegin(),
+                     inside_point.active_inequalities_.cend(),
+                     back_inserter(cut_point->active_inequalities_));
     
-//    cut_point->active_inequalities_.push_back(inequalities_.size() - 1);
+    cut_point->active_inequalities_.push_back(inequalities_.size() - 1);
         
-    unsigned i = 0;
-    for(auto inequality : inequalities_) {
-        double distance = *cut_point * inequality;
-#ifndef NDBUG
-        if(cut_point->operator[](0) >= 0.0001298 && cut_point->operator[](0) <= 0.0001299) {
-            cout << "Inequality: " << inequality << ", distance: " <<
-            distance << " " << (std::abs(distance) < epsilon_ ? "X" : "") << endl;
-        }
-#endif
-        if(std::abs(distance) < epsilon_) {
-            cut_point->active_inequalities_.push_back(i);
-        }
-        ++i;
-    }
-    
     cut_point->set_father(&inside_point);
     cut_point->birth_index_ = inequalities_.size() - 1;
         
