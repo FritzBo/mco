@@ -16,7 +16,7 @@
 #include <mco/ap/basic/ap_instance.h>
 #include <mco/ap/basic/lex_hungarian.h>
 #include <mco/generic/benson_dual/dual_benson_scalarizer.h>
-#include <mco/generic/benson_dual/ove_node_lists.h>
+#include <mco/generic/benson_dual/ove_fp_v2.h>
 
 namespace mco {
 
@@ -32,7 +32,7 @@ private:
 };
 
     
-template<typename OnlineVertexEnumerator = NodeListVE>
+template<typename OnlineVertexEnumerator = GraphlessOVE>
 class APBensonDualSolver
 : public AbstractSolver {
         

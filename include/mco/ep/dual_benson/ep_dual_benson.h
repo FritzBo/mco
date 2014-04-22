@@ -15,7 +15,7 @@
 #include <mco/basic/abstract_solver.h>
 #include <mco/basic/weight_function_adaptors.h>
 #include <mco/generic/benson_dual/dual_benson_scalarizer.h>
-#include <mco/generic/benson_dual/ove_node_lists.h>
+#include <mco/generic/benson_dual/ove_fp_v2.h>
 #include <mco/ep/basic/dijkstra.h>
 
 namespace mco {
@@ -43,7 +43,7 @@ private:
     
 };
     
-template<typename OnlineVertexEnumerator = NodeListVE>
+template<typename OnlineVertexEnumerator = GraphlessOVE>
 class EPDualBensonSolver : public AbstractSolver {
 public:
     EPDualBensonSolver(double epsilon = 1E-8)
