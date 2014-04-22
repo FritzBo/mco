@@ -25,12 +25,12 @@ using ogdf::edge;
 #include <mco/ep/brum_shier/ep_solver_bs.h>
 #include <mco/ep/dual_benson/ep_dual_benson.h>
 #include <mco/generic/benson_dual/ove_cdd.h>
+#include <mco/generic/benson_dual/ove_node_lists.h>
 
 using mco::Point;
 using mco::TemporaryGraphParser;
 using mco::EpSolverBS;
 using mco::EPDualBensonSolver;
-using mco::OnlineVertexEnumeratorCDD;
 
 int main(int argc, char** argv) {
     if(argc != 3) {
@@ -59,9 +59,9 @@ int main(int argc, char** argv) {
         return &costs[e];
     };
     
-    if (algorithm.compare("dual_benson") == 0) {
+    if (algorithm.compare("dual-benson") == 0) {
         
-        EPDualBensonSolver<OnlineVertexEnumeratorCDD> solver;
+        EPDualBensonSolver<mco::NodeListVE> solver;
         
         solver.Solve(graph, cost_function, source, target);
         
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
             cout << *p << endl;
         }
         
-    } else if(algorithm.compare("label_correcting") == 0) {
+    } else if(algorithm.compare("label-correcting") == 0) {
     
         EpSolverBS solver;
         
