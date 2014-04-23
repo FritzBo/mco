@@ -312,7 +312,6 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
 			assert(false);
         
 	} else {
-		unsigned int i = 0;
 		list<unsigned int> tight_inequalities;
         
 		set_intersection(p1.active_inequalities_.cbegin(),
@@ -352,7 +351,6 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
         }
         
         vector<bool> common_vertices(extreme_points_.size(), true);
-        unsigned global_common_count;
         
         assert(candidate_points_.empty());
         
@@ -363,7 +361,6 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
 			list<GraphlessPoint *> new_vertices;
             
             unsigned i = 0;
-            unsigned common_count = 0;
 			for(auto test_point : extreme_points_) {
                 
 #ifndef NDEBUG
@@ -382,9 +379,6 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
 #endif
                 }
                 
-                if(common_vertices[i] == true) {
-                    ++common_count;
-                }
 #ifndef NDEBUG
                 else {
                     if(debug_output) {
@@ -394,27 +388,19 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
 #endif
                 ++i;
 			}
-            
-            global_common_count = common_count;
-            
-            
-#ifndef NDEBUG
-            if(debug_output) {
-                cout << "current number of common points: " << common_vertices.size() << endl;
-            }
-#endif
-            
-			i += 1;
 
 		}
-        
+
+        unsigned common_count = std::count(common_vertices.cbegin(),
+                                           common_vertices.cend(),
+                                           true);        
 #ifndef NDEBUG
         if(debug_output) {
-            cout << "Number of common points: " << common_vertices.size() << endl;
+            cout << "Number of common points: " << common_count << endl;
         }
 #endif
         
-		if(global_common_count == 2)
+		if(common_count == 2)
 			return true;
 		else
 			return false;

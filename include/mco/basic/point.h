@@ -201,9 +201,13 @@ inline double Point::operator*(const Point &point) const noexcept {
     assert(dimension_ == point.dimension_);
     
     double sum = 0;
-    for(unsigned int i = 0; i < dimension_; ++i)
+    unsigned i;
+    for(i = 1; i < dimension_; i += 2) {
+        sum += (*this)[i - 1] * point[i - 1];
         sum += (*this)[i] * point[i];
-        return sum;
+    }
+    
+    return i == dimension_ + 1 ? sum : sum + (*this)[dimension_ - 1] * point[dimension_-1];
 }
 
 inline Point operator*(Point p, double d) {
