@@ -23,6 +23,7 @@ using ogdf::edge;
 #include <mco/basic/point.h>
 #include <mco/benchmarks/temporary_graphs_parser.h>
 #include <mco/ep/brum_shier/ep_solver_bs.h>
+#include <mco/ep/brum_shier/ep_weighted_bs.h>
 #include <mco/ep/dual_benson/ep_dual_benson.h>
 #include <mco/generic/benson_dual/ove_cdd.h>
 #include <mco/generic/benson_dual/ove_node_lists.h>
@@ -30,6 +31,7 @@ using ogdf::edge;
 using mco::Point;
 using mco::TemporaryGraphParser;
 using mco::EpSolverBS;
+using mco::EpWeightedBS;
 using mco::EPDualBensonSolver;
 
 int main(int argc, char** argv) {
@@ -74,6 +76,16 @@ int main(int argc, char** argv) {
     } else if(algorithm.compare("label-correcting") == 0) {
     
         EpSolverBS solver;
+        
+        solver.Solve(graph, cost_function, dimension, source, target, false);
+        
+        cout << solver.solutions().size() << endl;
+        
+        for(auto p : solver.solutions()) {
+            cout << *p << endl;
+        }
+    } else if(algorithm.compare("w-label-correcting") == 0) {
+        EpWeightedBS solver;
         
         solver.Solve(graph, cost_function, dimension, source, target, false);
         
