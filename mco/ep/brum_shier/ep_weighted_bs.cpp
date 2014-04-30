@@ -39,10 +39,6 @@ using ogdf::AdjElement;
 
 namespace mco {
 
-/**
- * Returns the nondominated subset of the union of two sets of vectors of double arrays.
- * TODO: Using algorithm of Kung et al.
- */
 bool EpWeightedBS::
 ConvexHull(const list<const Point *> &source1,
            const list<const Point *> &source2,
@@ -52,6 +48,7 @@ ConvexHull(const list<const Point *> &source1,
     
     unsigned dim = source1.back()->dimension();
     unsigned no_points = source1.size() + source2.size();
+    bool changed = false;
     
     dd_MatrixPtr points = dd_CreateMatrix(no_points + dim,
                                           dim + 1);
@@ -72,7 +69,7 @@ ConvexHull(const list<const Point *> &source1,
         ++row_index;
     }
     
-    // Insert points from source1
+    // Insert points from source1 (new points)
     for(auto pointPtr : source1) {
         Point point = *pointPtr;
         
@@ -86,7 +83,7 @@ ConvexHull(const list<const Point *> &source1,
                                     
     }
                                 
-    // Insert points from source2
+    // Insert points from source2 (old points)
     for(auto pointPtr : source2) {
         Point point = *pointPtr;
         
@@ -127,8 +124,36 @@ ConvexHull(const list<const Point *> &source1,
     }
 
     dd_FreeMatrix(points);
+    
+    EqualityPointComparator eq;
+    
+    iter = nondominated_subset.begin();
+    for(auto p : source2) {
+        if(iter == nondominated_subset.end()) {
+            break;
+        }
+        
+        if(!eq(p, *iter)) {
+            changed = true;
+        }
+        
+        ++iter;
+    }
+    
+    // FIXME
+//    if(changed) {
+//        cout << "old" << endl;
+//        for(auto p: source2) {
+//            cout << *p << endl;
+//        }
+//        cout << "new" << endl;
+//        for(auto p: nondominated_subset) {
+//            cout << *p << endl;
+//        }
+//        cout << endl;
+//    }
 
-	return true;
+    return changed;
 }
 
 void EpWeightedBS::Solve(const Graph& graph,
@@ -229,7 +254,7 @@ void EpWeightedBS::Solve(const Graph& graph,
 		queue.pop();
 		nodes_in_queue[n] = false;
         
-//      cout << endl;
+//        cout << endl;
 
 		assert(queue.size() <= static_cast<unsigned>(graph.numberOfNodes()));
 	}
