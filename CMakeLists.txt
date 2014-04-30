@@ -49,8 +49,14 @@ find_path(GUROBI_INCLUDE_PATH
           /usr/local/
 )
 
-find_library(GUROBI
+find_library(GUROBI1
     NAMES gurobi_c++
+    PATHS /Library/*/mac64/lib/
+          /usr/local/
+)
+          
+find_library(GUROBI2
+    NAMES gurobi56
     PATHS /Library/*/mac64/lib/
           /usr/local/
 )
