@@ -46,8 +46,40 @@ ConvexHull(const list<const Point *> &source1,
            list<const Point *> &dominated_subset,
            double epsilon) {
     
+    cout << "new" << endl;
+    for(auto point : source1) {
+        cout << *point << endl;
+    }
+    cout << "old" << endl;
+    for(auto point : source2) {
+        cout << *point << endl;
+    }
+    cout << endl;
+    
     unsigned dim = source1.back()->dimension();
     unsigned no_points = source1.size() + source2.size();
+//    
+//    if(no_points == 2) {
+//        ParetoDominationPointComparator p_cmp;
+//        auto point1 = *source1.begin();
+//        auto point2 = *source2.begin();
+//        
+//        if(p_cmp(point1, point2)) {
+//            dominated_subset.push_back(point2);
+//            nondominated_subset.push_back(point1);
+//            return true;
+//        } else if(p_cmp(point2, point1)) {
+//            dominated_subset.push_back(point1);
+//            nondominated_subset.push_back(point2);
+//            return false;
+//        } else {
+//            nondominated_subset.push_back(point1);
+//            nondominated_subset.push_back(point2);
+//            return true;
+//        }
+//    }
+    
+    
     bool changed = false;
     
     dd_MatrixPtr points = dd_CreateMatrix(no_points + dim,
@@ -69,20 +101,6 @@ ConvexHull(const list<const Point *> &source1,
         ++row_index;
     }
     
-    // Insert points from source1 (new points)
-    for(auto pointPtr : source1) {
-        Point point = *pointPtr;
-        
-        for(unsigned k = 1; k < dim + 1; ++k) {
-            dd_set_d(points->matrix[row_index][k], point[k - 1]);
-        }
-        
-        dd_set_d(points->matrix[row_index][0], 1);
-        
-        ++row_index;
-                                    
-    }
-                                
     // Insert points from source2 (old points)
     for(auto pointPtr : source2) {
         Point point = *pointPtr;
@@ -97,63 +115,70 @@ ConvexHull(const list<const Point *> &source1,
         
     }
     
-//    cout << no_points << endl;
-    
-//    dd_WriteMatrix(stdout, points);
-
     dd_ErrorType err;
-    dd_rowset redundand_rows;
+    dd_Arow cert = new double[dim + 1][1];
     
-    redundand_rows = dd_RedundantRows(points, &err);
-    
-    auto iter = source1.begin();
-    
-    for(unsigned i = dim; i < row_index; ++i) {
+    // Check all new points for redundancy and insert new non-redundant
+    // points
+    for(auto pointPtr : source1) {
+        Point point = *pointPtr;
         
-        if(iter == source1.end()) {
-            iter = source2.begin();
+        for(unsigned k = 1; k < dim + 1; ++k) {
+            dd_set_d(points->matrix[row_index][k], point[k - 1]);
         }
         
-        if(set_member(i + 1, redundand_rows)) {
-            dominated_subset.push_back(*iter);
+        dd_set_d(points->matrix[row_index][0], 1);
+        
+        if(dd_Redundant(points, row_index + 1, cert, &err)) {
+            dominated_subset.push_back(pointPtr);
         } else {
-            nondominated_subset.push_back(*iter);
+            nondominated_subset.push_back(pointPtr);
+            ++row_index;
+            changed = true;
+        }
+    }
+    
+    // If no new point was added, we are done
+    if(!changed) {
+        for(auto pointPtr : source2) {
+            nondominated_subset.push_back(pointPtr);
         }
         
-        ++iter;
+        return changed;
+    }
+    
+    // Now check all old points, if some are now redundant
+    unsigned i = dim;
+    for(auto pointPtr : source2) {
+        Point point = *pointPtr;
+
+        if(dd_Redundant(points, i + 1, cert, &err)) {
+            dominated_subset.push_back(pointPtr);
+            
+            for(unsigned k = 0; k < dim + 1; ++k) {
+                dd_set_d(points->matrix[i][k], 0);
+            }
+            
+        } else {
+            nondominated_subset.push_back(pointPtr);
+        }
+        
     }
 
     dd_FreeMatrix(points);
     
-    EqualityPointComparator eq;
-    
-    iter = nondominated_subset.begin();
-    for(auto p : source2) {
-        if(iter == nondominated_subset.end()) {
-            break;
-        }
-        
-        if(!eq(p, *iter)) {
-            changed = true;
-        }
-        
-        ++iter;
-    }
-    
     // FIXME
-//    if(changed) {
-//        cout << "old" << endl;
-//        for(auto p: source2) {
-//            cout << *p << endl;
-//        }
-//        cout << "new" << endl;
-//        for(auto p: nondominated_subset) {
-//            cout << *p << endl;
-//        }
-//        cout << endl;
-//    }
+    cout << "dominated" << endl;
+    for(auto p: dominated_subset) {
+        cout << *p << endl;
+    }
+    cout << "nondominated" << endl;
+    for(auto p: nondominated_subset) {
+        cout << *p << endl;
+    }
+    cout << endl;
 
-    return changed;
+    return true;
 }
 
 void EpWeightedBS::Solve(const Graph& graph,
