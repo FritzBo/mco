@@ -46,38 +46,38 @@ ConvexHull(const list<const Point *> &source1,
            list<const Point *> &dominated_subset,
            double epsilon) {
     
-    cout << "new" << endl;
-    for(auto point : source1) {
-        cout << *point << endl;
-    }
-    cout << "old" << endl;
-    for(auto point : source2) {
-        cout << *point << endl;
-    }
-    cout << endl;
+//    cout << "new" << endl;
+//    for(auto point : source1) {
+//        cout << *point << endl;
+//    }
+//    cout << "old" << endl;
+//    for(auto point : source2) {
+//        cout << *point << endl;
+//    }
+//    cout << endl;
     
     unsigned dim = source1.back()->dimension();
     unsigned no_points = source1.size() + source2.size();
-//    
-//    if(no_points == 2) {
-//        ParetoDominationPointComparator p_cmp;
-//        auto point1 = *source1.begin();
-//        auto point2 = *source2.begin();
-//        
-//        if(p_cmp(point1, point2)) {
-//            dominated_subset.push_back(point2);
-//            nondominated_subset.push_back(point1);
-//            return true;
-//        } else if(p_cmp(point2, point1)) {
-//            dominated_subset.push_back(point1);
-//            nondominated_subset.push_back(point2);
-//            return false;
-//        } else {
-//            nondominated_subset.push_back(point1);
-//            nondominated_subset.push_back(point2);
-//            return true;
-//        }
-//    }
+    
+    if(no_points == 2) {
+        ParetoDominationPointComparator p_cmp;
+        auto point1 = *source1.begin();
+        auto point2 = *source2.begin();
+        
+        if(p_cmp(point1, point2)) {
+            dominated_subset.push_back(point2);
+            nondominated_subset.push_back(point1);
+            return true;
+        } else if(p_cmp(point2, point1)) {
+            dominated_subset.push_back(point1);
+            nondominated_subset.push_back(point2);
+            return false;
+        } else {
+            nondominated_subset.push_back(point1);
+            nondominated_subset.push_back(point2);
+            return true;
+        }
+    }
     
     
     bool changed = false;
@@ -99,6 +99,10 @@ ConvexHull(const list<const Point *> &source1,
         dd_set_d(points->matrix[row_index][0], 0);
         
         ++row_index;
+    }
+    
+    for(unsigned j = dim; j < no_points + dim; ++j) {
+        dd_set_d(points->matrix[j][dim], 1);
     }
     
     // Insert points from source2 (old points)
@@ -131,12 +135,17 @@ ConvexHull(const list<const Point *> &source1,
         
         if(dd_Redundant(points, row_index + 1, cert, &err)) {
             dominated_subset.push_back(pointPtr);
+            for(unsigned k = 0; k < dim + 1; ++k) {
+                dd_set_d(points->matrix[row_index][k], k == dim);
+            }
         } else {
             nondominated_subset.push_back(pointPtr);
             ++row_index;
             changed = true;
         }
     }
+    
+//    dd_WriteMatrix(stdout, points);
     
     // If no new point was added, we are done
     if(!changed) {
@@ -156,27 +165,31 @@ ConvexHull(const list<const Point *> &source1,
             dominated_subset.push_back(pointPtr);
             
             for(unsigned k = 0; k < dim + 1; ++k) {
-                dd_set_d(points->matrix[i][k], 0);
+                dd_set_d(points->matrix[i][k], k == dim);
             }
             
         } else {
             nondominated_subset.push_back(pointPtr);
         }
         
+        ++i;
+        
     }
+    
+//    dd_WriteMatrix(stdout, points);
 
     dd_FreeMatrix(points);
     
     // FIXME
-    cout << "dominated" << endl;
-    for(auto p: dominated_subset) {
-        cout << *p << endl;
-    }
-    cout << "nondominated" << endl;
-    for(auto p: nondominated_subset) {
-        cout << *p << endl;
-    }
-    cout << endl;
+//    cout << "dominated" << endl;
+//    for(auto p: dominated_subset) {
+//        cout << *p << endl;
+//    }
+//    cout << "nondominated" << endl;
+//    for(auto p: nondominated_subset) {
+//        cout << *p << endl;
+//    }
+//    cout << endl;
 
     return true;
 }
