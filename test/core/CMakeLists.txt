@@ -13,7 +13,6 @@ add_executable(core_test ${SOURCE_FILES})
 target_link_libraries(core_test mco)
 target_link_libraries(core_test debug ${OGDF-DBG} optimized ${OGDF})
 target_link_libraries(core_test debug ${COIN-DBG} optimized ${COIN})
-target_link_libraries(core_test ${GUROBI})
 target_link_libraries(core_test pthread)
 target_link_libraries(core_test ${GTEST} ${GTEST_MAIN})
 
