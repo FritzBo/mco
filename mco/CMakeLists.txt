@@ -47,6 +47,7 @@ set(SOURCE_FILES
 ../include/mco/ep/martins/label.h
 ../include/mco/ep/martins/martins_smart.h
 ../include/mco/ep/martins/martins.h
+../include/mco/ep/martins/weighted_martins.h
 ../include/mco/ep/tsaggouris/ep_solver_tsaggouris_approx.h
 ../include/mco/ep/warburton/ep_solver_warburton_approx.h
 ../include/mco/ep/warburton/product.h
@@ -108,6 +109,7 @@ ep/brum_shier/ep_weighted_bs.cpp
 ep/martins/label.cpp
 ep/martins/martins_smart.cpp
 ep/martins/martins.cpp
+ep/martins/weighted_martins.cpp
 ep/tsaggouris/ep_solver_tsaggouris_approx.cpp
 ep/warburton/ep_solver_warburton_approx.cpp
 ep/basic/dijkstra.cpp

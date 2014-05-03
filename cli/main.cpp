@@ -24,6 +24,8 @@ using ogdf::edge;
 #include <mco/benchmarks/temporary_graphs_parser.h>
 #include <mco/ep/brum_shier/ep_solver_bs.h>
 #include <mco/ep/brum_shier/ep_weighted_bs.h>
+#include <mco/ep/brum_shier/ep_weighted_bs.h>
+#include <mco/ep/martins/martins.h>
 #include <mco/ep/dual_benson/ep_dual_benson.h>
 #include <mco/generic/benson_dual/ove_cdd.h>
 #include <mco/generic/benson_dual/ove_node_lists.h>
@@ -33,6 +35,7 @@ using mco::TemporaryGraphParser;
 using mco::EpSolverBS;
 using mco::EpWeightedBS;
 using mco::EPDualBensonSolver;
+using mco::EpSolverMartins;
 
 int main(int argc, char** argv) {
     if(argc != 3) {
@@ -56,6 +59,10 @@ int main(int argc, char** argv) {
                     dimension,
                     source,
                     target);
+    
+    cout << "Read a graph with " << graph.numberOfNodes() <<
+    " nodes and " << graph.numberOfEdges() << " edges." << endl;
+    cout << "Solving..." << endl;
     
     auto cost_function = [costs] (edge e) {
         return &costs[e];
@@ -94,6 +101,18 @@ int main(int argc, char** argv) {
         for(auto p : solver.solutions()) {
             cout << *p << endl;
         }
+    } else if(algorithm.compare("martins") == 0) {
+        EpSolverMartins solver;
+        
+        solver.Solve(graph, cost_function, dimension, source, target, false);
+        
+        cout << solver.solutions().size() << endl;
+        
+        for(auto p : solver.solutions()) {
+            cout << *p << endl;
+        }
+    } else if(algorithm.compare("w-martins") == 0) {
+        cout << "Not yet implemented" << endl;
     } else {
         cout << "Unknown algorithm: " << algorithm << endl;
     }
