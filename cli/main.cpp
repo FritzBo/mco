@@ -27,6 +27,7 @@ using ogdf::edge;
 #include <mco/ep/brum_shier/ep_weighted_bs.h>
 #include <mco/ep/martins/martins.h>
 #include <mco/ep/dual_benson/ep_dual_benson.h>
+#include <mco/ep/martins/weighted_martins.h>
 #include <mco/generic/benson_dual/ove_cdd.h>
 #include <mco/generic/benson_dual/ove_node_lists.h>
 
@@ -36,6 +37,7 @@ using mco::EpSolverBS;
 using mco::EpWeightedBS;
 using mco::EPDualBensonSolver;
 using mco::EpSolverMartins;
+using mco::EpWeightedMartins;
 
 int main(int argc, char** argv) {
     if(argc != 3) {
@@ -112,7 +114,15 @@ int main(int argc, char** argv) {
             cout << *p << endl;
         }
     } else if(algorithm.compare("w-martins") == 0) {
-        cout << "Not yet implemented" << endl;
+        EpWeightedMartins solver;
+        
+        solver.Solve(graph, cost_function, dimension, source, target, false);
+        
+        cout << solver.solutions().size() << endl;
+        
+        for(auto p : solver.solutions()) {
+            cout << *p << endl;
+        }
     } else {
         cout << "Unknown algorithm: " << algorithm << endl;
     }

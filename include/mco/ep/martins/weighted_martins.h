@@ -7,18 +7,21 @@
  *      Author: fritz
  */
 
-#ifndef MARTINS_B_H_
-#define MARTINS_B_H_
+#ifndef WEIGHTED_MARTINS_B_H_
+#define WEIGHTED_MARTINS_B_H_
 
 #include <mco/basic/abstract_solver.h>
 
+#include <setoper.h>
+#include <cdd.h>
+
 namespace mco {
 
-class EpSolverMartins : public AbstractSolver {
+class EpWeightedMartins : public AbstractSolver {
 
 public:
-	explicit EpSolverMartins(double epsilon = 0)
-    : epsilon_(epsilon) { }
+	explicit EpWeightedMartins(double epsilon = 0)
+    :   comp_leq_(epsilon, false) { }
     
 	virtual void Solve(ogdf::Graph& graph,
                        std::function<const Point*(ogdf::edge)> weights,
@@ -28,7 +31,7 @@ public:
                        bool directed = true);
     
 private:
-    const double epsilon_;
+    ComponentwisePointComparator comp_leq_;
     
     struct Label {
         const Point * const point;
@@ -47,6 +50,15 @@ private:
         }
     };
     
+    struct NodeEntry {
+        std::list<Label*> label_set;
+        std::list<unsigned> free_list;
+        unsigned head;
+        dd_MatrixPtr hull_matrix;
+        
+        inline void initialHullMatrix(unsigned dimension);
+    };
+    
     struct LexLabelComp {
         bool operator()(const Label& l1, const Label& l2) {
             return LexPointComparator()(l2.point, l1.point);
@@ -57,9 +69,14 @@ private:
         }
     };
 
+    bool ModifyLabelList(Label& new_label,
+                         std::list<Label *>& label_set,
+                         dd_MatrixPtr hull_matrix,
+                         std::list<unsigned> free_list);
+
 };
     
-EpSolverMartins::Label::
+EpWeightedMartins::Label::
 Label(const Point *point,
       ogdf::node n,
       const Label *pred)
@@ -70,7 +87,7 @@ Label(const Point *point,
     in_queue(false) {
 }
 
-EpSolverMartins::Label::
+EpWeightedMartins::Label::
 Label(const Label &label)
 :   point(new Point(*label.point)),
     n(label.n),
@@ -78,7 +95,22 @@ Label(const Label &label)
     mark_dominated(label.mark_dominated),
     in_queue(label.in_queue) {
 }
-
+    
+void EpWeightedMartins::NodeEntry::
+initialHullMatrix(unsigned dimension) {
+    dd_MatrixPtr hull_matrix = dd_CreateMatrix(dimension + 1,
+                                               dimension * 2);
+    
+    for(unsigned i = 0; i < dimension; ++i) {
+        for(unsigned j = 0; j < dimension + 1; ++j) {
+            dd_set_d(hull_matrix->matrix[i][j], i == j + 1 ? 1.0 : 0.0);
+        }
+        dd_set_d(hull_matrix->matrix[i][0], 0);
+    }
+    
 }
 
-#endif /* MARTINS_H_ */
+
+}   // namespace mco
+
+#endif /* WEIGHTED_MARTINS_H_ */
