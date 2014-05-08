@@ -176,12 +176,8 @@ int main(int argc, char** argv) {
                      list<Point>(),
                      false);
         
-        cout << solver.solutions().size() << endl;
+        cout << "Size of the Pareto-frontier: " << solver.solutions().size() << endl;
         
-        for(auto p : solver.solutions()) {
-            cout << *p << endl;
-        }
-
     } else if(algorithm.compare("fpre-martins") == 0) {
         Dijkstra<double> sssp_solver;
         
@@ -239,11 +235,7 @@ int main(int argc, char** argv) {
                      first_phase_bounds,
                      false);
         
-        cout << solver.solutions().size() << endl;
-        
-        for(auto p : solver.solutions()) {
-            cout << *p << endl;
-        }
+        cout << "Size of the Pareto-frontier: " << solver.solutions().size() << endl;
         
     } else {
         cout << "Unknown algorithm: " << algorithm << endl;

@@ -108,12 +108,14 @@ Solve(Graph& graph,
 			const Point *new_cost = new Point(*edge_cost + *label_cost);			// Owner
             
             for(unsigned i = 0; i < dimension; ++i) {
-                if(new_cost->operator[](i) + heuristic(v, i) >= bound[i]) {
+                double heuristic_cost = new_cost->operator[](i) + heuristic(v, i);
+                if(heuristic_cost > bound[i]) {
                     delete new_cost;
                     new_cost = nullptr;
                     ++bound_deletion;
                     break;
                 }
+                
             }
             
             if(new_cost == nullptr) {
