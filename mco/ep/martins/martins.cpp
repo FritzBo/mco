@@ -192,6 +192,7 @@ Solve(Graph& graph,
 		cout << current_label->n;
 //        cout << ")";
         cout << endl;
+        cout << *label->point << endl;
 	}
 
 	node n;
