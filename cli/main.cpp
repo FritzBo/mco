@@ -137,6 +137,8 @@ int main(int argc, char** argv) {
         vector<NodeArray<double>> distances(dimension, graph);
         NodeArray<edge> predecessor(graph);
         
+        cout << "calculating heuristic..." << endl;
+        
         for(unsigned i = 0; i < dimension; ++i) {
             auto length = [costs, i] (edge e) {
                 return costs[e][i];
@@ -161,6 +163,8 @@ int main(int argc, char** argv) {
         bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
         
         EpSolverMartins solver;
+        
+        cout << "Running Martins algorithm..." << endl;
         
         solver.Solve(graph,
                      cost_function,
@@ -184,6 +188,8 @@ int main(int argc, char** argv) {
         vector<NodeArray<double>> distances(dimension, graph);
         NodeArray<edge> predecessor(graph);
         
+        cout << "calculating heuristic..." << endl;
+        
         for(unsigned i = 0; i < dimension; ++i) {
             auto length = [costs, i] (edge e) {
                 return costs[e][i];
@@ -207,6 +213,8 @@ int main(int argc, char** argv) {
         }
         bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
         
+        cout << "Running first phase..." << endl;
+        
         EPDualBensonSolver<> weighted_solver;
         
         weighted_solver.Solve(graph, cost_function, source, target);
@@ -218,6 +226,8 @@ int main(int argc, char** argv) {
         }
         
         EpSolverMartins solver;
+        
+        cout << "Running Martins algorithm..." << endl;
         
         solver.Solve(graph,
                      cost_function,
