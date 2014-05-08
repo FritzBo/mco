@@ -20,12 +20,34 @@ public:
 	explicit EpSolverMartins(double epsilon = 0)
     : epsilon_(epsilon) { }
     
-	virtual void Solve(ogdf::Graph& graph,
+    virtual void Solve(ogdf::Graph& graph,
                        std::function<const Point*(ogdf::edge)> weights,
                        unsigned dimension,
                        ogdf::node source,
                        ogdf::node target,
+                       const Point& bound,
+                       std::function<double(ogdf::node, unsigned)> heuristik,
                        bool directed = true);
+
+    
+    virtual void Solve(ogdf::Graph& graph,
+                       std::function<const Point*(ogdf::edge)> weights,
+                       unsigned dimension,
+                       ogdf::node source,
+                       ogdf::node target,
+                       bool directed = true) {
+        Point bound(numeric_limits<double>::infinity(), dimension);
+        
+        Solve(graph,
+              weights,
+              dimension,
+              source,
+              target,
+              bound,
+              [] (ogdf::node, unsigned) { return 0; },
+              directed);
+                           
+    }
     
 private:
     const double epsilon_;

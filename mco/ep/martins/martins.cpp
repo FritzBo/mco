@@ -38,6 +38,8 @@ Solve(Graph& graph,
       unsigned dimension,
       node source,
       node target,
+      const Point& bound,
+      function<double(ogdf::node, unsigned)> heuristik,
       bool directed) {
     
     using LabelPriorityQueue = priority_queue<Label *, vector<Label *>, LexLabelComp>;
@@ -46,7 +48,7 @@ Solve(Graph& graph,
 	LabelPriorityQueue lex_min_label((LexLabelComp()));
 	NodeArray<list<Label *>> labels(graph);
 
-    ComponentwisePointComparator comp_leq(0, false);
+    ComponentwisePointComparator comp_leq(epsilon_, false);
 
 	Label *null_label = new Label(Point::Null(dimension), source, nullptr);
     null_label->in_queue = true;
@@ -100,6 +102,40 @@ Solve(Graph& graph,
 
 			const Point *edge_cost = weights(e);
 			const Point *new_cost = new Point(*edge_cost + *label_cost);			// Owner
+            
+            for(unsigned i = 0; i < dimension; ++i) {
+                if(new_cost->operator[](i) + heuristik(v, i) >= bound[i]) {
+                    delete new_cost;
+                    new_cost = nullptr;
+                    break;
+                }
+            }
+            
+            if(new_cost == nullptr) {
+                continue;
+            }
+            
+            for(auto label : labels[target]) {
+                const Point& cost = *label->point;
+                
+                bool dominated = true;
+                for(unsigned i = 0; i < dimension; ++i) {
+                    if(new_cost->operator[](i) + heuristik(v, i) < cost[i]) {
+                        dominated = false;
+                        break;
+                    }
+                }
+                
+                if(dominated) {
+                    delete new_cost;
+                    new_cost = nullptr;
+                    break;
+                }
+            }
+            
+            if(new_cost == nullptr) {
+                continue;
+            }
 
 			bool dominated = false;
 
