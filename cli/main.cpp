@@ -8,20 +8,24 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 using std::cout;
 using std::endl;
 using std::string;
+using std::vector;
 
 #include <ogdf/basic/Graph.h>
 
 using ogdf::Graph;
 using ogdf::EdgeArray;
+using ogdf::NodeArray;
 using ogdf::node;
 using ogdf::edge;
 
 #include <mco/basic/point.h>
 #include <mco/benchmarks/temporary_graphs_parser.h>
+#include <mco/ep/basic/dijkstra.h>
 #include <mco/ep/brum_shier/ep_solver_bs.h>
 #include <mco/ep/brum_shier/ep_weighted_bs.h>
 #include <mco/ep/brum_shier/ep_weighted_bs.h>
@@ -38,6 +42,8 @@ using mco::EpWeightedBS;
 using mco::EPDualBensonSolver;
 using mco::EpSolverMartins;
 using mco::EpWeightedMartins;
+using mco::Dijkstra;
+using mco::DijkstraModes;
 
 int main(int argc, char** argv) {
     if(argc != 3) {
@@ -123,6 +129,53 @@ int main(int argc, char** argv) {
         for(auto p : solver.solutions()) {
             cout << *p << endl;
         }
+    } else if(algorithm.compare("pre-martins") == 0) {
+        Dijkstra<double> sssp_solver;
+        
+        vector<NodeArray<double>> distances(dimension, graph);
+        NodeArray<edge> predecessor(graph);
+        
+        for(unsigned i = 0; i < dimension; ++i) {
+            auto length = [costs, i] (edge e) {
+                return costs[e][i];
+            };
+            
+            sssp_solver.singleSourceShortestPaths(graph,
+                                                  length,
+                                                  target,
+                                                  predecessor,
+                                                  distances[i],
+                                                  DijkstraModes::Undirected);
+        }
+        
+        auto heuristic = [distances] (node n, unsigned objective) {
+            return distances[objective][n];
+        };
+        
+        Point bound(dimension);
+        for(unsigned i = 0; i < dimension - 1; ++i) {
+            bound[i] = numeric_limits<double>::infinity();
+        }
+        bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
+        
+        EpSolverMartins solver;
+        
+        solver.Solve(graph,
+                     cost_function,
+                     dimension,
+                     source,
+                     target,
+                     bound,
+                     heuristic,
+                     false);
+        
+        cout << solver.solutions().size() << endl;
+        
+        for(auto p : solver.solutions()) {
+            cout << *p << endl;
+        }
+
+        
     } else {
         cout << "Unknown algorithm: " << algorithm << endl;
     }
