@@ -11,6 +11,7 @@
 #include <vector>
 #include <set>
 #include <list>
+#include <iomanip>
 
 using std::priority_queue;
 using std::vector;
@@ -31,61 +32,142 @@ using ogdf::NodeArray;
 #include <mco/ep/martins/label.h>
 
 namespace mco {
+    
+bool EpWeightedMartins::NodeEntry::
+add_label(Label& new_label) {
+    
+//    cout << "new label:" << endl;
+//    cout << *new_label.point << endl;
+//    cout << "old labels:" << endl;
+//    for(auto label : label_set) {
+//        if(label != nullptr) {
+//            cout << *label->point << endl;
+//        }
+//    }
+//    cout << endl;
+    
+    // If hull matrix is not set, set it
+    if(hull_matrix == nullptr) {
+        initialHullMatrix(dimension_, new_label);
+        return true;
+    
+    // If there are only two points to compare
+    } else if(head ==  dimension_ + 1) {
+        ComponentwisePointComparator cmp(0, false);
+        auto point1 = *label_set[0]->point;
+        auto point2 = *new_label.point;
         
-inline dd_MatrixPtr extend_hull_matrix(dd_MatrixPtr matrix) {
-    unsigned new_rowsize = 2 * matrix->rowsize;
-    unsigned colsize = matrix->colsize;
-    dd_MatrixPtr new_matrix = dd_CreateMatrix(new_rowsize, colsize);
-    
-    for(unsigned i = 0; i < matrix->rowsize; ++i) {
-        for(unsigned j = 0; j < matrix->colsize; ++j) {
-            double old_value = dd_get_d(matrix->matrix[i][j]);
-            dd_set_d(new_matrix->matrix[i][j], old_value);
-        }
-    }
-    
-    dd_FreeMatrix(matrix);
-    
-    return new_matrix;
-}
-    
-bool EpWeightedMartins::
-ModifyLabelList(Label& new_label,
-                list<Label *>& label_set,
-                dd_MatrixPtr hull_matrix,
-                list<unsigned> free_list) {
-    
-    bool dominated = false;
-    
-    const Point& new_point = *new_label.point;
-    
-    auto iter = label_set.begin();
-    while(iter != label_set.end()) {
-        
-        Label * target_label = *iter;
-        const Point& target_point = *target_label->point;
-        
-        if(comp_leq_(target_point, new_point)) {
-            dominated = true;
-            break;
-        }
-        
-        if(target_label->in_queue) {
-            if(comp_leq_(new_point, target_point)) {
-                target_label->mark_dominated = true;
-                iter = label_set.erase(iter);
-            } else {
-                ++iter;
+        if(cmp(point1, point2)) {
+            return false;
+        } else if(cmp(point2, point1)) {
+            label_set[0] = &new_label;
+            
+            for(unsigned i = 0; i < dimension_; ++i) {
+                dd_set_d(hull_matrix->matrix[head - 1][i + 1], point2[i]);
             }
+            dd_set_d(hull_matrix->matrix[head - 1][0], 1.0);
+            
+            return true;
+
         } else {
-            ++iter;
+            
+            for(unsigned i = 0; i < dimension_; ++i) {
+                dd_set_d(hull_matrix->matrix[head][i + 1], point2[i]);
+            }
+            dd_set_d(hull_matrix->matrix[head][0], 1.0);
+            
+            label_set[1] = &new_label;
+            
+            ++head;
+            
+            return true;
         }
-    }
-    
-    if(dominated) {
-        return false;
     } else {
-        label_set.push_back(&new_label);
+        
+        for(auto label : label_set) {
+            if(label != nullptr) {
+                if(ComponentwisePointComparator()(label->point, new_label.point)) {
+                    return false;
+                }
+            }
+        }
+    
+        // If we have not enough space, extend hull matrix
+        if(hull_matrix->rowsize <= head && free_list.empty()) {
+            extend_hull_matrix();
+        }
+        
+        const Point& new_cost = *new_label.point;
+        
+        // Find position to insert and insert point in hull_matrix at
+        // a free position or at head pointer
+        dd_rowrange position;
+        bool used_free_list = false;
+        if(free_list.empty()) {
+            position = head;
+        } else {
+            position = free_list.front();
+            used_free_list = true;
+        }
+        
+        for(unsigned i = 0; i < dimension_; ++i) {
+            dd_set_d(hull_matrix->matrix[position][i + 1], new_cost[i]);
+        }
+        dd_set_d(hull_matrix->matrix[position][0], 1.0);
+        
+//        dd_WriteMatrix(stdout, hull_matrix);
+        
+        // Check if new point is redundant
+        dd_Arow cert = new double [dimension_ + 1][1];
+        dd_ErrorType err = dd_NoError;
+        if(dd_Redundant(hull_matrix, position + 1, cert, &err)) {
+            
+            for(unsigned i = 0; i < dimension_ + 1; ++i) {
+                dd_set_d(hull_matrix->matrix[position][i], 0.0);
+            }
+            
+            return false;
+        }
+        
+        label_set[position - dimension_] = &new_label;
+        
+        if(used_free_list) {
+            free_list.pop_front();
+        } else {
+            ++head;
+        }
+        
+        // Check if other points are now redundant
+        for(unsigned i = dimension_; i < head; ++i) {
+            Label* label = label_set[i - dimension_];
+            if(label != nullptr && label->in_queue && i != position) {
+                if(dd_Redundant(hull_matrix, i + 1, cert, &err)) {
+                    
+                    for(unsigned j = 0; j < dimension_ + 1; ++j) {
+                        dd_set_d(hull_matrix->matrix[i][j], 0.0);
+                    }
+                    
+                    if(i < head - 1) {
+                        free_list.push_back(i);
+                    } else {
+                        --head;
+                    }
+                 
+                    label->mark_dominated = true;
+                    label_set[i - dimension_] = nullptr;
+                }
+            }
+        }
+        
+//        cout << "new label set:" << endl;
+//        for(auto label : label_set) {
+//            if(label != nullptr) {
+//                cout << *label->point << endl;
+//            }
+//        }
+//        cout << endl;
+//        cout << endl;
+        
         return true;
     }
 }
@@ -99,16 +181,15 @@ Solve(Graph& graph,
       bool directed) {
     
     using LabelPriorityQueue = priority_queue<Label *, vector<Label *>, LexLabelComp>;
-
+    
+    dd_set_global_constants();
     
 	LabelPriorityQueue lex_min_label((LexLabelComp()));
-	NodeArray<list<Label *>> labels(graph);
-    NodeArray<dd_MatrixPtr> hull_matrix(graph, nullptr);
-    NodeArray<list<unsigned>> free_list;
+	NodeArray<NodeEntry> node_entry(graph, dimension);
 
 	Label *null_label = new Label(Point::Null(dimension), source, nullptr);
     null_label->in_queue = true;
-	labels[source].push_back(null_label);
+    node_entry[source].label_set.push_back(null_label);
     
 	lex_min_label.push(null_label);
 
@@ -161,7 +242,7 @@ Solve(Graph& graph,
 
 			Label * new_label = new Label(new_cost, v, label);
             
-            if(ModifyLabelList(*new_label, labels[v], hull_matrix[v], free_list[v])) {
+            if(node_entry[v].add_label(*new_label)) {
                 lex_min_label.push(new_label);
                 new_label->in_queue = true;
             } else {
@@ -170,10 +251,12 @@ Solve(Graph& graph,
         }
 
 	}
-
+    
 	list<const Point *> target_labels;
-	for(auto &label : labels[target])
-		target_labels.push_back(new Point(*label->point));
+	for(auto label : node_entry[target].label_set)
+        if(label != nullptr) {
+            target_labels.push_back(new Point(*label->point));
+        }
 
 	reset_solutions();
 	add_solutions(target_labels.begin(), target_labels.end());
@@ -190,9 +273,11 @@ Solve(Graph& graph,
 
 	node n;
 	forall_nodes(n, graph) {
-		for(auto &label : labels[n])
+		for(auto &label : node_entry[n].label_set)
 			delete label;
 	}
+    
+    dd_free_global_constants();
 }
 
 }
