@@ -160,6 +160,53 @@ int main(int argc, char** argv) {
         }
         bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
         
+        EpSolverMartins solver;
+        
+        solver.Solve(graph,
+                     cost_function,
+                     dimension,
+                     source,
+                     target,
+                     bound,
+                     heuristic,
+                     list<Point>(),
+                     false);
+        
+        cout << solver.solutions().size() << endl;
+        
+        for(auto p : solver.solutions()) {
+            cout << *p << endl;
+        }
+
+    } else if(algorithm.compare("fpre-martins") == 0) {
+        Dijkstra<double> sssp_solver;
+        
+        vector<NodeArray<double>> distances(dimension, graph);
+        NodeArray<edge> predecessor(graph);
+        
+        for(unsigned i = 0; i < dimension; ++i) {
+            auto length = [costs, i] (edge e) {
+                return costs[e][i];
+            };
+            
+            sssp_solver.singleSourceShortestPaths(graph,
+                                                  length,
+                                                  target,
+                                                  predecessor,
+                                                  distances[i],
+                                                  DijkstraModes::Undirected);
+        }
+        
+        auto heuristic = [distances] (node n, unsigned objective) {
+            return distances[objective][n];
+        };
+        
+        Point bound(dimension);
+        for(unsigned i = 0; i < dimension - 1; ++i) {
+            bound[i] = numeric_limits<double>::infinity();
+        }
+        bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
+        
         EPDualBensonSolver<> weighted_solver;
         
         weighted_solver.Solve(graph, cost_function, source, target);
@@ -187,7 +234,6 @@ int main(int argc, char** argv) {
         for(auto p : solver.solutions()) {
             cout << *p << endl;
         }
-
         
     } else {
         cout << "Unknown algorithm: " << algorithm << endl;
