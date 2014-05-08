@@ -9,11 +9,13 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <list>
 
 using std::cout;
 using std::endl;
 using std::string;
 using std::vector;
+using std::list;
 
 #include <ogdf/basic/Graph.h>
 
@@ -158,6 +160,16 @@ int main(int argc, char** argv) {
         }
         bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
         
+        EPDualBensonSolver<> weighted_solver;
+        
+        weighted_solver.Solve(graph, cost_function, source, target);
+        
+        list<Point> first_phase_bounds;
+        
+        for(auto point : weighted_solver.solutions()) {
+            first_phase_bounds.push_back(*point);
+        }
+        
         EpSolverMartins solver;
         
         solver.Solve(graph,
@@ -167,6 +179,7 @@ int main(int argc, char** argv) {
                      target,
                      bound,
                      heuristic,
+                     first_phase_bounds,
                      false);
         
         cout << solver.solutions().size() << endl;

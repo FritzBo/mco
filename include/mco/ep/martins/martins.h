@@ -26,7 +26,8 @@ public:
                        ogdf::node source,
                        ogdf::node target,
                        const Point& bound,
-                       std::function<double(ogdf::node, unsigned)> heuristik,
+                       std::function<double(ogdf::node, unsigned)> heuristic,
+                       std::list<Point> first_phase_bounds = std::list<Point>(),
                        bool directed = true);
 
     
@@ -45,6 +46,7 @@ public:
               target,
               bound,
               [] (ogdf::node, unsigned) { return 0; },
+              std::list<Point>(),
               directed);
                            
     }

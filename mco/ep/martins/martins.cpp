@@ -39,11 +39,15 @@ Solve(Graph& graph,
       node source,
       node target,
       const Point& bound,
-      function<double(ogdf::node, unsigned)> heuristik,
+      function<double(ogdf::node, unsigned)> heuristic,
+      list<Point> first_phase_bounds,
       bool directed) {
     
     using LabelPriorityQueue = priority_queue<Label *, vector<Label *>, LexLabelComp>;
-
+    
+    unsigned bound_deletion = 0;
+    unsigned heuristic_deletion = 0;
+    unsigned first_phase_deletion = 0;
     
 	LabelPriorityQueue lex_min_label((LexLabelComp()));
 	NodeArray<list<Label *>> labels(graph);
@@ -104,9 +108,10 @@ Solve(Graph& graph,
 			const Point *new_cost = new Point(*edge_cost + *label_cost);			// Owner
             
             for(unsigned i = 0; i < dimension; ++i) {
-                if(new_cost->operator[](i) + heuristik(v, i) >= bound[i]) {
+                if(new_cost->operator[](i) + heuristic(v, i) >= bound[i]) {
                     delete new_cost;
                     new_cost = nullptr;
+                    ++bound_deletion;
                     break;
                 }
             }
@@ -120,7 +125,7 @@ Solve(Graph& graph,
                 
                 bool dominated = true;
                 for(unsigned i = 0; i < dimension; ++i) {
-                    if(new_cost->operator[](i) + heuristik(v, i) < cost[i]) {
+                    if(new_cost->operator[](i) + heuristic(v, i) < cost[i]) {
                         dominated = false;
                         break;
                     }
@@ -129,6 +134,28 @@ Solve(Graph& graph,
                 if(dominated) {
                     delete new_cost;
                     new_cost = nullptr;
+                    ++heuristic_deletion;
+                    break;
+                }
+            }
+            
+            if(new_cost == nullptr) {
+                continue;
+            }
+            
+            for(auto cost : first_phase_bounds) {
+                bool dominated = true;
+                for(unsigned i = 0; i < dimension; ++i) {
+                    if(new_cost->operator[](i) + heuristic(v, i) <= cost[i]) {
+                        dominated = false;
+                        break;
+                    }
+                }
+                
+                if(dominated) {
+                    delete new_cost;
+                    new_cost = nullptr;
+                    ++first_phase_deletion;
                     break;
                 }
             }
@@ -194,7 +221,11 @@ Solve(Graph& graph,
         cout << endl;
         cout << *label->point << endl;
 	}
-
+    
+    cout << "Length bound deletions: " << bound_deletion << endl;
+    cout << "Heuristic bound deletions: " << heuristic_deletion << endl;
+    cout << "First phase bound deletions: " << first_phase_deletion << endl;
+    
 	node n;
 	forall_nodes(n, graph) {
 		for(auto &label : labels[n])
