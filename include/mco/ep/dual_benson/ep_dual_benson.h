@@ -33,7 +33,8 @@ public:
         weights_(weights),
         source_(source),
         target_(target),
-        callback_(callback) {}
+        callback_(callback),
+        known_points_((LexPointComparator())) {}
     
     inline double operator()(const Point& weighting,
                              Point& value);
@@ -45,6 +46,8 @@ private:
     const ogdf::node source_;
     const ogdf::node target_;
     std::function<void(ogdf::NodeArray<Point*>&, ogdf::NodeArray<ogdf::edge>&)> callback_;
+    
+    std::set<Point*, LexPointComparator> known_points_;
     
 };
     
@@ -92,7 +95,11 @@ operator()(const Point& weighting,
         value[i] = target_cost[i + 1];
     }
     
-    callback_(distance, predecessor);
+    if(known_points_.count(distance[target_]) == 0) {
+        callback_(distance, predecessor);
+        known_points_.insert(new Point(*distance[target_]));
+    }
+    
     
     double weighted_value = target_cost[0];
     

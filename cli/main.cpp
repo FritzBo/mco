@@ -48,6 +48,9 @@ using mco::EpSolverMartins;
 using mco::EpWeightedMartins;
 using mco::Dijkstra;
 using mco::DijkstraModes;
+using mco::LexPointComparator;
+using mco::ParetoDominationPointComparator;
+using mco::EqualityPointComparator;
 
 int main(int argc, char** argv) {
     if(argc != 3) {
@@ -100,7 +103,12 @@ int main(int argc, char** argv) {
         
         cout << solver.solutions().size() << endl;
         
-        for(auto p : solver.solutions()) {
+        vector<const Point*> solutions(solver.solutions().cbegin(),
+                                       solver.solutions().cend());
+        
+        std::sort(solutions.begin(), solutions.end(), mco::LexPointComparator());
+                
+        for(auto p : solutions) {
             cout << *p << endl;
         }
     } else if(algorithm.compare("w-label-correcting") == 0) {
