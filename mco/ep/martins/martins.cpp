@@ -17,6 +17,7 @@ using std::vector;
 using std::set;
 using std::list;
 using std::function;
+using std::pair;
 
 #include <ogdf/basic/Graph.h>
 
@@ -40,6 +41,8 @@ Solve(Graph& graph,
       node target,
       const Point& bound,
       function<double(ogdf::node, unsigned)> heuristic,
+      list<pair<NodeArray<Point*>,
+                NodeArray<edge>>> initial_labels,
       list<Point> first_phase_bounds,
       bool directed) {
     
@@ -51,7 +54,7 @@ Solve(Graph& graph,
     
 	LabelPriorityQueue lex_min_label((LexLabelComp()));
 	NodeArray<list<Label *>> labels(graph);
-
+    
     ComponentwisePointComparator comp_leq(epsilon_, false);
 
 	Label *null_label = new Label(Point::Null(dimension), source, nullptr);
@@ -59,6 +62,18 @@ Solve(Graph& graph,
 	labels[source].push_back(null_label);
     
 	lex_min_label.push(null_label);
+    
+    if(!initial_labels.empty()) {
+        construct_labels(labels, initial_labels);
+        
+        for(auto n : graph.nodes) {
+            if(n != target && n != source) {
+                for(auto label : labels[n]) {
+                    lex_min_label.push(label);
+                }
+            }
+        }
+    }
 
 	while(!lex_min_label.empty()) {
 		Label *label = lex_min_label.top();
@@ -234,5 +249,102 @@ Solve(Graph& graph,
 			delete label;
 	}
 }
+    
+void EpSolverMartins::
+construct_labels(NodeArray<list<Label*>> & labels,
+                 list<pair<NodeArray<Point*>,
+                           NodeArray<edge>>>& initial_labels) {
+    
+    LexPointComparator comp;
+    EqualityPointComparator eq;
+    
+    for(auto solution : initial_labels) {
+        auto distances = solution.first;
+        auto predecessor = solution.second;
+        NodeArray<bool> in_queue(*labels.graphOf(), true);
+        
+        auto order = [distances, comp] (node v, node w) {
+            return comp(distances[v], distances[w]);
+        };
+        
+        priority_queue<node, vector<node>, decltype(order)> nodes(order);
+        
+        for(auto n : labels.graphOf()->nodes) {
+            nodes.push(n);
+        }
+        
+        // For each node, starting with one with a highest label
+        while(!nodes.empty()) {
+            node n = nodes.top();
+            nodes.pop();
+            
+            // If the node was already marked to be removed from the queue,
+            // draw next node,
+            // else, mark it as removed and proceed
+            if(!in_queue[n]) {
+                continue;
+            }
+            
+            bool labeling_finished = false;
+            
+            list<node> path;
+            Label * pred = nullptr;
+            
+            // While we are still scanning for the first label for the path and
+            // we have not run into the end of the path and there are still
+            // nodes on the path which are in the queue
+            while(!labeling_finished || in_queue[n]) {
+                
+//                cout << n << endl;
+                
+                // If we are still looking for the root of the path
+                if(!labeling_finished) {
+                    // Is there a label with the same point?
+                    for(auto label : labels[n]) {
+                        if(eq(label->point, distances[n])) {
+                            labeling_finished = true;
+                            pred = label;
+                        }
+                    }
+                    
+                    // No label with the same point? Add the node
+                    // to the path
+                    if(!labeling_finished) {
+                        path.push_back(n);
+                    }
+                }
+                
+                // Remove node from queue
+                in_queue[n] = false;
+                
+                if(predecessor[n] == nullptr) {
+                    break;
+                }
+                
+                // Proceed with predecessor on current path
+                n = n == predecessor[n]->source() ? predecessor[n]->target() :
+                            predecessor[n]->source();
+            }
+            
+            // For each node on the path
+            while(!path.empty()) {
+                // beginning with the latest added
+                auto n = path.back();
+                path.pop_back();
+                
+                // Create a new label
+                auto label = new Label(distances[n], n, pred);
+                // add it to the node
+                labels[n].push_back(label);
+                
+                // And set the predecessor accordingly
+                pred = label;
+            }
+            
+        }
+        
+    }
+}
+
 
 }

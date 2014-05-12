@@ -16,6 +16,8 @@ using std::endl;
 using std::string;
 using std::vector;
 using std::list;
+using std::pair;
+using std::make_pair;
 
 #include <ogdf/basic/Graph.h>
 
@@ -74,7 +76,7 @@ int main(int argc, char** argv) {
     " nodes and " << graph.numberOfEdges() << " edges." << endl;
     cout << "Solving..." << endl;
     
-    auto cost_function = [costs] (edge e) {
+    auto cost_function = [&costs] (edge e) {
         return &costs[e];
     };
     
@@ -140,7 +142,7 @@ int main(int argc, char** argv) {
         cout << "calculating heuristic..." << endl;
         
         for(unsigned i = 0; i < dimension; ++i) {
-            auto length = [costs, i] (edge e) {
+            auto length = [&costs, i] (edge e) {
                 return costs[e][i];
             };
             
@@ -152,7 +154,7 @@ int main(int argc, char** argv) {
                                                   DijkstraModes::Undirected);
         }
         
-        auto heuristic = [distances] (node n, unsigned objective) {
+        auto heuristic = [&distances] (node n, unsigned objective) {
             return distances[objective][n];
         };
         
@@ -187,7 +189,7 @@ int main(int argc, char** argv) {
         cout << "calculating heuristic..." << endl;
         
         for(unsigned i = 0; i < dimension; ++i) {
-            auto length = [costs, i] (edge e) {
+            auto length = [&costs, i] (edge e) {
                 return costs[e][i];
             };
             
@@ -199,7 +201,7 @@ int main(int argc, char** argv) {
                                                   DijkstraModes::Undirected);
         }
         
-        auto heuristic = [distances] (node n, unsigned objective) {
+        auto heuristic = [&distances] (node n, unsigned objective) {
             return distances[objective][n];
         };
         
@@ -211,14 +213,18 @@ int main(int argc, char** argv) {
         
         cout << "Running first phase..." << endl;
         
-        EPDualBensonSolver<> weighted_solver;
-        
-        weighted_solver.Solve(graph, cost_function, source, target);
-        
         list<Point> first_phase_bounds;
+        {
         
-        for(auto point : weighted_solver.solutions()) {
-            first_phase_bounds.push_back(*point);
+            EPDualBensonSolver<> weighted_solver;
+            
+            weighted_solver.Solve(graph, cost_function, source, target);
+            
+            
+            for(auto point : weighted_solver.solutions()) {
+                first_phase_bounds.push_back(*point);
+            }
+            
         }
         
         EpSolverMartins solver;
@@ -233,6 +239,80 @@ int main(int argc, char** argv) {
                      bound,
                      heuristic,
                      first_phase_bounds,
+                     false);
+        
+        cout << "Size of the Pareto-frontier: " << solver.solutions().size() << endl;
+        
+    } else if(algorithm.compare("flabel-martins") == 0) {
+        Dijkstra<double> sssp_solver;
+        
+        vector<NodeArray<double>> distances(dimension, graph);
+        NodeArray<edge> predecessor(graph);
+        
+        cout << "calculating heuristic..." << endl;
+        
+        for(unsigned i = 0; i < dimension; ++i) {
+            auto length = [&costs, i] (edge e) {
+                return costs[e][i];
+            };
+            
+            sssp_solver.singleSourceShortestPaths(graph,
+                                                  length,
+                                                  target,
+                                                  predecessor,
+                                                  distances[i],
+                                                  DijkstraModes::Undirected);
+        }
+        
+        auto heuristic = [&distances] (node n, unsigned objective) {
+            return distances[objective][n];
+        };
+        
+        Point bound(dimension);
+        for(unsigned i = 0; i < dimension - 1; ++i) {
+            bound[i] = numeric_limits<double>::infinity();
+        }
+        bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
+        
+        cout << "Running first phase..." << endl;
+        
+        list<pair<NodeArray<Point *>, NodeArray<edge>>> solutions;
+        
+        auto callback = [&solutions, &graph, dimension] (NodeArray<Point *>& distances,
+                                     NodeArray<edge>& predecessors) {
+            
+            NodeArray<Point *> new_distances(graph);
+            
+            for(auto n : distances.graphOf()->nodes) {
+                Point* p = new Point(dimension);
+                std::copy(distances[n]->cbegin() + 1, distances[n]->cend(),
+                          p->begin());
+                new_distances[n] = p;
+            }
+            
+            solutions.push_back(make_pair(new_distances, predecessors));
+        };
+        
+        {
+            
+            EPDualBensonSolver<> weighted_solver;
+            
+            weighted_solver.Solve(graph, cost_function, source, target, callback);
+            
+        }
+        
+        EpSolverMartins solver;
+        
+        cout << "Running Martins algorithm..." << endl;
+        
+        solver.Solve(graph,
+                     cost_function,
+                     dimension,
+                     source,
+                     target,
+                     bound,
+                     solutions,
+                     heuristic,
                      false);
         
         cout << "Size of the Pareto-frontier: " << solver.solutions().size() << endl;

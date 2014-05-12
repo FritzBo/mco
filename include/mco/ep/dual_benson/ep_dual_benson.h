@@ -9,6 +9,8 @@
 #ifndef __mco__ep_dual_benson__
 #define __mco__ep_dual_benson__
 
+#include <functional>
+
 #include <ogdf/basic/Graph.h>
 
 #include <mco/basic/point.h>
@@ -25,11 +27,13 @@ public:
     LexDijkstraSolverAdaptor(const ogdf::Graph& graph,
                              std::function<const Point *(const ogdf::edge)> weights,
                              ogdf::node source,
-                             ogdf::node target)
+                             ogdf::node target,
+                             std::function<void(ogdf::NodeArray<Point*>&, ogdf::NodeArray<ogdf::edge>&)> callback)
     :   graph_(graph),
         weights_(weights),
         source_(source),
-        target_(target) {}
+        target_(target),
+        callback_(callback) {}
     
     inline double operator()(const Point& weighting,
                              Point& value);
@@ -40,6 +44,7 @@ private:
     std::function<const Point *(const ogdf::edge)> weights_;
     const ogdf::node source_;
     const ogdf::node target_;
+    std::function<void(ogdf::NodeArray<Point*>&, ogdf::NodeArray<ogdf::edge>&)> callback_;
     
 };
     
@@ -52,7 +57,9 @@ public:
     void Solve(const ogdf::Graph& graph,
                std::function<Point const * (const ogdf::edge)> weight,
                const ogdf::node source,
-               const ogdf::node target);
+               const ogdf::node target,
+               std::function<void(ogdf::NodeArray<Point*>&, ogdf::NodeArray<ogdf::edge>&)> callback
+               = [] (ogdf::NodeArray<Point*>&, ogdf::NodeArray<ogdf::edge>&) {return;});
     
 private:
     double epsilon_;
@@ -60,7 +67,8 @@ private:
 };
     
 inline double LexDijkstraSolverAdaptor::
-operator()(const Point& weighting, Point& value) {
+operator()(const Point& weighting,
+           Point& value) {
     
     unsigned dimension = weights_(graph_.chooseEdge())->dimension();
     
@@ -84,6 +92,8 @@ operator()(const Point& weighting, Point& value) {
         value[i] = target_cost[i + 1];
     }
     
+    callback_(distance, predecessor);
+    
     double weighted_value = target_cost[0];
     
     for(auto p : graph_.nodes) {
@@ -98,12 +108,13 @@ inline void EPDualBensonSolver<OnlineVertexEnumerator>::
 Solve(const ogdf::Graph& graph,
       std::function<Point const *(const ogdf::edge)> weights,
       ogdf::node source,
-      ogdf::node target) {
+      ogdf::node target,
+      std::function<void(ogdf::NodeArray<Point*>&, ogdf::NodeArray<ogdf::edge>&)> callback) {
     
     std::list<Point *> solutions;
     
     DualBensonScalarizer<OnlineVertexEnumerator>
-    dual_benson_solver(LexDijkstraSolverAdaptor(graph, weights, source, target),
+    dual_benson_solver(LexDijkstraSolverAdaptor(graph, weights, source, target, callback),
                        weights(graph.chooseEdge())->dimension(),
                        epsilon_);
     

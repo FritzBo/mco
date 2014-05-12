@@ -20,23 +20,61 @@ public:
 	explicit EpSolverMartins(double epsilon = 0)
     : epsilon_(epsilon) { }
     
-    virtual void Solve(ogdf::Graph& graph,
-                       std::function<const Point*(ogdf::edge)> weights,
-                       unsigned dimension,
-                       ogdf::node source,
-                       ogdf::node target,
-                       const Point& bound,
-                       std::function<double(ogdf::node, unsigned)> heuristic,
-                       std::list<Point> first_phase_bounds = std::list<Point>(),
-                       bool directed = true);
+    void Solve(ogdf::Graph& graph,
+               std::function<const Point*(ogdf::edge)> weights,
+               unsigned dimension,
+               ogdf::node source,
+               ogdf::node target,
+               const Point& bound,
+               std::function<double(ogdf::node, unsigned)> heuristic,
+               std::list<Point> first_phase_bounds = std::list<Point>(),
+               bool directed = true) {
+        
+        Solve(graph,
+              weights,
+              dimension,
+              source,
+              target,
+              bound,
+              heuristic,
+              std::list<std::pair<ogdf::NodeArray<Point*>,
+                                  ogdf::NodeArray<ogdf::edge>>>(),
+              first_phase_bounds,
+              directed);
+    }
+    
+    void Solve(ogdf::Graph& graph,
+               std::function<const Point*(ogdf::edge)> weights,
+               unsigned dimension,
+               ogdf::node source,
+               ogdf::node target,
+               const Point& bound,
+               std::list<std::pair<ogdf::NodeArray<Point*>,
+                                   ogdf::NodeArray<ogdf::edge>>> initial_labels,
+               std::function<double(ogdf::node, unsigned)> heuristic,
+               bool directed = true) {
+        
+        Solve(graph,
+              weights,
+              dimension,
+              source,
+              target,
+              bound,
+              heuristic,
+              initial_labels,
+              std::list<Point>(),
+              directed);
+        
+    }
 
     
-    virtual void Solve(ogdf::Graph& graph,
-                       std::function<const Point*(ogdf::edge)> weights,
-                       unsigned dimension,
-                       ogdf::node source,
-                       ogdf::node target,
-                       bool directed = true) {
+    void Solve(ogdf::Graph& graph,
+               std::function<const Point*(ogdf::edge)> weights,
+               unsigned dimension,
+               ogdf::node source,
+               ogdf::node target,
+               bool directed = true) {
+        
         Point bound(numeric_limits<double>::infinity(), dimension);
         
         Solve(graph,
@@ -54,6 +92,18 @@ public:
 private:
     const double epsilon_;
     
+    void Solve(ogdf::Graph& graph,
+                       std::function<const Point*(ogdf::edge)> weights,
+                       unsigned dimension,
+                       ogdf::node source,
+                       ogdf::node target,
+                       const Point& bound,
+                       std::function<double(ogdf::node, unsigned)> heuristic,
+                       std::list<std::pair<ogdf::NodeArray<Point*>,
+                                           ogdf::NodeArray<ogdf::edge>>> initial_labels,
+                       std::list<Point> first_phase_bounds = std::list<Point>(),
+                       bool directed = true);
+    
     struct Label {
         const Point * const point;
         ogdf::node n;
@@ -70,6 +120,10 @@ private:
             delete point;
         }
     };
+    
+    void construct_labels(ogdf::NodeArray<std::list<Label*>> & labels,
+                          std::list<std::pair<ogdf::NodeArray<Point*>,
+                                              ogdf::NodeArray<ogdf::edge>>>& initial_labels);
     
     struct LexLabelComp {
         bool operator()(const Label& l1, const Label& l2) {
