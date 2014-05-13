@@ -38,6 +38,8 @@ public:
     
     inline double operator()(const Point& weighting,
                              Point& value);
+    
+    inline ~LexDijkstraSolverAdaptor();
 
 private:
     LexDijkstra lex_dijkstra_solver_;
@@ -95,9 +97,9 @@ operator()(const Point& weighting,
         value[i] = target_cost[i + 1];
     }
     
-    if(known_points_.count(distance[target_]) == 0) {
+    if(known_points_.count(&value) == 0) {
         callback_(distance, predecessor);
-        known_points_.insert(new Point(*distance[target_]));
+        known_points_.insert(new Point(value));
     }
     
     
@@ -108,6 +110,12 @@ operator()(const Point& weighting,
     }
     
     return weighted_value;
+}
+    
+LexDijkstraSolverAdaptor::~LexDijkstraSolverAdaptor() {
+    for(auto point : known_points_) {
+        delete point;
+    }
 }
  
 template<typename OnlineVertexEnumerator>

@@ -304,6 +304,7 @@ construct_labels(NodeArray<list<Label*>> & labels,
                         if(eq(label->point, distance[n])) {
                             labeling_finished = true;
                             pred = label;
+                            break;
                         }
                     }
                     
