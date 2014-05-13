@@ -259,12 +259,12 @@ construct_labels(NodeArray<list<Label*>> & labels,
     EqualityPointComparator eq;
     
     for(auto solution : initial_labels) {
-        auto distances = solution.first;
+        auto distance = solution.first;
         auto predecessor = solution.second;
         NodeArray<bool> in_queue(*labels.graphOf(), true);
         
-        auto order = [distances, comp] (node v, node w) {
-            return comp(distances[v], distances[w]);
+        auto order = [distance, comp] (node v, node w) {
+            return comp(distance[v], distance[w]);
         };
         
         priority_queue<node, vector<node>, decltype(order)> nodes(order);
@@ -301,7 +301,7 @@ construct_labels(NodeArray<list<Label*>> & labels,
                 if(!labeling_finished) {
                     // Is there a label with the same point?
                     for(auto label : labels[n]) {
-                        if(eq(label->point, distances[n])) {
+                        if(eq(label->point, distance[n])) {
                             labeling_finished = true;
                             pred = label;
                         }
@@ -333,7 +333,7 @@ construct_labels(NodeArray<list<Label*>> & labels,
                 path.pop_back();
                 
                 // Create a new label
-                auto label = new Label(distances[n], n, pred);
+                auto label = new Label(new Point(*distance[n]), n, pred);
                 // add it to the node
                 labels[n].push_back(label);
                 
@@ -341,6 +341,10 @@ construct_labels(NodeArray<list<Label*>> & labels,
                 pred = label;
             }
             
+        }
+        
+        for(auto n : labels.graphOf()->nodes) {
+            delete distance[n];
         }
         
     }
