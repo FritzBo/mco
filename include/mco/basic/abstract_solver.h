@@ -27,6 +27,12 @@ public:
 	AbstractSolver & operator=(const AbstractSolver&) = delete;
 
 	const std::list<const Point *> & solutions() const { return solutions_; }
+    
+    virtual ~AbstractSolver() {
+        for(auto p : solutions_) {
+            delete p;
+        }
+    }
 
 protected:
 

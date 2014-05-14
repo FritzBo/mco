@@ -22,7 +22,7 @@ namespace mco {
 class GraphlessOVE :
 public AbstractOnlineVertexEnumerator {
 public:
-    virtual ~GraphlessOVE() {}
+    virtual inline ~GraphlessOVE();
     
     GraphlessOVE(const Point& initial_value,
                  unsigned dimension,
@@ -129,6 +129,13 @@ GraphlessOVE::GraphlessOVE(unsigned dimension,
     std::copy(inequalities_begin,
               inequalities_end,
               back_inserter(inequalities_));
+}
+    
+GraphlessOVE::~GraphlessOVE() {
+    for(auto p: extreme_points_) {
+        delete p;
+    }
+    
 }
     
 inline Point * GraphlessOVE::
