@@ -31,13 +31,15 @@ void TemporaryGraphParser::getGraph(string filename,
                                     EdgeArray<Point> &weights,
                                     unsigned& dimension,
                                     ogdf::node& source,
-                                    ogdf::node& target) {
+                                    ogdf::node& target,
+                                    bool cut_precision,
+                                    unsigned precision) {
     
     ifstream file(filename);
     
     if(!file.good()) {
-        cerr << "Could not open file " << filename_ << endl;
-        throw string("Could not open file ") + filename_;
+        cerr << "Could not open file " << filename << endl;
+        throw string("Could not open file ") + filename;
     }
     
     unsigned num_nodes, num_edges, source_id, target_id;
@@ -71,7 +73,13 @@ void TemporaryGraphParser::getGraph(string filename,
         // FIXME
         Point new_point(dimension);
         for(int j = 0; j < dimension; ++j) {
-            file >> new_point[j];
+            if(cut_precision) {
+                double value;
+                file >> value;
+                new_point[j] = std::round(value * pow(2, precision)) / pow(2, precision);
+            } else {
+                file >> new_point[j];
+            }
         }
         
         e = graph.newEdge(node1, node2);

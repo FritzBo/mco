@@ -18,7 +18,11 @@ class EpSolverMartins : public AbstractSolver {
 
 public:
 	explicit EpSolverMartins(double epsilon = 0)
-    : epsilon_(epsilon) { }
+    :   epsilon_(epsilon),
+        do_value_callback_(false),
+        value_callback_([] (Point) {return;}),
+        do_path_callback_(false),
+        path_callback_([] (std::list<ogdf::node>) {return;}) { }
     
     void Solve(ogdf::Graph& graph,
                std::function<const Point*(ogdf::edge)> weights,
@@ -89,8 +93,23 @@ public:
                            
     }
     
+    void set_value_callback(std::function<void(Point)> callback) {
+        value_callback_ = callback;
+        do_value_callback_ = true;
+    }
+    
+    void set_path_callback(std::function<void(std::list<ogdf::node>)> callback) {
+        path_callback_ = callback;
+        do_path_callback_ = true;
+    }
+    
 private:
     const double epsilon_;
+    
+    bool do_value_callback_;
+    std::function<void(Point)> value_callback_;
+    bool do_path_callback_;
+    std::function<void(std::list<ogdf::node>)> path_callback_;
     
     void Solve(ogdf::Graph& graph,
                        std::function<const Point*(ogdf::edge)> weights,
@@ -145,7 +164,7 @@ Label(const Point *point,
     n(n),
     pred(pred),
     mark_dominated(false),
-    in_queue(false) {
+    in_queue(true) {
 }
 
 EpSolverMartins::Label::

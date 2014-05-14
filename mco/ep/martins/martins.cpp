@@ -68,13 +68,15 @@ Solve(Graph& graph,
         
         for(auto n : graph.nodes) {
             if(n != target && n != source) {
+                
                 for(auto label : labels[n]) {
                     lex_min_label.push(label);
+                    label->in_queue = true;
                 }
             }
         }
     }
-
+    
 	while(!lex_min_label.empty()) {
 		Label *label = lex_min_label.top();
 		lex_min_label.pop();
@@ -90,7 +92,21 @@ Solve(Graph& graph,
 		node n = label->n;
         
         if(n == target) {
-//            cout << *label_cost << endl;
+            if(do_value_callback_) {
+                value_callback_(Point(*label_cost));
+            }
+            
+            if(do_path_callback_) {
+                list<node> path;
+                const Label* current_label = label;
+                while(current_label->n != source) {
+                    path.push_front(current_label->n);
+                    current_label = current_label->pred;
+                }
+                path.push_front(source);
+                path_callback_(path);
+            }
+            
             continue;
         }
 
@@ -226,18 +242,18 @@ Solve(Graph& graph,
 	reset_solutions();
 	add_solutions(target_labels.begin(), target_labels.end());
 
-	for(Label *label : labels[target]) {
-		const Label *current_label = label;
-//		cout << "(";
-		while(current_label->n != source) {
-			cout << current_label->n << ", ";
-			current_label = current_label->pred;
-		}
-		cout << current_label->n;
-//        cout << ")";
-        cout << endl;
-        cout << *label->point << endl;
-	}
+//	for(Label *label : labels[target]) {
+//		const Label *current_label = label;
+//      cout << "(";
+//		while(current_label->n != source) {
+//			cout << current_label->n << ", ";
+//			current_label = current_label->pred;
+//		}
+//		cout << current_label->n;
+//      cout << ")";
+//      cout << endl;
+//      cout << *label->point << endl;
+//	}
     
     cout << "Length bound deletions: " << bound_deletion << endl;
     cout << "Heuristic bound deletions: " << heuristic_deletion << endl;

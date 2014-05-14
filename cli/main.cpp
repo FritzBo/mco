@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <chrono>
 
 using std::cout;
 using std::endl;
@@ -18,6 +19,9 @@ using std::vector;
 using std::list;
 using std::pair;
 using std::make_pair;
+using std::chrono::steady_clock;
+using std::chrono::duration;
+using std::chrono::duration_cast;
 
 #include <ogdf/basic/Graph.h>
 
@@ -50,6 +54,7 @@ using mco::Dijkstra;
 using mco::DijkstraModes;
 using mco::LexPointComparator;
 using mco::ParetoDominationPointComparator;
+using mco::ComponentwisePointComparator;
 using mco::EqualityPointComparator;
 
 int main(int argc, char** argv) {
@@ -107,7 +112,27 @@ int main(int argc, char** argv) {
                                        solver.solutions().cend());
         
         std::sort(solutions.begin(), solutions.end(), mco::LexPointComparator());
-                
+        
+//        mco::ComponentwisePointComparator comp;
+//        mco::EqualityPointComparator eq;
+//        bool error = false;
+//        
+//        auto iter1 = solutions.begin();
+//        while(iter1 != solutions.end()) {
+//            auto iter2 = iter1 + 1;
+//            while(iter2 != solutions.end()) {
+//                if(comp(*iter1, *iter2) || comp(*iter2, *iter1) || eq(*iter1, *iter2)) {
+//                    cout << *(*iter1) << endl;
+//                    cout << *(*iter2) << endl;
+//                    error = true;
+//                }
+//                ++iter2;
+//            }
+//            ++iter1;
+//        }
+//        
+//        cout << error << endl;
+        
         for(auto p : solutions) {
             cout << *p << endl;
         }
@@ -257,7 +282,8 @@ int main(int argc, char** argv) {
         vector<NodeArray<double>> distances(dimension, graph);
         NodeArray<edge> predecessor(graph);
         
-        cout << "calculating heuristic..." << endl;
+        cout << "Calculating heuristic... ";
+        steady_clock::time_point start = steady_clock::now();
         
         for(unsigned i = 0; i < dimension; ++i) {
             auto length = [&costs, i] (edge e) {
@@ -276,13 +302,19 @@ int main(int argc, char** argv) {
             return distances[objective][n];
         };
         
+        steady_clock::time_point heuristic_end = steady_clock::now();
+        duration<double> heuristic_computation_span
+            = duration_cast<duration<double>>(heuristic_end - start);
+        
+        cout << "Done. (" << heuristic_computation_span.count() << "s)" << endl;
+        
         Point bound(dimension);
-        for(unsigned i = 0; i < dimension - 1; ++i) {
+        for(unsigned i = 0; i < dimension; ++i) {
             bound[i] = numeric_limits<double>::infinity();
         }
-        bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
+//        bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
         
-        cout << "Running first phase..." << endl;
+        cout << "Running first phase... ";
         
         list<pair<NodeArray<Point *>, NodeArray<edge>>> solutions;
         
@@ -309,9 +341,30 @@ int main(int argc, char** argv) {
             
         }
         
+        steady_clock::time_point fp_end = steady_clock::now();
+        duration<double> fp_computation_span
+            = duration_cast<duration<double>>(fp_end - heuristic_end);
+        
+        cout << "Done. (" << fp_computation_span.count() << "s)" << endl;
+
+        vector<list<node>> paths;
+        vector<Point> values;
+        
+        auto path_callback = [&paths] (list<node> path) {
+            paths.push_back(path);
+        };
+        
+        auto value_callback = [&values] (Point p) {
+            values.push_back(p);
+        };
+        
         EpSolverMartins solver;
         
-        cout << "Running Martins algorithm..." << endl;
+        solver.set_path_callback(path_callback);
+        solver.set_value_callback(value_callback);
+        
+        cout << "Running Martins algorithm... ";
+        std::flush(cout);
         
         solver.Solve(graph,
                      cost_function,
@@ -323,6 +376,12 @@ int main(int argc, char** argv) {
                      heuristic,
                      false);
         
+        steady_clock::time_point martins_end = steady_clock::now();
+        duration<double> martins_computation_span
+            = duration_cast<duration<double>>(martins_end - fp_end);
+        
+        cout << "Done. (" << martins_computation_span.count() << "s)" << endl;
+
         cout << "Size of the Pareto-frontier: " << solver.solutions().size() << endl;
         
     } else {

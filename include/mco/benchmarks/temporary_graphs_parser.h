@@ -24,10 +24,12 @@ public:
                   ogdf::EdgeArray<mco::Point> &weights,
                   unsigned& dimension,
                   ogdf::node& source,
-                  ogdf::node& target);
+                  ogdf::node& target,
+                  bool cut_precision = true,
+                  unsigned precision = 7);
     
 private:
-    std::string filename_;
+    unsigned precision_;
 };
     
 }

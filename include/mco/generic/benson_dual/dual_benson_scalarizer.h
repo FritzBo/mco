@@ -57,7 +57,7 @@ public:
         solutions.push_back(new Point(value));
 
 		vertex_container = new OnlineVertexEnumerator(value, dimension_, epsilon_);
-		vertex_container->next_vertex();
+		delete vertex_container->next_vertex();
 
 		Point *candidate, weighting(dimension_), inequality(dimension_);
 		double scalar_value;
