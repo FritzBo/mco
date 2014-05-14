@@ -25,7 +25,7 @@ public:
                   unsigned& dimension,
                   ogdf::node& source,
                   ogdf::node& target,
-                  bool cut_precision = true,
+                  bool cut_precision = false,
                   unsigned precision = 7);
     
 private:
