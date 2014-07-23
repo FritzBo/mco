@@ -17,27 +17,29 @@
 
 namespace mco {
 
+template<class T>
 class AbstractSolver {
 
 public:
+    
+    using solution_type = T;
+    using csolution_type = const T;
     
 	AbstractSolver() = default;
 	AbstractSolver(const AbstractSolver &) = delete;
 
 	AbstractSolver & operator=(const AbstractSolver&) = delete;
 
-	const std::list<const Point *> & solutions() const { return solutions_; }
-    
-    virtual ~AbstractSolver() {
-        for(auto p : solutions_) {
-            delete p;
-        }
+	const std::list<std::pair<csolution_type, const Point>> & solutions() const {
+        return solutions_;
     }
+    
+    virtual ~AbstractSolver() = default;
 
 protected:
 
-	void add_solution(const Point * solution) {
-		solutions_.push_back(solution);
+	void add_solution(csolution_type solution, const Point value) {
+		solutions_.push_back(std::make_pair(solution, value));
 	}
 
 	template<class InputIterator>
@@ -51,7 +53,7 @@ protected:
 
 private:
     
-	std::list<const Point *> solutions_;
+	std::list<std::pair<csolution_type, const Point>> solutions_;
 
 };
     

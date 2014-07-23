@@ -72,7 +72,7 @@ TEST_P(ParetoInstanceTestFixture, CountMatch) {
     std::cout << solver.solutions().size() << std::endl;
     
     for(auto p : solver.solutions()) {
-        std::cout << *p << std::endl;
+        std::cout << p.second << std::endl;
     }
 #endif
     

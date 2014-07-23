@@ -13,6 +13,7 @@
 
 #include <mco/basic/abstract_solver.h>
 #include <mco/basic/weight_function_adaptors.h>
+#include <mco/ap/basic/abstract_ap_solver.h>
 #include <mco/ap/basic/ap_instance.h>
 #include <mco/ap/basic/lex_hungarian.h>
 #include <mco/generic/benson_dual/dual_benson_scalarizer.h>
@@ -34,7 +35,7 @@ private:
     
 template<typename OnlineVertexEnumerator = GraphlessOVE>
 class APBensonDualSolver
-: public AbstractSolver {
+: public AbstractSolver<std::list<ogdf::edge>> {
         
 public:
     APBensonDualSolver(double epsilon = 1E-8)
@@ -42,14 +43,21 @@ public:
 
 	void Solve(AssignmentInstance & instance) {
         
-		std::list<Point *> solutions;
+		std::list<Point *> frontier;
         
         DualBensonScalarizer<OnlineVertexEnumerator>
         dual_benson_solver_(LexHungarianSolverAdaptor(instance),
                             instance.dimension(),
                             epsilon_);
         
-		dual_benson_solver_.Calculate_solutions(solutions);
+		dual_benson_solver_.Calculate_solutions(frontier);
+        
+        std::list<std::pair<std::list<ogdf::edge>, Point>> solutions;
+        
+        for(auto point : frontier) {
+            solutions.push_back(make_pair(std::list<ogdf::edge>(), *point));
+        }
+        
 		add_solutions(solutions.begin(), solutions.end());
 	}
 

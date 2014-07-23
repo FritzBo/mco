@@ -18,6 +18,7 @@ using std::shared_ptr;
 using std::make_shared;
 using std::vector;
 using std::set;
+using std::pair;
 using std::list;
 
 #include <ogdf/basic/Graph.h>
@@ -134,12 +135,32 @@ void EpSolverMartinsSmart::Solve() {
 //		}
 //		cout << current_label->n << ")" << endl;
 //	}
-
-	list<const Point *> target_labels;
-	for(auto &label : labels[instance().target()])
-		target_labels.push_back(new Point(*label->point));
-
-	add_solutions(target_labels.begin(), target_labels.end());
+    
+    list<pair<const list<edge>, const Point>> solutions;
+    
+	for(auto label : labels[instance().target()])
+        if(label != nullptr) {
+            list<edge> path;
+            shared_ptr<const LabelSmart> curr = label;
+            while(curr->n != instance().source()) {
+                for(auto adj: curr->n->adjEdges) {
+                    edge e = adj->theEdge();
+                    if(e->source() == curr->pred->n && e->target() == curr->n) {
+                        path.push_back(e);
+                        break;
+                    }
+                }
+                curr = curr->pred;
+            }
+            
+            path.reverse();
+            
+            solutions.push_back(make_pair(path, *label->point));
+        }
+    
+	reset_solutions();
+    
+	add_solutions(solutions.begin(), solutions.end());
 }
 
 }

@@ -76,7 +76,6 @@ set(SOURCE_FILES
 # MO Linear Programming
 ../include/mco/molp/basic/molp_model.h
 ../include/mco/molp/benson/abstract_vertex_container.h
-../include/mco/molp/benson/benson_dual.h
 ../include/mco/molp/benson/benson_exact.h
 ../include/mco/molp/benson/benson.h
 ../include/mco/molp/weightset/weightset_solver.h
@@ -127,7 +126,6 @@ generic/benson_dual/ove_fp_v2.cpp
 
 # MO Linear Programming
 molp/basic/molp_model.cpp
-molp/benson/benson_dual.cpp
 molp/benson/benson_exact.cpp
 molp/benson/benson.cpp
 molp/weightset/weightset_solver.cpp

@@ -19,7 +19,7 @@ namespace mco {
     // FIXME
 
 class AbstractAPSolver :
-public AbstractSolver {
+public AbstractSolver<std::list<ogdf::edge>> {
         
 public:
         

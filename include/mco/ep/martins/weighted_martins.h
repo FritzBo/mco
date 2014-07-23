@@ -17,7 +17,7 @@
 
 namespace mco {
 
-class EpWeightedMartins : public AbstractSolver {
+class EpWeightedMartins : public AbstractSolver<std::list<ogdf::edge>> {
 
 public:
 	explicit EpWeightedMartins(double epsilon = 0)

@@ -73,9 +73,9 @@ Calculate_solutions(std::list<Point *>& solutions) {
     for(unsigned int i = 0; i < dimension_ - 1; ++i)
         v[i] = 0;
         v[0] = 1;
-        
+
         v[dimension_ - 1] = solver_(v, value);
-        
+    
         solutions.push_back(new Point(value));
         
         vertex_container = new OnlineVertexEnumerator(value, dimension_, epsilon_);

@@ -21,6 +21,7 @@ using std::vector;
 using std::cout;
 using std::endl;
 using std::function;
+using std::pair;
 
 #include <ogdf/basic/Graph.h>
 
@@ -272,6 +273,12 @@ void EpSolverBS::Solve(const Graph& graph,
 
 		assert(queue.size() <= static_cast<unsigned>(graph.numberOfNodes()));
 	}
+    
+    list<pair<list<edge>, Point>> solutions;
+    
+    for(auto label : labels[target]) {
+        solutions.push_back(make_pair(list<edge>(), *label));
+    }
 
     for(auto n : graph.nodes) {
 		if(n != target) {
@@ -281,7 +288,7 @@ void EpSolverBS::Solve(const Graph& graph,
         }
     }
 
-	add_solutions(labels[target].begin(), labels[target].end());
+	add_solutions(solutions.begin(), solutions.end());
 }
 
 }

@@ -13,7 +13,7 @@
 
 namespace mco {
 
-class EpSolverBS : public AbstractSolver {
+class EpSolverBS : public AbstractSolver<std::list<ogdf::edge>> {
     
 public:
 	EpSolverBS(double epsilon = 0)

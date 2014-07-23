@@ -18,7 +18,7 @@
 
 namespace mco {
 
-class WeightSetMolpSolver : AbstractSolver {
+class WeightSetMolpSolver : AbstractSolver<std::list<unsigned>> {
 	const MolpModel &molp_model_;
 	GRBEnv *grb_env_;
 	GRBModel *grb_model_;

@@ -23,7 +23,7 @@ class P2;
 class D2;
 
 template<typename OnlineVertexEnumerator>
-class PrimalBensonMolpSolver : public AbstractSolver {
+class PrimalBensonMolpSolver : public AbstractSolver<std::list<unsigned>> {
 
 public:
 	PrimalBensonMolpSolver() = delete;

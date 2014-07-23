@@ -16,7 +16,7 @@
 
 namespace mco {
 
-class AbstractESTSolver : public AbstractSolver {
+class AbstractESTSolver : public AbstractSolver<std::list<ogdf::edge>> {
 	AbstractGraphInstance & instance_;
 	std::list<Point *> solutions_;
 

@@ -33,8 +33,12 @@ void APBruteForceSolver::Solve() {
 
 	recursive_find(0, jobs, matchings, costs, current_matching, current_cost);
 
-	for(Point cost : costs)
-		add_solution(new Point(cost));
+    auto matching_it = matchings.begin();
+    auto cost_it = costs.begin();
+    
+	while(cost_it != costs.end()) {
+		add_solution(*matching_it++, *cost_it++);
+    }
 }
 
 void APBruteForceSolver::recursive_find(unsigned int agent_index,

@@ -20,7 +20,7 @@ namespace mco {
 class Point;
 class EpInstance;
 
-class AbstractEpSolver : public AbstractSolver {
+class AbstractEpSolver : public AbstractSolver<std::list<ogdf::edge>> {
 
 	EpInstance &instance_;
 

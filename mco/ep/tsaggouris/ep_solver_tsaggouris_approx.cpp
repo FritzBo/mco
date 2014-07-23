@@ -18,6 +18,7 @@ using std::vector;
 using std::list;
 using std::log;
 using std::floor;
+using std::pair;
 using std::max;
 using std::min;
 using std::numeric_limits;
@@ -124,10 +125,10 @@ void EpSolverTsaggourisApprox::Solve() {
 			delete new_Py;
 		}
 
-	list<const Point *> target_points;
+	list<pair<csolution_type, const Point>> target_points;
 	for(auto label : (*old_Py)[instance().target()])
 		if(label != nullptr)
-			target_points.push_back(new Point(*label->point));
+			target_points.push_back(make_pair(list<edge>(), *label->point));
 
 	add_solutions(target_points.begin(), target_points.end());
 

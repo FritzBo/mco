@@ -54,7 +54,7 @@ private:
 };
     
 template<typename OnlineVertexEnumerator = GraphlessOVE>
-class EPDualBensonSolver : public AbstractSolver {
+class EPDualBensonSolver : public AbstractSolver<std::list<ogdf::edge>> {
 public:
     EPDualBensonSolver(double epsilon = 1E-8)
     :   epsilon_(epsilon) {}
@@ -126,14 +126,21 @@ Solve(const ogdf::Graph& graph,
       ogdf::node target,
       std::function<void(ogdf::NodeArray<Point*>&, ogdf::NodeArray<ogdf::edge>&)> callback) {
     
-    std::list<Point *> solutions;
+    std::list<Point *> frontier;
     
     DualBensonScalarizer<OnlineVertexEnumerator>
     dual_benson_solver(LexDijkstraSolverAdaptor(graph, weights, source, target, callback),
                        weights(graph.chooseEdge())->dimension(),
                        epsilon_);
     
-    dual_benson_solver.Calculate_solutions(solutions);
+    dual_benson_solver.Calculate_solutions(frontier);
+    
+    std::list<std::pair<std::list<edge>, Point>> solutions;
+    
+    for(auto point : frontier) {
+        solutions.push_back(make_pair(std::list<edge>(), *point));
+    }
+                            
     add_solutions(solutions.begin(), solutions.end());
     
 }

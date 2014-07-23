@@ -39,20 +39,23 @@ Solve(Graph& graph,
       unsigned dimension,
       node source,
       node target,
-      const Point& bound,
+      const Point& absolute_bound,
       function<double(ogdf::node, unsigned)> heuristic,
       list<pair<NodeArray<Point*>,
                 NodeArray<edge>>> initial_labels,
       list<Point> first_phase_bounds,
       bool directed) {
     
+//    using LabelPriorityQueue = priority_queue<Label *, vector<Label *>, HeuristicLexLabelComp>;
     using LabelPriorityQueue = priority_queue<Label *, vector<Label *>, LexLabelComp>;
     
     unsigned bound_deletion = 0;
     unsigned heuristic_deletion = 0;
     unsigned first_phase_deletion = 0;
     
-	LabelPriorityQueue lex_min_label((LexLabelComp()));
+//	LabelPriorityQueue lex_min_label((HeuristicLexLabelComp(dimension, heuristic)));
+    LabelPriorityQueue lex_min_label((LexLabelComp()));
+    
 	NodeArray<list<Label *>> labels(graph);
     
     ComponentwisePointComparator comp_leq(epsilon_, false);
@@ -64,7 +67,7 @@ Solve(Graph& graph,
 	lex_min_label.push(null_label);
     
     if(!initial_labels.empty()) {
-        construct_labels(labels, initial_labels);
+        construct_labels(labels, initial_labels, absolute_bound);
         
         for(auto n : graph.nodes) {
             if(n != target && n != source) {
@@ -73,6 +76,24 @@ Solve(Graph& graph,
                     lex_min_label.push(label);
                     label->in_queue = true;
                 }
+            }
+        }
+        
+        for(auto label : labels[target]) {
+            
+            if(do_value_callback_) {
+                value_callback_(Point(*label->point));
+            }
+            
+            if(do_path_callback_) {
+                list<node> path;
+                const Label* current_label = label;
+                while(current_label->n != source) {
+                    path.push_front(current_label->n);
+                    current_label = current_label->pred;
+                }
+                path.push_front(source);
+                path_callback_(path);
             }
         }
     }
@@ -140,46 +161,45 @@ Solve(Graph& graph,
             
             for(unsigned i = 0; i < dimension; ++i) {
                 double heuristic_cost = new_cost->operator[](i) + heuristic(v, i);
-                if(heuristic_cost > bound[i]) {
+                if(heuristic_cost > absolute_bound[i] + epsilon_) {
                     delete new_cost;
                     new_cost = nullptr;
                     ++bound_deletion;
                     break;
                 }
-                
             }
             
             if(new_cost == nullptr) {
                 continue;
             }
             
-            for(auto label : labels[target]) {
-                const Point& cost = *label->point;
-                
-                bool dominated = true;
-                for(unsigned i = 0; i < dimension; ++i) {
-                    if(new_cost->operator[](i) + heuristic(v, i) < cost[i]) {
-                        dominated = false;
-                        break;
-                    }
-                }
-                
-                if(dominated) {
-                    delete new_cost;
-                    new_cost = nullptr;
-                    ++heuristic_deletion;
-                    break;
-                }
-            }
-            
-            if(new_cost == nullptr) {
-                continue;
-            }
+//            for(auto label : labels[target]) {
+//                const Point& cost = *label->point;
+//                
+//                bool dominated = true;
+//                for(unsigned i = 0; i < dimension; ++i) {
+//                    if(new_cost->operator[](i) + heuristic(v, i) < cost[i] + epsilon_) {
+//                        dominated = false;
+//                        break;
+//                    }
+//                }
+//                
+//                if(dominated) {
+//                    delete new_cost;
+//                    new_cost = nullptr;
+//                    ++heuristic_deletion;
+//                    break;
+//                }
+//            }
+//            
+//            if(new_cost == nullptr) {
+//                continue;
+//            }
             
             for(auto cost : first_phase_bounds) {
                 bool dominated = true;
                 for(unsigned i = 0; i < dimension; ++i) {
-                    if(new_cost->operator[](i) + heuristic(v, i) <= cost[i]) {
+                    if(new_cost->operator[](i) + heuristic(v, i) <= cost[i] + epsilon_) {
                         dominated = false;
                         break;
                     }
@@ -235,12 +255,31 @@ Solve(Graph& graph,
 
 	}
 
-	list<const Point *> target_labels;
-	for(auto &label : labels[target])
-		target_labels.push_back(new Point(*label->point));
-
+    list<pair<const list<edge>, const Point>> solutions;
+    
+	for(auto label : labels[target])
+        if(label != nullptr) {
+            list<edge> path;
+            const Label* curr = label;
+            while(curr->n != source) {
+                for(auto adj: curr->n->adjEdges) {
+                    edge e = adj->theEdge();
+                    if(e->source() == curr->pred->n && e->target() == curr->n) {
+                        path.push_back(e);
+                        break;
+                    }
+                }
+                curr = curr->pred;
+            }
+            
+            path.reverse();
+            
+            solutions.push_back(make_pair(path, *label->point));
+        }
+    
 	reset_solutions();
-	add_solutions(target_labels.begin(), target_labels.end());
+    
+	add_solutions(solutions.begin(), solutions.end());
 
 //	for(Label *label : labels[target]) {
 //		const Label *current_label = label;
@@ -269,10 +308,12 @@ Solve(Graph& graph,
 void EpSolverMartins::
 construct_labels(NodeArray<list<Label*>> & labels,
                  list<pair<NodeArray<Point*>,
-                           NodeArray<edge>>>& initial_labels) {
+                           NodeArray<edge>>>& initial_labels,
+                 const Point& absolute_bound) {
     
     LexPointComparator comp;
     EqualityPointComparator eq;
+    ComponentwisePointComparator ccomp(0, false);
     
     for(auto solution : initial_labels) {
         auto distance = solution.first;
@@ -349,10 +390,16 @@ construct_labels(NodeArray<list<Label*>> & labels,
                 auto n = path.back();
                 path.pop_back();
                 
+                // Stop, if new label would exceed the given bound
+                if(!ccomp(*distance[n], absolute_bound)) {
+                    break;
+                }
+                    
                 // Create a new label
                 auto label = new Label(new Point(*distance[n]), n, pred);
                 // add it to the node
                 labels[n].push_back(label);
+                    
                 
                 // And set the predecessor accordingly
                 pred = label;

@@ -14,7 +14,7 @@
 
 namespace mco {
 
-class EpSolverMartins : public AbstractSolver {
+class EpSolverMartins : public AbstractSolver<std::list<ogdf::edge>> {
 
 public:
 	explicit EpSolverMartins(double epsilon = 0)
@@ -29,7 +29,7 @@ public:
                unsigned dimension,
                ogdf::node source,
                ogdf::node target,
-               const Point& bound,
+               const Point& absolute_bound,
                std::function<double(ogdf::node, unsigned)> heuristic,
                std::list<Point> first_phase_bounds = std::list<Point>(),
                bool directed = true) {
@@ -39,7 +39,7 @@ public:
               dimension,
               source,
               target,
-              bound,
+              absolute_bound,
               heuristic,
               std::list<std::pair<ogdf::NodeArray<Point*>,
                                   ogdf::NodeArray<ogdf::edge>>>(),
@@ -52,7 +52,7 @@ public:
                unsigned dimension,
                ogdf::node source,
                ogdf::node target,
-               const Point& bound,
+               const Point& absolute_bound,
                std::list<std::pair<ogdf::NodeArray<Point*>,
                                    ogdf::NodeArray<ogdf::edge>>> initial_labels,
                std::function<double(ogdf::node, unsigned)> heuristic,
@@ -63,7 +63,7 @@ public:
               dimension,
               source,
               target,
-              bound,
+              absolute_bound,
               heuristic,
               initial_labels,
               std::list<Point>(),
@@ -79,14 +79,14 @@ public:
                ogdf::node target,
                bool directed = true) {
         
-        Point bound(numeric_limits<double>::infinity(), dimension);
+        Point absolute_bound(numeric_limits<double>::infinity(), dimension);
         
         Solve(graph,
               weights,
               dimension,
               source,
               target,
-              bound,
+              absolute_bound,
               [] (ogdf::node, unsigned) { return 0; },
               std::list<Point>(),
               directed);
@@ -112,16 +112,16 @@ private:
     std::function<void(std::list<ogdf::node>)> path_callback_;
     
     void Solve(ogdf::Graph& graph,
-                       std::function<const Point*(ogdf::edge)> weights,
-                       unsigned dimension,
-                       ogdf::node source,
-                       ogdf::node target,
-                       const Point& bound,
-                       std::function<double(ogdf::node, unsigned)> heuristic,
-                       std::list<std::pair<ogdf::NodeArray<Point*>,
-                                           ogdf::NodeArray<ogdf::edge>>> initial_labels,
-                       std::list<Point> first_phase_bounds = std::list<Point>(),
-                       bool directed = true);
+               std::function<const Point*(ogdf::edge)> weights,
+               unsigned dimension,
+               ogdf::node source,
+               ogdf::node target,
+               const Point& absulute_bound,
+               std::function<double(ogdf::node, unsigned)> heuristic,
+               std::list<std::pair<ogdf::NodeArray<Point*>,
+                                   ogdf::NodeArray<ogdf::edge>>> initial_labels,
+               std::list<Point> first_phase_bounds = std::list<Point>(),
+               bool directed = true);
     
     struct Label {
         const Point * const point;
@@ -142,7 +142,8 @@ private:
     
     void construct_labels(ogdf::NodeArray<std::list<Label*>> & labels,
                           std::list<std::pair<ogdf::NodeArray<Point*>,
-                                              ogdf::NodeArray<ogdf::edge>>>& initial_labels);
+                                              ogdf::NodeArray<ogdf::edge>>>& initial_labels,
+                          const Point& absolute_bound);
     
     struct LexLabelComp {
         bool operator()(const Label& l1, const Label& l2) {
@@ -152,6 +153,35 @@ private:
         bool operator()(const Label* l1, const Label* l2) {
             return LexPointComparator()(l2->point, l1->point);
         }
+    };
+    
+    struct HeuristicLexLabelComp {
+        HeuristicLexLabelComp(unsigned dimension,
+                              std::function<double(ogdf::node, unsigned)> heuristic)
+        :   heuristic_(heuristic),
+            dimension_(dimension) {}
+        
+        bool operator()(const Label& l1, const Label& l2) {
+            unsigned i = 0;
+            for(; i < dimension_; ++i) {
+                if(l1.point->operator[](i) + heuristic_(l1.n, i) <
+                   l2.point->operator[](i) + heuristic_(l2.n, i)) {
+                    return false;
+                } else if(l1.point->operator[](i) + heuristic_(l1.n, i) >
+                          l2.point->operator[](i) + heuristic_(l2.n, i)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        bool operator()(const Label* l1, const Label* l2) {
+            return operator()(*l1, *l2);
+        }
+        
+    private:
+        std::function<double(ogdf::node, unsigned)> heuristic_;
+        unsigned dimension_;
     };
 
 };

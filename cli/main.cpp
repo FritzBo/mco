@@ -22,6 +22,7 @@ using std::make_pair;
 using std::chrono::steady_clock;
 using std::chrono::duration;
 using std::chrono::duration_cast;
+using std::exception;
 
 #include <ogdf/basic/Graph.h>
 
@@ -30,6 +31,12 @@ using ogdf::EdgeArray;
 using ogdf::NodeArray;
 using ogdf::node;
 using ogdf::edge;
+
+#include <tclap/CmdLine.h>
+
+using TCLAP::CmdLine;
+using TCLAP::SwitchArg;
+using TCLAP::ValueArg;
 
 #include <mco/basic/point.h>
 #include <mco/benchmarks/temporary_graphs_parser.h>
@@ -57,7 +64,115 @@ using mco::ParetoDominationPointComparator;
 using mco::ComponentwisePointComparator;
 using mco::EqualityPointComparator;
 
+#include "basic/modules.h"
+#include "modules/ep_benson_module.h"
+#include "modules/ep_martins_module.h"
+
 int main(int argc, char** argv) {
+    try {
+        ModuleFactory module_factory;
+        
+        EpBensonModule benson_module;
+        EpMartinsModule martins_module;
+        
+        module_factory.add_module("ep-dual-benson", benson_module);
+        module_factory.add_module("ep-martins", martins_module);
+        
+        list<pair<unsigned, BasicModule*>> modules = module_factory.parse_module_list(argc, argv);
+        
+        if(modules.size() < 1) {
+            cout << "Need to specify a module." << endl;
+            return 0;
+        }
+        
+        if(modules.size() > 1) {
+            cout << "Only one module allowed yet." << endl;
+            return 0;
+        }
+        
+        unsigned argument_position = modules.begin()->first;
+        BasicModule* choosen_module = modules.begin()->second;
+        
+        CmdLine cmd("MCO Library Command Line Tool", ' ',  "0.1");
+        
+        SwitchArg print_frontier_arg("F", "frontier", "Prints the frontier if the problem was feasible", false);
+        
+        SwitchArg print_solutions_arg("S", "solutions", "Prints the efficient solutions which have been found if the problem was feasible", false);
+        
+        SwitchArg force_print_all_arg("f", "force-all", "Prints all points/solutions no matter how many", false);
+        
+        SwitchArg print_verbose_arg("v", "verbose", "Prints output in human readable form.", false);
+        
+        SwitchArg print_count_arg("c", "count", "Prints the size of the found Pareto-frontier.", false);
+        
+        SwitchArg print_timing_arg("t", "timing", "Prints timing information", false);
+        
+        cmd.add(print_frontier_arg);
+        cmd.add(print_solutions_arg);
+        cmd.add(force_print_all_arg);
+        cmd.add(print_count_arg);
+        cmd.add(print_verbose_arg);
+        cmd.add(print_timing_arg);
+        
+        cmd.parse(argument_position, argv);
+        
+        bool print_frontier = print_frontier_arg.getValue();
+        bool print_solutions = print_solutions_arg.getValue();
+        bool force_print_all = force_print_all_arg.getValue();
+        bool print_count = print_count_arg.getValue();
+        bool print_verbose = print_verbose_arg.getValue();
+        bool print_timing = print_timing_arg.getValue();
+        
+        choosen_module->perform(argc - argument_position,
+                                argv + argument_position);
+        
+        
+        if(print_frontier || print_solutions || print_count) {
+            auto ep_algo_module = dynamic_cast<AlgorithmModule<list<edge>>*>(choosen_module);
+            
+            auto solutions = ep_algo_module->solutions();
+            
+            cout << solutions.size() << " points" << endl;
+            
+            if(print_frontier || print_solutions) {
+                
+                int count = 0;
+                auto solution_it = solutions.cbegin();
+                while(solution_it != solutions.cend() && (
+                      count < 25 || force_print_all)) {
+                    auto solution = *solution_it;
+                    
+                    if(print_frontier) {
+                        auto point_it = solution.second.cbegin();
+                        while(point_it != solution.second.cend()) {
+                            cout << *point_it++ << ", ";
+                        }
+                    }
+                    if(print_solutions) {
+                        for(auto edge : solution.first) {
+                            cout << edge->source() << ", ";
+                        }
+                        cout << (*solution.first.rbegin())->target() << ", ";
+                    }
+                    cout << endl;
+                    solution_it++;
+                    count++;
+                }
+                
+            }
+        }
+        
+        if(print_timing) {
+            cout << "Timining information" << endl;
+        }
+        
+    } catch (exception& e) {
+        cout << e.what() << endl;
+    }
+    
+}
+
+/*int main(int argc, char** argv) {
     if(argc != 3) {
         cout << "Usage: " << argv[0] << "<algorithm> <file>" << endl;
     }
@@ -191,11 +306,11 @@ int main(int argc, char** argv) {
             return distances[objective][n];
         };
         
-        Point bound(dimension);
-        for(unsigned i = 0; i < dimension - 1; ++i) {
-            bound[i] = numeric_limits<double>::infinity();
+        Point absolute_bound(numeric_limits<double>::infinity(), dimension);
+        for(unsigned i = 0; i < dimension; ++i) {
+            absolute_bound[i] = numeric_limits<double>::infinity();
         }
-        bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
+//        bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
         
         EpSolverMartins solver;
         
@@ -206,7 +321,7 @@ int main(int argc, char** argv) {
                      dimension,
                      source,
                      target,
-                     bound,
+                     absolute_bound,
                      heuristic,
                      list<Point>(),
                      false);
@@ -238,11 +353,11 @@ int main(int argc, char** argv) {
             return distances[objective][n];
         };
         
-        Point bound(dimension);
+        Point absolute_bound(numeric_limits<double>::infinity(), dimension);
         for(unsigned i = 0; i < dimension - 1; ++i) {
-            bound[i] = numeric_limits<double>::infinity();
+            absolute_bound[i] = numeric_limits<double>::infinity();
         }
-        bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
+        absolute_bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
         
         cout << "Running first phase..." << endl;
         
@@ -269,7 +384,7 @@ int main(int argc, char** argv) {
                      dimension,
                      source,
                      target,
-                     bound,
+                     absolute_bound,
                      heuristic,
                      first_phase_bounds,
                      false);
@@ -308,11 +423,19 @@ int main(int argc, char** argv) {
         
         cout << "Done. (" << heuristic_computation_span.count() << "s)" << endl;
         
-        Point bound(dimension);
+        Point absolute_bound(numeric_limits<double>::infinity(), dimension);
+        Point relative_bound(numeric_limits<double>::infinity(), dimension);
+        
         for(unsigned i = 0; i < dimension; ++i) {
-            bound[i] = numeric_limits<double>::infinity();
+            absolute_bound[i] = numeric_limits<double>::infinity();
         }
-//        bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
+        absolute_bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
+        
+        absolute_bound[0] = 0.01 * absolute_bound[dimension - 1];    // Bündelung
+        absolute_bound[1] = 0.01 * absolute_bound[dimension - 1];    // Flughäfen
+        absolute_bound[2] = 0.01 * absolute_bound[dimension - 1];    // Tagebau
+        absolute_bound[3] = 0.01 * absolute_bound[dimension - 1];    // VSG
+        absolute_bound[4] = 0.01 * absolute_bound[dimension - 1];   // Siedlungen
         
         cout << "Running first phase... ";
         
@@ -371,7 +494,7 @@ int main(int argc, char** argv) {
                      dimension,
                      source,
                      target,
-                     bound,
+                     absolute_bound,
                      solutions,
                      heuristic,
                      false);
@@ -384,9 +507,15 @@ int main(int argc, char** argv) {
 
         cout << "Size of the Pareto-frontier: " << solver.solutions().size() << endl;
         
+        if(values.size() < 25) {
+            for(auto value : values) {
+                cout << value << endl;
+            }
+        }
+        
     } else {
         cout << "Unknown algorithm: " << algorithm << endl;
     }
     
     
-}
+}*/

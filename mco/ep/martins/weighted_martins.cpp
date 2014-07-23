@@ -18,6 +18,7 @@ using std::vector;
 using std::set;
 using std::list;
 using std::function;
+using std::pair;
 
 #include <ogdf/basic/Graph.h>
 
@@ -252,14 +253,31 @@ Solve(Graph& graph,
 
 	}
     
-	list<const Point *> target_labels;
+	list<pair<const list<edge>, const Point>> solutions;
+    
 	for(auto label : node_entry[target].label_set)
         if(label != nullptr) {
-            target_labels.push_back(new Point(*label->point));
+            list<edge> path;
+            const Label* curr = label;
+            while(curr->n != source) {
+                for(auto adj: curr->n->adjEdges) {
+                    edge e = adj->theEdge();
+                    if(e->source() == curr->pred->n && e->target() == curr->n) {
+                        path.push_back(e);
+                        break;
+                    }
+                }
+                curr = curr->pred;
+            }
+            
+            path.reverse();
+            
+            solutions.push_back(make_pair(path, *label->point));
         }
 
 	reset_solutions();
-	add_solutions(target_labels.begin(), target_labels.end());
+    
+	add_solutions(solutions.begin(), solutions.end());
 
 //	for(Label *label : labels[instance().target()]) {
 //		const Label *current_label = label;

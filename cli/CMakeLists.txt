@@ -1,25 +1,21 @@
 include_directories(../include)
+include_directories(../tclap)
 include_directories(${GUROBI_INCLUDE_PATH})
 include_directories(${COIN_INCLUDE_PATH})
 include_directories(${OGDF_INCLUDE_PATH})
 
 set(SOURCE_FILES
 main.cpp
-)
 
-#### Boost program options
-find_library(BOOST_PO_LIBRARY
-    NAMES   libboost_program_options-mt.a
-    PATHS   /opt/local/
-            /usr/local/
-            /usr/
-)
+#### Core
+basic/modules.h
+basic/modules.cpp
 
-find_path(BOOST_PO_INCLUDE
-    NAMES   boost/program_options.hpp
-    PATHS   /opt/local/
-            /usr/local/
-            /usr/
+#### Modules
+modules/ep_benson_module.h
+modules/ep_benson_module.cpp
+modules/ep_martins_module.h
+modules/ep_martins_module.cpp
 )
 
 include_directories(${BOOST_PO_INCLUDE})
