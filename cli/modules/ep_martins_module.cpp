@@ -175,7 +175,7 @@ void EpMartinsModule::perform(int argc, char** argv) {
                      bounds,
                      solutions,
                      ideal_heuristic,
-                     list<const Point>({bundling_bound}),
+                     list<Point>({bundling_bound}),
                      is_directed);
         
         cout << "Done." << endl;
