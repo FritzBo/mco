@@ -40,6 +40,7 @@ Solve(Graph& graph,
       node source,
       node target,
       const Point& absolute_bound,
+      const std::list<const Point> linear_bounds,
       function<double(ogdf::node, unsigned)> heuristic,
       list<pair<NodeArray<Point*>,
                 NodeArray<edge>>> initial_labels,
@@ -162,6 +163,24 @@ Solve(Graph& graph,
             for(unsigned i = 0; i < dimension; ++i) {
                 double heuristic_cost = new_cost->operator[](i) + heuristic(v, i);
                 if(heuristic_cost > absolute_bound[i] + epsilon_) {
+                    delete new_cost;
+                    new_cost = nullptr;
+                    ++bound_deletion;
+                    break;
+                }
+            }
+            
+            if(new_cost == nullptr) {
+                continue;
+            }
+            
+            for(auto bound : linear_bounds) {
+                double inner_product = 0;
+                for(unsigned i = 0; i < dimension; ++i) {
+                    inner_product += bound[i] * (*new_cost)[i];
+                }
+                
+                if(inner_product > bound[dimension]) {
                     delete new_cost;
                     new_cost = nullptr;
                     ++bound_deletion;

@@ -40,6 +40,7 @@ public:
               source,
               target,
               absolute_bound,
+              std::list<const Point>(),
               heuristic,
               std::list<std::pair<ogdf::NodeArray<Point*>,
                                   ogdf::NodeArray<ogdf::edge>>>(),
@@ -56,6 +57,7 @@ public:
                std::list<std::pair<ogdf::NodeArray<Point*>,
                                    ogdf::NodeArray<ogdf::edge>>> initial_labels,
                std::function<double(ogdf::node, unsigned)> heuristic,
+               const std::list<const Point>& linear_bounds = std::list<const Point>(),
                bool directed = true) {
         
         Solve(graph,
@@ -64,6 +66,7 @@ public:
               source,
               target,
               absolute_bound,
+              linear_bounds,
               heuristic,
               initial_labels,
               std::list<Point>(),
@@ -117,6 +120,7 @@ private:
                ogdf::node source,
                ogdf::node target,
                const Point& absulute_bound,
+               const std::list<const Point> linear_bounds,
                std::function<double(ogdf::node, unsigned)> heuristic,
                std::list<std::pair<ogdf::NodeArray<Point*>,
                                    ogdf::NodeArray<ogdf::edge>>> initial_labels,

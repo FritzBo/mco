@@ -43,6 +43,13 @@ private:
                                  unsigned dimension,
                                  mco::Point& bounds);
     
+    void parse_bundling_bound(TCLAP::ValueArg<string>& bundling_arg,
+                              unsigned dimension,
+                              std::function<double(ogdf::node, unsigned)> ideal_heuristic,
+                              const ogdf::node source,
+                              mco::Point& bundling_bound);
+
+    
     void first_phase(const ogdf::Graph& graph,
                      std::function<mco::Point*(ogdf::edge)> cost_function,
                      unsigned dimension,
