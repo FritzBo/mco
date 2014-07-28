@@ -309,17 +309,17 @@ void EpMartinsModule::parse_bundling_bound(ValueArg<string>& bundling_arg,
            i == (*objective_it) - 1) {
             
             bundling_bound[i] = 1;
+            objective_it++;
+
         } else {
             bundling_bound[i] = 0;
-        }
-        
-        if(objective_it != bundling_objectives.end()) {
-            objective_it++;
         }
     }
     
     bundling_bound[dimension] = -(bundling_objectives.size() - factor) * ideal_heuristic(source,
                                                                                       reference_objective - 1);
+    
+    cout << bundling_bound << endl;
     
 }
 
