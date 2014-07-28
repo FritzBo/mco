@@ -180,7 +180,7 @@ Solve(Graph& graph,
                     inner_product += bound[i] * (*new_cost)[i];
                 }
                 
-                if(inner_product < -bound[dimension]) {
+                if(inner_product > -bound[dimension]) {
                     delete new_cost;
                     new_cost = nullptr;
                     ++bound_deletion;
