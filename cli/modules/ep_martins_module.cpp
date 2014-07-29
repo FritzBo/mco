@@ -290,7 +290,7 @@ void EpMartinsModule::parse_bundling_bound(ValueArg<string>& bundling_arg,
     tokenize(bundling_arg.getValue(), tokens, ":");
     
     if(tokens.size() < 3) {
-        cout << "Error" << endl;
+        cout << "Error: Bounding needs at least 3 parameter." << endl;
         return;
     }
     
@@ -305,7 +305,7 @@ void EpMartinsModule::parse_bundling_bound(ValueArg<string>& bundling_arg,
     double factor = stod(tokens[tokens.size() - 1]);
     
     if(ideal_bound[reference_objective - 1] == numeric_limits<double>::infinity()) {
-        cout << "Error" << endl;
+        cout << "Error: Reference objective must be bounded." << endl;
         return;
     }
     
