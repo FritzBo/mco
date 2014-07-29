@@ -106,6 +106,10 @@ public:
         do_path_callback_ = true;
     }
     
+    void add_pending_labels(std::pair<ogdf::NodeArray<Point*>, ogdf::NodeArray<ogdf::edge>> pending_labels) {
+        pending_label_queue_.push_back(pending_labels);
+    }
+    
 private:
     const double epsilon_;
     
@@ -113,6 +117,8 @@ private:
     std::function<void(Point)> value_callback_;
     bool do_path_callback_;
     std::function<void(std::list<ogdf::node>)> path_callback_;
+    
+    std::list<std::pair<ogdf::NodeArray<Point*>, ogdf::NodeArray<ogdf::edge>>> pending_label_queue_;
     
     void Solve(ogdf::Graph& graph,
                std::function<const Point*(ogdf::edge)> weights,

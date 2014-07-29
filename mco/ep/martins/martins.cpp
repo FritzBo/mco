@@ -100,6 +100,13 @@ Solve(Graph& graph,
     }
     
 	while(!lex_min_label.empty()) {
+        
+        if(!pending_label_queue_.empty()) {
+            construct_labels(labels,
+                             pending_label_queue_,
+                             absolute_bound);
+        }
+        
 		Label *label = lex_min_label.top();
 		lex_min_label.pop();
         assert(label->in_queue);

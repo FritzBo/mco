@@ -54,6 +54,7 @@ set(SOURCE_FILES
 ../include/mco/ep/basic/binary_heap.h
 ../include/mco/ep/basic/dijkstra.h
 ../include/mco/ep/dual_benson/ep_dual_benson.h
+../include/mco/ep/dual_benson/constrained_ep_dual_benson.h
 
 
 # MO Spanning Tree
