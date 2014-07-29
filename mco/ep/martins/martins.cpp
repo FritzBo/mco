@@ -162,6 +162,7 @@ Solve(Graph& graph,
             
             for(unsigned i = 0; i < dimension; ++i) {
                 double heuristic_cost = new_cost->operator[](i) + heuristic(v, i);
+//                cout << heuristic_cost << ">" << absolute_bound[i] << "?" << endl;
                 if(heuristic_cost > absolute_bound[i] + epsilon_) {
                     delete new_cost;
                     new_cost = nullptr;
@@ -177,9 +178,10 @@ Solve(Graph& graph,
             for(auto bound : linear_bounds) {
                 double inner_product = 0;
                 for(unsigned i = 0; i < dimension; ++i) {
-                    inner_product += bound[i] * (*new_cost)[i];
+                    inner_product += bound[i] * ((*new_cost)[i] + heuristic(v, i));
                 }
                 
+//                cout << inner_product << ">" << -bound[dimension] << "?" << endl;
                 if(inner_product > -bound[dimension]) {
                     delete new_cost;
                     new_cost = nullptr;
@@ -192,28 +194,28 @@ Solve(Graph& graph,
                 continue;
             }
             
-//            for(auto label : labels[target]) {
-//                const Point& cost = *label->point;
-//                
-//                bool dominated = true;
-//                for(unsigned i = 0; i < dimension; ++i) {
-//                    if(new_cost->operator[](i) + heuristic(v, i) < cost[i] + epsilon_) {
-//                        dominated = false;
-//                        break;
-//                    }
-//                }
-//                
-//                if(dominated) {
-//                    delete new_cost;
-//                    new_cost = nullptr;
-//                    ++heuristic_deletion;
-//                    break;
-//                }
-//            }
-//            
-//            if(new_cost == nullptr) {
-//                continue;
-//            }
+            for(auto label : labels[target]) {
+                const Point& cost = *label->point;
+                
+                bool dominated = true;
+                for(unsigned i = 0; i < dimension; ++i) {
+                    if(new_cost->operator[](i) + heuristic(v, i) < cost[i] + epsilon_) {
+                        dominated = false;
+                        break;
+                    }
+                }
+                
+                if(dominated) {
+                    delete new_cost;
+                    new_cost = nullptr;
+                    ++heuristic_deletion;
+                    break;
+                }
+            }
+            
+            if(new_cost == nullptr) {
+                continue;
+            }
             
             for(auto cost : first_phase_bounds) {
                 bool dominated = true;

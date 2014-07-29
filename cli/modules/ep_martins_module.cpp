@@ -139,12 +139,13 @@ void EpMartinsModule::perform(int argc, char** argv) {
                                 bounds);
         
         Point bundling_bound(0.0, dimension + 1);
+        bundling_bound[dimension] = -numeric_limits<double>::infinity();
         
         if(bundling_arg.isSet()) {
             parse_bundling_bound(bundling_arg,
                                  dimension,
                                  ideal_heuristic,
-                                 source,
+                                 bounds,
                                  bundling_bound);
         }
         
@@ -282,7 +283,7 @@ void EpMartinsModule::parse_fractional_bounds(const MultiArg<string>& argument,
 void EpMartinsModule::parse_bundling_bound(ValueArg<string>& bundling_arg,
                                            unsigned dimension,
                                            function<double(node, unsigned)> ideal_heuristic,
-                                           const ogdf::node source,
+                                           const Point& ideal_bound,
                                            Point& bundling_bound) {
     
     vector<string> tokens;
@@ -303,6 +304,11 @@ void EpMartinsModule::parse_bundling_bound(ValueArg<string>& bundling_arg,
     unsigned reference_objective = stoul(tokens[tokens.size() - 2]);
     double factor = stod(tokens[tokens.size() - 1]);
     
+    if(ideal_bound[reference_objective - 1] == numeric_limits<double>::infinity()) {
+        cout << "Error" << endl;
+        return;
+    }
+    
     auto objective_it = bundling_objectives.begin();
     for(unsigned i = 0; i < dimension; ++i) {
         if(objective_it != bundling_objectives.end() &&
@@ -316,8 +322,7 @@ void EpMartinsModule::parse_bundling_bound(ValueArg<string>& bundling_arg,
         }
     }
     
-    bundling_bound[dimension] = -(bundling_objectives.size() - factor) * ideal_heuristic(source,
-                                                                                      reference_objective - 1);
+    bundling_bound[dimension] = -(bundling_objectives.size() - factor) * ideal_bound[reference_objective - 1];
 }
 
 

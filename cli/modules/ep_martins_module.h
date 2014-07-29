@@ -46,7 +46,7 @@ private:
     void parse_bundling_bound(TCLAP::ValueArg<string>& bundling_arg,
                               unsigned dimension,
                               std::function<double(ogdf::node, unsigned)> ideal_heuristic,
-                              const ogdf::node source,
+                              const mco::Point& ideal_bound,
                               mco::Point& bundling_bound);
 
     
