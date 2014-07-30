@@ -43,6 +43,7 @@ using TCLAP::MultiArg;
 
 #include <mco/ep/basic/dijkstra.h>
 #include <mco/ep/martins/martins.h>
+#include <mco/ep/preprocessing/constrained_reach.h>
 #include <mco/ep/dual_benson/ep_dual_benson.h>
 #include <mco/benchmarks/temporary_graphs_parser.h>
 #include <mco/basic/point.h>
@@ -53,6 +54,7 @@ using mco::Point;
 using mco::EpSolverMartins;
 using mco::Dijkstra;
 using mco::DijkstraModes;
+using mco::ConstrainedReachabilityPreprocessing;
 
 void EpMartinsModule::perform(int argc, char** argv) {
     try {
@@ -152,6 +154,10 @@ void EpMartinsModule::perform(int argc, char** argv) {
                                  bounds,
                                  bundling_bound);
         }
+        
+        ConstrainedReachabilityPreprocessing prep;
+        
+        prep.preprocess(*graph, dimension, ideal_heuristic, std::list<Point>({bundling_bound}));
         
         auto cost_function = [&costs] (edge e) { return &costs[e]; };
         
