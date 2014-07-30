@@ -10,6 +10,8 @@
 #ifndef MARTINS_B_H_
 #define MARTINS_B_H_
 
+#include <queue>
+
 #include <mco/basic/abstract_solver.h>
 
 namespace mco {
@@ -107,7 +109,10 @@ public:
     }
     
     void add_pending_labels(std::pair<ogdf::NodeArray<Point*>, ogdf::NodeArray<ogdf::edge>> pending_labels) {
+        
+        pending_label_mutex_.lock();
         pending_label_queue_.push_back(pending_labels);
+        pending_label_mutex_.unlock();
     }
     
 private:
@@ -119,6 +124,7 @@ private:
     std::function<void(std::list<ogdf::node>)> path_callback_;
     
     std::list<std::pair<ogdf::NodeArray<Point*>, ogdf::NodeArray<ogdf::edge>>> pending_label_queue_;
+    std::mutex pending_label_mutex_;
     
     void Solve(ogdf::Graph& graph,
                std::function<const Point*(ogdf::edge)> weights,
@@ -150,11 +156,6 @@ private:
         }
     };
     
-    void construct_labels(ogdf::NodeArray<std::list<Label*>> & labels,
-                          std::list<std::pair<ogdf::NodeArray<Point*>,
-                                              ogdf::NodeArray<ogdf::edge>>>& initial_labels,
-                          const Point& absolute_bound);
-    
     struct LexLabelComp {
         bool operator()(const Label& l1, const Label& l2) {
             return LexPointComparator()(l2.point, l1.point);
@@ -164,6 +165,16 @@ private:
             return LexPointComparator()(l2->point, l1->point);
         }
     };
+    
+    using LabelPriorityQueue = std::priority_queue<Label *, std::vector<Label *>, LexLabelComp>;
+    
+    void construct_labels(ogdf::NodeArray<std::list<Label*>> & labels,
+                          LabelPriorityQueue& lex_min_labels,
+                          const ogdf::node source,
+                          const ogdf::node target,
+                          std::list<std::pair<ogdf::NodeArray<Point*>,
+                                              ogdf::NodeArray<ogdf::edge>>>& initial_labels,
+                          const Point& absolute_bound);
     
     struct HeuristicLexLabelComp {
         HeuristicLexLabelComp(unsigned dimension,

@@ -11,6 +11,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <thread>
 
 using std::map;
 using std::string;
@@ -19,14 +20,17 @@ using std::pair;
 using std::make_pair;
 using std::function;
 using std::vector;
+using std::thread;
 
 #include <ogdf/basic/Graph.h>
+#include <ogdf/basic/Thread.h>
 
 using ogdf::Graph;
 using ogdf::EdgeArray;
 using ogdf::NodeArray;
 using ogdf::node;
 using ogdf::edge;
+using ogdf::Thread;
 
 #include <tclap/CmdLine.h>
 
@@ -95,20 +99,20 @@ void EpMartinsModule::perform(int argc, char** argv) {
             use_heuristic = true;
         }
         
-        Graph graph;
-        EdgeArray<Point> costs(graph);
+        Graph* graph = new Graph;
+        EdgeArray<Point> costs(*graph);
         unsigned dimension;
         node source, target;
         
         TemporaryGraphParser parser;
         
-        parser.getGraph(file_name, graph, costs, dimension, source, target);
+        parser.getGraph(file_name, *graph, costs, dimension, source, target);
         
-        vector<NodeArray<double>> distances(dimension, graph);
+        vector<NodeArray<double>> distances(dimension, *graph);
         
         if(use_heuristic) {
             cout << "computing heuristic..." <<endl;
-            calculate_ideal_heuristic(graph,
+            calculate_ideal_heuristic(*graph,
                                       costs,
                                       dimension,
                                       source,
@@ -117,7 +121,7 @@ void EpMartinsModule::perform(int argc, char** argv) {
             
         } else {
             for(unsigned i = 0; i < dimension; ++i) {
-                for(auto n : graph.nodes) {
+                for(auto n : graph->nodes) {
                     distances[i][n] = 0;
                 }
             }
@@ -151,35 +155,60 @@ void EpMartinsModule::perform(int argc, char** argv) {
         
         auto cost_function = [&costs] (edge e) { return &costs[e]; };
         
-        list<pair<NodeArray<Point *>, NodeArray<edge>>> solutions;
-        
-        if(do_first_phase) {
-            cout << "computing first phase..." << endl;
-            first_phase(graph,
-                        cost_function,
-                        dimension,
-                        source,
-                        target,
-                        epsilon,
-                        solutions);
-        }
-
         EpSolverMartins solver(epsilon);
+        
+        
+        thread *first_phase_thread = nullptr;
+        if(do_first_phase) {
+            cout << "starting first phase..." << endl;
+            
+            auto callback = [&solver, &graph, dimension] (NodeArray<Point *>& distances,
+                                                          NodeArray<edge>& predecessors) {
+                
+                NodeArray<Point *> new_distances(*graph);
+                
+                for(auto n : distances.graphOf()->nodes) {
+                    Point* p = new Point(dimension);
+                    std::copy(distances[n]->cbegin() + 1, distances[n]->cend(),
+                              p->begin());
+                    new_distances[n] = p;
+                }
+                
+                solver.add_pending_labels(make_pair(new_distances, predecessors));
+            };
+
+            first_phase_thread = new thread(EpMartinsModule::first_phase,
+                                            graph,
+                                            cost_function,
+                                            dimension,
+                                            source,
+                                            target,
+                                            epsilon,
+                                            callback);
+            
+        }
         
         cout << "Starting Martins..." << endl;
         
-        solver.Solve(graph,
+        solver.Solve(*graph,
                      cost_function,
                      dimension,
                      source,
                      target,
                      bounds,
-                     solutions,
+                     std::list<std::pair<ogdf::NodeArray<Point*>, ogdf::NodeArray<ogdf::edge>>>(),
                      ideal_heuristic,
                      list<Point>({bundling_bound}),
                      is_directed);
         
         cout << "Done." << endl;
+        
+//        if(first_phase_thread != nullptr) {
+//            first_phase_thread->join();
+//            delete first_phase_thread;
+//        }
+        
+        delete graph;
 
         solutions_.insert(solutions_.begin(),
                           solver.solutions().cbegin(),
@@ -326,40 +355,23 @@ void EpMartinsModule::parse_bundling_bound(ValueArg<string>& bundling_arg,
 }
 
 
-void EpMartinsModule::first_phase(const Graph& graph,
+void EpMartinsModule::first_phase(const Graph* graph,
                                   function<Point*(edge)> cost_function,
                                   unsigned dimension,
                                   const node source,
                                   const node target,
                                   double epsilon,
-                                  list<pair<NodeArray<Point *>, NodeArray<edge>>>& solutions) {
+                                  std::function<void(ogdf::NodeArray<Point*>&, ogdf::NodeArray<ogdf::edge>&)> callback) {
     
-    if(epsilon == 0) {
-        epsilon = 1E-8;
-    }
+    OGDF_ALLOCATOR::initThread();
+//    for(double epsilon = 1; epsilon > 1E-6; epsilon /= 10) {
+        EPDualBensonSolver<> weighted_solver(1E-8);
+            
+        weighted_solver.Solve(*graph, cost_function, source, target, callback);
+//    }
+    OGDF_ALLOCATOR::flushPool();
     
-    auto callback = [&solutions, &graph, dimension] (NodeArray<Point *>& distances,
-                                                     NodeArray<edge>& predecessors) {
-        
-        NodeArray<Point *> new_distances(graph);
-        
-        for(auto n : distances.graphOf()->nodes) {
-            Point* p = new Point(dimension);
-            std::copy(distances[n]->cbegin() + 1, distances[n]->cend(),
-                      p->begin());
-            new_distances[n] = p;
-        }
-        
-        solutions.push_back(make_pair(new_distances, predecessors));
-    };
-
-    {
-        
-        EPDualBensonSolver<> weighted_solver(epsilon);
-        
-        weighted_solver.Solve(graph, cost_function, source, target, callback);
-        
-    }
+    cout << "Finished first phase" << endl;
 }
 
 

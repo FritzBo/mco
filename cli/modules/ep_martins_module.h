@@ -50,13 +50,13 @@ private:
                               mco::Point& bundling_bound);
 
     
-    void first_phase(const ogdf::Graph& graph,
-                     std::function<mco::Point*(ogdf::edge)> cost_function,
-                     unsigned dimension,
-                     const ogdf::node source,
-                     const ogdf::node target,
-                     double epsilon,
-                     std::list<std::pair<ogdf::NodeArray<mco::Point *>, ogdf::NodeArray<ogdf::edge>>>& solutions);
+    static void first_phase(const ogdf::Graph* graph,
+                            std::function<mco::Point*(ogdf::edge)> cost_function,
+                            unsigned dimension,
+                            const ogdf::node source,
+                            const ogdf::node target,
+                            double epsilon,
+                            std::function<void(ogdf::NodeArray<mco::Point*>&, ogdf::NodeArray<ogdf::edge>&)> callback);
     
     std::list<std::pair<const std::list<ogdf::edge>, const mco::Point>> solutions_;
 

@@ -55,6 +55,7 @@ set(SOURCE_FILES
 ../include/mco/ep/basic/dijkstra.h
 ../include/mco/ep/dual_benson/ep_dual_benson.h
 ../include/mco/ep/dual_benson/constrained_ep_dual_benson.h
+../include/mco/ep/preprocessing/constrained_reach.h
 
 
 # MO Spanning Tree
@@ -113,6 +114,7 @@ ep/martins/weighted_martins.cpp
 ep/tsaggouris/ep_solver_tsaggouris_approx.cpp
 ep/warburton/ep_solver_warburton_approx.cpp
 ep/basic/dijkstra.cpp
+ep/preprocessing/constrained_reach.cpp
 
 # MO Spanning Tree
 est/basic/kruskal_st_solver.cpp

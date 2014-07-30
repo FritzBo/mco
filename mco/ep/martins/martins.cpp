@@ -32,7 +32,7 @@ using ogdf::NodeArray;
 #include <mco/ep/martins/label.h>
 
 namespace mco {
-    
+
 void EpSolverMartins::
 Solve(Graph& graph,
       function<const Point*(edge)> weights,
@@ -47,19 +47,16 @@ Solve(Graph& graph,
       list<Point> first_phase_bounds,
       bool directed) {
     
-//    using LabelPriorityQueue = priority_queue<Label *, vector<Label *>, HeuristicLexLabelComp>;
-    using LabelPriorityQueue = priority_queue<Label *, vector<Label *>, LexLabelComp>;
     
     unsigned bound_deletion = 0;
     unsigned heuristic_deletion = 0;
     unsigned first_phase_deletion = 0;
     
-//	LabelPriorityQueue lex_min_label((HeuristicLexLabelComp(dimension, heuristic)));
     LabelPriorityQueue lex_min_label((LexLabelComp()));
     
 	NodeArray<list<Label *>> labels(graph);
     
-    ComponentwisePointComparator comp_leq(epsilon_, false);
+    ComponentwisePointComparator comp_leq(1E-3, false);
 
 	Label *null_label = new Label(Point::Null(dimension), source, nullptr);
     null_label->in_queue = true;
@@ -68,17 +65,12 @@ Solve(Graph& graph,
 	lex_min_label.push(null_label);
     
     if(!initial_labels.empty()) {
-        construct_labels(labels, initial_labels, absolute_bound);
-        
-        for(auto n : graph.nodes) {
-            if(n != target && n != source) {
-                
-                for(auto label : labels[n]) {
-                    lex_min_label.push(label);
-                    label->in_queue = true;
-                }
-            }
-        }
+        construct_labels(labels,
+                         lex_min_label,
+                         source,
+                         target,
+                         initial_labels,
+                         absolute_bound);
         
         for(auto label : labels[target]) {
             
@@ -102,9 +94,17 @@ Solve(Graph& graph,
 	while(!lex_min_label.empty()) {
         
         if(!pending_label_queue_.empty()) {
+            
+            pending_label_mutex_.lock();
             construct_labels(labels,
+                             lex_min_label,
+                             source,
+                             target,
                              pending_label_queue_,
                              absolute_bound);
+            pending_label_queue_.clear();
+            pending_label_mutex_.unlock();
+            
         }
         
 		Label *label = lex_min_label.top();
@@ -335,20 +335,23 @@ Solve(Graph& graph,
     
 void EpSolverMartins::
 construct_labels(NodeArray<list<Label*>> & labels,
+                 LabelPriorityQueue& lex_min_labels,
+                 const node source,
+                 const node target,
                  list<pair<NodeArray<Point*>,
                            NodeArray<edge>>>& initial_labels,
                  const Point& absolute_bound) {
     
     LexPointComparator comp;
-    EqualityPointComparator eq;
-    ComponentwisePointComparator ccomp(0, false);
+    EqualityPointComparator eq(1E-8);
+    ComponentwisePointComparator ccomp(1E-8, false);
     
     for(auto solution : initial_labels) {
         auto distance = solution.first;
         auto predecessor = solution.second;
         NodeArray<bool> in_queue(*labels.graphOf(), true);
         
-        auto order = [distance, comp] (node v, node w) {
+        auto order = [&distance, &comp] (node v, node w) {
             return comp(distance[v], distance[w]);
         };
         
@@ -385,11 +388,26 @@ construct_labels(NodeArray<list<Label*>> & labels,
                 // If we are still looking for the root of the path
                 if(!labeling_finished) {
                     // Is there a label with the same point?
-                    for(auto label : labels[n]) {
+                    auto iter = labels[n].begin();
+                    while(iter != labels[n].end()) {
+                        auto label = *iter;
+                    
                         if(eq(label->point, distance[n])) {
                             labeling_finished = true;
                             pred = label;
                             break;
+                        }
+                        
+                        // Does the new label dominate another
+                        // already existing label? Mark them dominated
+                        if(ccomp(distance[n], label->point)) {
+                            if(!ComponentwisePointComparator(0, false)(distance[n], label->point)) {
+                                cout << distance[n] << " <_p " << label->point << endl;
+                            }
+                            label->mark_dominated = true;
+                            iter = labels[n].erase(iter);
+                        } else {
+                            iter++;
                         }
                     }
                     
@@ -425,18 +443,22 @@ construct_labels(NodeArray<list<Label*>> & labels,
                     
                 // Create a new label
                 auto label = new Label(new Point(*distance[n]), n, pred);
+                
                 // add it to the node
                 labels[n].push_back(label);
+                
+                // if we are not at the source or at the target
+                // add it to the queue and mark in_queue
+                if(n != source && n != target) {
+                    lex_min_labels.push(label);
+                    label->in_queue = true;
+                }
                     
                 
                 // And set the predecessor accordingly
                 pred = label;
             }
             
-        }
-        
-        for(auto n : labels.graphOf()->nodes) {
-            delete distance[n];
         }
         
     }
