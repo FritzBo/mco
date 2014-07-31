@@ -199,7 +199,7 @@ void EpMartinsModule::perform(int argc, char** argv) {
                      dimension,
                      source,
                      target,
-                     Point(numeric_limits<double>::infinity()),
+                     Point(numeric_limits<double>::infinity(), dimension),
                      std::list<std::pair<ogdf::NodeArray<Point*>, ogdf::NodeArray<ogdf::edge>>>(),
                      ideal_heuristic,
                      bounds,
