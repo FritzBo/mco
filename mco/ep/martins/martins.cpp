@@ -374,6 +374,24 @@ construct_labels(NodeArray<list<Label*>> & labels,
                 continue;
             }
             
+            // Stop, if new label would exceed the given bounds
+            bool bounded = false;
+            for(auto bound : bounds) {
+                double inner_product = 0;
+                for(unsigned i = 0; i < dimension; ++i) {
+                    inner_product += bound[i] * (*distance[n])[i];
+                }
+                
+                if(inner_product > -bound[dimension]) {
+                    bounded = true;
+                    break;
+                }
+                
+            }
+            if(bounded) {
+                break;
+            }
+            
             bool labeling_finished = false;
             
             list<node> path;
@@ -402,9 +420,9 @@ construct_labels(NodeArray<list<Label*>> & labels,
                         // Does the new label dominate another
                         // already existing label? Mark them dominated
                         if(ccomp(distance[n], label->point)) {
-                            if(!ComponentwisePointComparator(0, false)(distance[n], label->point)) {
-                                cout << distance[n] << " <_p " << label->point << endl;
-                            }
+//                            if(!ComponentwisePointComparator(0, false)(distance[n], label->point)) {
+//                                cout << distance[n] << " <_p " << label->point << endl;
+//                            }
                             label->mark_dominated = true;
                             iter = labels[n].erase(iter);
                         } else {
@@ -436,24 +454,6 @@ construct_labels(NodeArray<list<Label*>> & labels,
                 // beginning with the latest added
                 auto n = path.back();
                 path.pop_back();
-                
-                // Stop, if new label would exceed the given bounds
-                bool bounded = false;
-                for(auto bound : bounds) {
-                    double inner_product = 0;
-                    for(unsigned i = 0; i < dimension; ++i) {
-                        inner_product += bound[i] * (*distance[n])[i];
-                    }
-                    
-                    if(inner_product > -bound[dimension]) {
-                        bounded = true;
-                        break;
-                    }
-                    
-                }
-                if(bounded) {
-                    break;
-                }
                 
                 // Create a new label
                 auto label = new Label(new Point(*distance[n]), n, pred);
