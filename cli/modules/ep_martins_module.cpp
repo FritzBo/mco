@@ -62,7 +62,7 @@ void EpMartinsModule::perform(int argc, char** argv) {
         
         ValueArg<double> epsilon_argument("e", "epsilon", "Epsilon to be used in floating point calculations.", false, 0, "epsilon");
         
-        ValueArg<string> bundling_arg("B", "bundling", "", false, "", "objective:...:objective:reference_objective:factor");
+//        ValueArg<string> bundling_arg("B", "bundling", "", false, "", "objective:...:objective:reference_objective:factor");
         
         UnlabeledValueArg<string> file_name_argument("filename", "Name of the instance file", true, "","filename");
         
@@ -75,14 +75,14 @@ void EpMartinsModule::perform(int argc, char** argv) {
         MultiArg<string> ideal_bounds_arg("I", "ideal-bound", "Bounds the given objective function by factor times the ideal heuristic value of this objective function. Implies -H.", false,
                                      "objective:factor");
         
-        MultiArg<string> fractional_bounds_arg("F", "frational-bound", "Bounds the quotients of the given objective functions by a factor. Implies -H.", false, "bound_objective:reference_objective:factor");
+//        MultiArg<string> fractional_bounds_arg("F", "frational-bound", "Bounds the quotients of the given objective functions by a factor. Implies -H.", false, "bound_objective:reference_objective:factor");
         
         cmd.add(epsilon_argument);
         cmd.add(file_name_argument);
         cmd.add(use_heuristic_switch);
         cmd.add(ideal_bounds_arg);
-        cmd.add(fractional_bounds_arg);
-        cmd.add(bundling_arg);
+//        cmd.add(fractional_bounds_arg);
+//        cmd.add(bundling_arg);
         cmd.add(is_directed_arg);
         cmd.add(do_first_phase_arg);
         
@@ -94,10 +94,10 @@ void EpMartinsModule::perform(int argc, char** argv) {
         bool is_directed = is_directed_arg.getValue();
         bool do_first_phase = do_first_phase_arg.getValue();
         
-        if(ideal_bounds_arg.end() - ideal_bounds_arg.begin() > 0 ||
-           fractional_bounds_arg.end() - fractional_bounds_arg.begin() > 0 ||
-           bundling_arg.isSet()) {
-            
+        if(ideal_bounds_arg.end() - ideal_bounds_arg.begin() > 0) {
+//           fractional_bounds_arg.end() - fractional_bounds_arg.begin() > 0 ||
+//           bundling_arg.isSet()) {
+           
             use_heuristic = true;
         }
         
@@ -133,31 +133,29 @@ void EpMartinsModule::perform(int argc, char** argv) {
             return distances[objective][n];
         };
         
-        Point bounds(numeric_limits<double>::infinity(), dimension);
+        list<Point> bounds;
         parse_ideal_bounds(ideal_bounds_arg,
                            dimension,
                            ideal_heuristic,
                            source,
                            bounds);
         
-        parse_fractional_bounds(fractional_bounds_arg,
-                                dimension,
-                                bounds);
+//        parse_fractional_bounds(fractional_bounds_arg,
+//                                dimension,
+//                                bounds);
         
-        Point bundling_bound(0.0, dimension + 1);
-        bundling_bound[dimension] = -numeric_limits<double>::infinity();
-        
-        if(bundling_arg.isSet()) {
-            parse_bundling_bound(bundling_arg,
-                                 dimension,
-                                 ideal_heuristic,
-                                 bounds,
-                                 bundling_bound);
-        }
+//        if(bundling_arg.isSet()) {
+//            parse_bundling_bound(bundling_arg,
+//                                 dimension,
+//                                 ideal_heuristic,
+//                                 bounds,
+//                                 bundling_bound);
+//        }
         
         ConstrainedReachabilityPreprocessing prep;
         
-        prep.preprocess(*graph, dimension, ideal_heuristic, std::list<Point>({bundling_bound}));
+        cout << "starting preprocessing..." << endl;
+        prep.preprocess(*graph, dimension, ideal_heuristic, bounds);
         
         auto cost_function = [&costs] (edge e) { return &costs[e]; };
         
@@ -201,18 +199,18 @@ void EpMartinsModule::perform(int argc, char** argv) {
                      dimension,
                      source,
                      target,
-                     bounds,
+                     Point(numeric_limits<double>::infinity()),
                      std::list<std::pair<ogdf::NodeArray<Point*>, ogdf::NodeArray<ogdf::edge>>>(),
                      ideal_heuristic,
-                     list<Point>({bundling_bound}),
+                     bounds,
                      is_directed);
         
         cout << "Done." << endl;
         
-//        if(first_phase_thread != nullptr) {
-//            first_phase_thread->join();
-//            delete first_phase_thread;
-//        }
+        if(first_phase_thread != nullptr) {
+            first_phase_thread->join();
+            delete first_phase_thread;
+        }
         
         delete graph;
 
@@ -237,10 +235,12 @@ void EpMartinsModule::parse_ideal_bounds(const MultiArg<string>& argument,
                                          unsigned dimension,
                                          function<double(node, unsigned)> heuristic,
                                          const node source,
-                                         Point& bounds) {
+                                         list<Point>& bounds) {
     
     auto bounds_it = argument.begin();
     while(bounds_it != argument.end()) {
+        Point bound(0.0, dimension + 1);
+        
         vector<string> tokens;
         tokenize(*bounds_it, tokens, ":");
         
@@ -262,8 +262,10 @@ void EpMartinsModule::parse_ideal_bounds(const MultiArg<string>& argument,
             return;
         }
         
-        bounds[objective_function - 1] = factor * heuristic(source,
-                                                            objective_function - 1);
+        bound[objective_function - 1] = 1;
+        bound[dimension] = -factor * heuristic(source, objective_function - 1);
+        
+        bounds.push_back(std::move(bound));
         
         bounds_it++;
     }

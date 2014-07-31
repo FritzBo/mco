@@ -37,7 +37,7 @@ private:
                             unsigned dimension,
                             std::function<double(ogdf::node, unsigned)> heuristic,
                             const ogdf::node source,
-                            mco::Point & bounds);
+                            std::list<mco::Point> & bounds);
     
     void parse_fractional_bounds(const TCLAP::MultiArg<string>& argument,
                                  unsigned dimension,

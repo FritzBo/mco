@@ -70,7 +70,7 @@ Solve(Graph& graph,
                          source,
                          target,
                          initial_labels,
-                         absolute_bound);
+                         linear_bounds);
         
         for(auto label : labels[target]) {
             
@@ -101,7 +101,7 @@ Solve(Graph& graph,
                              source,
                              target,
                              pending_label_queue_,
-                             absolute_bound);
+                             linear_bounds);
             pending_label_queue_.clear();
             pending_label_mutex_.unlock();
             
@@ -167,20 +167,20 @@ Solve(Graph& graph,
 			const Point *edge_cost = weights(e);
 			const Point *new_cost = new Point(*edge_cost + *label_cost);			// Owner
             
-            for(unsigned i = 0; i < dimension; ++i) {
-                double heuristic_cost = new_cost->operator[](i) + heuristic(v, i);
-//                cout << heuristic_cost << ">" << absolute_bound[i] << "?" << endl;
-                if(heuristic_cost > absolute_bound[i] + epsilon_) {
-                    delete new_cost;
-                    new_cost = nullptr;
-                    ++bound_deletion;
-                    break;
-                }
-            }
-            
-            if(new_cost == nullptr) {
-                continue;
-            }
+//            for(unsigned i = 0; i < dimension; ++i) {
+//                double heuristic_cost = new_cost->operator[](i) + heuristic(v, i);
+////                cout << heuristic_cost << ">" << absolute_bound[i] << "?" << endl;
+//                if(heuristic_cost > absolute_bound[i] + epsilon_) {
+//                    delete new_cost;
+//                    new_cost = nullptr;
+//                    ++bound_deletion;
+//                    break;
+//                }
+//            }
+//            
+//            if(new_cost == nullptr) {
+//                continue;
+//            }
             
             for(auto bound : linear_bounds) {
                 double inner_product = 0;
@@ -340,7 +340,7 @@ construct_labels(NodeArray<list<Label*>> & labels,
                  const node target,
                  list<pair<NodeArray<Point*>,
                            NodeArray<edge>>>& initial_labels,
-                 const Point& absolute_bound) {
+                 const std::list<Point>& bounds) {
     
     LexPointComparator comp;
     EqualityPointComparator eq(1E-8);
@@ -350,6 +350,7 @@ construct_labels(NodeArray<list<Label*>> & labels,
         auto distance = solution.first;
         auto predecessor = solution.second;
         NodeArray<bool> in_queue(*labels.graphOf(), true);
+        unsigned dimension = distance[labels.graphOf()->chooseNode()]->dimension();
         
         auto order = [&distance, &comp] (node v, node w) {
             return comp(distance[v], distance[w]);
@@ -436,11 +437,24 @@ construct_labels(NodeArray<list<Label*>> & labels,
                 auto n = path.back();
                 path.pop_back();
                 
-                // Stop, if new label would exceed the given bound
-                if(!ccomp(*distance[n], absolute_bound)) {
-                    break;
-                }
-                    
+                // Stop, if new label would exceed the given bounds
+//                bool bounded = false;
+//                for(auto bound : bounds) {
+//                    double inner_product = 0;
+//                    for(unsigned i = 0; i < dimension; ++i) {
+//                        inner_product += bound[i] * (*distance[n])[i];
+//                    }
+//                    
+//                    if(inner_product > -bound[dimension]) {
+//                        bounded = true;
+//                        break;
+//                    }
+//                    
+//                }
+//                if(bounded) {
+//                    break;
+//                }
+                
                 // Create a new label
                 auto label = new Label(new Point(*distance[n]), n, pred);
                 

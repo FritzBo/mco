@@ -174,7 +174,7 @@ private:
                           const ogdf::node target,
                           std::list<std::pair<ogdf::NodeArray<Point*>,
                                               ogdf::NodeArray<ogdf::edge>>>& initial_labels,
-                          const Point& absolute_bound);
+                          const std::list<Point>& bounds);
     
     struct HeuristicLexLabelComp {
         HeuristicLexLabelComp(unsigned dimension,

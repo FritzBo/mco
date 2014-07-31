@@ -34,6 +34,7 @@ void ConstrainedReachabilityPreprocessing::preprocess(Graph &graph,
                 candidates.push_back(n);
                 break;
             }
+            
         }
     }
     
