@@ -21,9 +21,12 @@ class ConstrainedReachabilityPreprocessing {
 public:
     
     void preprocess(ogdf::Graph& graph,
+                    std::function<Point*(ogdf::edge)> cost_function,
                     unsigned dimension,
-                    std::function<double(ogdf::node, unsigned)> heuristic,
-                    std::list<Point> linear_bounds);
+                    const ogdf::node source,
+                    const ogdf::node target,
+                    std::list<Point> linear_bounds,
+                    bool directed = false);
 private:
 };
     

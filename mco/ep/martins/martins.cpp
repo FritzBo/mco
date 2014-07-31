@@ -201,28 +201,28 @@ Solve(Graph& graph,
                 continue;
             }
             
-            for(auto label : labels[target]) {
-                const Point& cost = *label->point;
-                
-                bool dominated = true;
-                for(unsigned i = 0; i < dimension; ++i) {
-                    if(new_cost->operator[](i) + heuristic(v, i) < cost[i] + epsilon_) {
-                        dominated = false;
-                        break;
-                    }
-                }
-                
-                if(dominated) {
-                    delete new_cost;
-                    new_cost = nullptr;
-                    ++heuristic_deletion;
-                    break;
-                }
-            }
-            
-            if(new_cost == nullptr) {
-                continue;
-            }
+//            for(auto label : labels[target]) {
+//                const Point& cost = *label->point;
+//                
+//                bool dominated = true;
+//                for(unsigned i = 0; i < dimension; ++i) {
+//                    if(new_cost->operator[](i) + heuristic(v, i) < cost[i] + epsilon_) {
+//                        dominated = false;
+//                        break;
+//                    }
+//                }
+//                
+//                if(dominated) {
+//                    delete new_cost;
+//                    new_cost = nullptr;
+//                    ++heuristic_deletion;
+//                    break;
+//                }
+//            }
+//            
+//            if(new_cost == nullptr) {
+//                continue;
+//            }
             
             for(auto cost : first_phase_bounds) {
                 bool dominated = true;
@@ -438,22 +438,22 @@ construct_labels(NodeArray<list<Label*>> & labels,
                 path.pop_back();
                 
                 // Stop, if new label would exceed the given bounds
-//                bool bounded = false;
-//                for(auto bound : bounds) {
-//                    double inner_product = 0;
-//                    for(unsigned i = 0; i < dimension; ++i) {
-//                        inner_product += bound[i] * (*distance[n])[i];
-//                    }
-//                    
-//                    if(inner_product > -bound[dimension]) {
-//                        bounded = true;
-//                        break;
-//                    }
-//                    
-//                }
-//                if(bounded) {
-//                    break;
-//                }
+                bool bounded = false;
+                for(auto bound : bounds) {
+                    double inner_product = 0;
+                    for(unsigned i = 0; i < dimension; ++i) {
+                        inner_product += bound[i] * (*distance[n])[i];
+                    }
+                    
+                    if(inner_product > -bound[dimension]) {
+                        bounded = true;
+                        break;
+                    }
+                    
+                }
+                if(bounded) {
+                    break;
+                }
                 
                 // Create a new label
                 auto label = new Label(new Point(*distance[n]), n, pred);

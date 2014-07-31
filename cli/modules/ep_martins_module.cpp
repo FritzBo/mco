@@ -152,12 +152,19 @@ void EpMartinsModule::perform(int argc, char** argv) {
 //                                 bundling_bound);
 //        }
         
+        auto cost_function = [&costs] (edge e) { return &costs[e]; };
+        
         ConstrainedReachabilityPreprocessing prep;
         
         cout << "starting preprocessing..." << endl;
-        prep.preprocess(*graph, dimension, ideal_heuristic, bounds);
+        prep.preprocess(*graph,
+                        cost_function,
+                        dimension,
+                        source,
+                        target,
+                        bounds,
+                        is_directed);
         
-        auto cost_function = [&costs] (edge e) { return &costs[e]; };
         
         EpSolverMartins solver(epsilon);
         
