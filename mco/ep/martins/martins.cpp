@@ -56,7 +56,7 @@ Solve(Graph& graph,
     
 	NodeArray<list<Label *>> labels(graph);
     
-    ComponentwisePointComparator comp_leq(1E-3, false);
+    ComponentwisePointComparator comp_leq(0, false);
 
 	Label *null_label = new Label(Point::Null(dimension), source, nullptr);
     null_label->in_queue = true;
@@ -201,28 +201,28 @@ Solve(Graph& graph,
                 continue;
             }
             
-//            for(auto label : labels[target]) {
-//                const Point& cost = *label->point;
-//                
-//                bool dominated = true;
-//                for(unsigned i = 0; i < dimension; ++i) {
-//                    if(new_cost->operator[](i) + heuristic(v, i) < cost[i] + epsilon_) {
-//                        dominated = false;
-//                        break;
-//                    }
-//                }
-//                
-//                if(dominated) {
-//                    delete new_cost;
-//                    new_cost = nullptr;
-//                    ++heuristic_deletion;
-//                    break;
-//                }
-//            }
-//            
-//            if(new_cost == nullptr) {
-//                continue;
-//            }
+            for(auto label : labels[target]) {
+                const Point& cost = *label->point;
+                
+                bool dominated = true;
+                for(unsigned i = 0; i < dimension; ++i) {
+                    if(new_cost->operator[](i) + heuristic(v, i) < cost[i] + epsilon_) {
+                        dominated = false;
+                        break;
+                    }
+                }
+                
+                if(dominated) {
+                    delete new_cost;
+                    new_cost = nullptr;
+                    ++heuristic_deletion;
+                    break;
+                }
+            }
+            
+            if(new_cost == nullptr) {
+                continue;
+            }
             
             for(auto cost : first_phase_bounds) {
                 bool dominated = true;
@@ -343,8 +343,8 @@ construct_labels(NodeArray<list<Label*>> & labels,
                  const std::list<Point>& bounds) {
     
     LexPointComparator comp;
-    EqualityPointComparator eq(1E-8);
-    ComponentwisePointComparator ccomp(1E-8, false);
+    EqualityPointComparator eq;
+    ComponentwisePointComparator ccomp(0, false);
     
     for(auto solution : initial_labels) {
         auto distance = solution.first;
