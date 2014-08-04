@@ -9,6 +9,7 @@
 #include <limits>
 #include <cmath>
 #include <functional>
+#include <list>
 
 using std::vector;
 using std::min;
@@ -19,73 +20,80 @@ using std::ceil;
 using std::floor;
 using std::numeric_limits;
 using std::function;
+using std::list;
 
 #include <ogdf/basic/Graph.h>
-#include <ogdf/graphalg/ShortestPathWithBFM.h>
 
 using ogdf::Graph;
 using ogdf::EdgeArray;
 using ogdf::NodeArray;
 using ogdf::node;
 using ogdf::edge;
-using ogdf::ShortestPathWithBFM;
 
+#include <mco/ep/basic/dijkstra.h>
 #include <mco/ep/warburton/ep_solver_warburton_approx.h>
 
 namespace mco {
 
-EpSolverWarburtonApprox::EpSolverWarburtonApprox(EpInstance &instance, const Point &epsilon, unsigned int processes, double theta) : AbstractEpSolver(instance), epsilon_(Point(epsilon)), theta_(theta), processes_(processes) {
+void EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
+                                    std::function<Point*(edge)> cost_function,
+                                    unsigned dimension,
+                                    const ogdf::node source,
+                                    const ogdf::node target,
+                                    const Point &epsilon,
+                                    list<Point> linear_bounds,
+                                    unsigned int processes,
+                                    double theta) {
+    
+	const unsigned int number_nodes = graph.numberOfNodes();
 
-}
-
-void EpSolverWarburtonApprox::Solve() {
-	const unsigned int dimension = instance().dimension();
-	const unsigned int number_nodes = instance().graph().numberOfNodes();
-	const Graph &graph = instance().graph();
-	const function<Point *(edge)> & weights = instance().weights();
-	const node source = instance().source();
-	const node target = instance().target();
-
-	vector<EdgeArray<int>> weight_functions(dimension - 1, EdgeArray<int>(graph, 0));
-	NodeArray<int> distances(graph);
+	vector<EdgeArray<double>> weight_functions(dimension - 1, EdgeArray<double>(graph, 0));
+	NodeArray<double> distances(graph);
 	NodeArray<edge> predecessor(graph);
 	vector<double> min_e(dimension - 1, numeric_limits<double>::infinity());
 	vector<double> max_e(dimension - 1, - numeric_limits<double>::infinity());
 	vector<int> ub(dimension - 1);
 	vector<int> lb(dimension - 1);
-	vector<int> label_limits(dimension);
+	vector<double> label_limits(dimension);
 	edge e;
 	double weight, d;
 	int max_i, min_i;
-	ShortestPathWithBFM shortest_path_module;
+    
+    Dijkstra<double> sssp_solver;
 
 	// Computing the bounds
 	for(unsigned int k = 0; k < dimension - 1; ++k) {
 
 		forall_edges(e, graph) {
-			weight = (*weights(e))[k];
+			weight = (*cost_function(e))[k];
 			min_e[k] = min(min_e[k], weight);
 			max_e[k] = max(max_e[k], weight);
 		}
 
-		label_limits[k] = static_cast<int>(ceil((number_nodes - 1) * theta_ / epsilon_[k]));
+		label_limits[k] = static_cast<int>(ceil((number_nodes - 1) * theta / epsilon[k]));
 
-		max_i = static_cast<unsigned int>(ceil(log(min(max_e[k] * (number_nodes - 1), max_e[k] * (number_nodes - 1) / epsilon_[k] ) ) / log(theta_) ) + 1);
-		min_i = static_cast<unsigned int>(log(max(1.0, min_e[k] * (number_nodes - 1) / epsilon_[k] ) ) / log(theta_) );
+		max_i = static_cast<unsigned int>(ceil(log(min(max_e[k] * (number_nodes - 1), max_e[k] * (number_nodes - 1) / epsilon[k] ) ) / log(theta) ) + 1);
+		min_i = static_cast<unsigned int>(log(max(1.0, min_e[k] * (number_nodes - 1) / epsilon[k] ) ) / log(theta) );
 
 		for(int i = min_i; i < max_i; ++i) {
 			d = static_cast<double>(pow(2, max_i - i));
 			forall_edges(e, graph)
-				weight_functions[k][e] = static_cast<int>(floor((*weights(e))[k] * (number_nodes - 1) / (epsilon_[k] * d) ));
+				weight_functions[k][e] = static_cast<int>(floor((*cost_function(e))[k] * (number_nodes - 1) / (epsilon[k] * d) ));
 
 			// TODO: Error Message / Exception
-			if(!shortest_path_module.call(graph, source, weight_functions[k], distances, predecessor))
-				cout << "Kein Weg gefunden!" << endl;
+            if(!sssp_solver.singleSourceShortestPaths(graph, weight_functions[k], source, predecessor, distances)) {
+                
+                cout << "Kein Weg gefunden!" << endl;
+                return;
+                
+            }
 
-			if(distances[target] > (number_nodes - 1) * theta_ / epsilon_[k] || max_i - i == 1) {
+			if(distances[target] > (number_nodes - 1) * theta / epsilon[k] || max_i - i == 1) {
+                
 				lb[k] = max_i - i + 1;
-				ub[k] = static_cast<int>(ceil(log(min(max_e[k] * (number_nodes - 1), max_e[k] * (number_nodes - 1) / epsilon_[k]) / log(theta_)) + 1));
+				ub[k] = static_cast<int>(ceil(log(min(max_e[k] * (number_nodes - 1), max_e[k] * (number_nodes - 1) / epsilon[k]) / log(theta)) + 1));
 				break;
+                
 			}
 		}
 	}

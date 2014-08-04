@@ -14,15 +14,19 @@
 
 namespace mco {
 
-class EpSolverWarburtonApprox : public AbstractEpSolver {
-
-	const Point epsilon_;
-	const double  theta_;
-	const unsigned int processes_;
+class EpSolverWarburtonApprox : public AbstractSolver<std::list<edge>> {
 
 public:
-	EpSolverWarburtonApprox(EpInstance &instance, const Point &epsilon, unsigned int processes = 2, double theta = 2.0);
-	void Solve();
+	EpSolverWarburtonApprox();
+	void Solve(ogdf::Graph& graph,
+               std::function<Point*(edge)> cost_function,
+               unsigned dimension,
+               const ogdf::node source,
+               const ogdf::node target,
+               const Point &epsilon,
+               std::list<Point> linear_bounds = std::list<Point>(),
+               unsigned int processes = 2,
+               double theta = 2.0);
 
 	~EpSolverWarburtonApprox() noexcept {}
 };

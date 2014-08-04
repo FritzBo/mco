@@ -39,7 +39,7 @@ class Dijkstra {
 public:
 
     //! TODO doxygen
-    void singleSourceShortestPaths(
+    bool singleSourceShortestPaths(
             ogdf::Graph const &graph,
             std::function<T(ogdf::edge)> weight,
             ogdf::node const source,
@@ -74,6 +74,8 @@ public:
                 }
             }
         }
+        
+        return true;
     }
 
 };

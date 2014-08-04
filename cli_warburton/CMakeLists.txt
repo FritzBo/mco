@@ -1,0 +1,16 @@
+include_directories(../include)
+include_directories(../tclap)
+include_directories(${GUROBI_INCLUDE_PATH})
+include_directories(${COIN_INCLUDE_PATH})
+include_directories(${OGDF_INCLUDE_PATH})
+
+set(SOURCE_FILES
+main.cpp
+)
+
+add_executable(warburton ${SOURCE_FILES})
+
+target_link_libraries(warburton mco)
+target_link_libraries(warburton debug ${OGDF-DBG} optimized ${OGDF})
+target_link_libraries(warburton debug ${COIN-DBG} optimized ${COIN})
+target_link_libraries(warburton pthread)

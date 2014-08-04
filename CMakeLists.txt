@@ -79,3 +79,5 @@ find_library(CDD
 add_subdirectory(mco)
 add_subdirectory(test)
 add_subdirectory(cli)
+add_subdirectory(cli_lib)
+add_subdirectory(cli_warburton)
