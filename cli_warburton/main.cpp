@@ -142,7 +142,9 @@ int main(int argc, char** argv) {
                                                   mono_cost,
                                                   target,
                                                   predecessor,
-                                                  distances[i]);
+                                                  distances[i],
+                                                  directed ? DijkstraModes::Backward :
+                                                  DijkstraModes::Undirected);
         }
         
         auto heuristic = [&distances] (node n, unsigned objective) {
