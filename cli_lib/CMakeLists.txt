@@ -15,6 +15,10 @@ src/dummy.cpp
 
 #### Output
 include/mco/cli/output_formatter.h
+
+#### Argument Parser
+include/mco/cli/parse_util.h
+
 )
 
 add_library(cli_lib STATIC ${SOURCE_FILES})

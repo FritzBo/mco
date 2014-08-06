@@ -322,9 +322,9 @@ Solve(Graph& graph,
 //      cout << *label->point << endl;
 //	}
     
-    cout << "Length bound deletions: " << bound_deletion << endl;
-    cout << "Heuristic bound deletions: " << heuristic_deletion << endl;
-    cout << "First phase bound deletions: " << first_phase_deletion << endl;
+//    cout << "Length bound deletions: " << bound_deletion << endl;
+//    cout << "Heuristic bound deletions: " << heuristic_deletion << endl;
+//    cout << "First phase bound deletions: " << first_phase_deletion << endl;
     
 	node n;
 	forall_nodes(n, graph) {

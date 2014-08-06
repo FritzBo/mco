@@ -23,10 +23,11 @@ public:
                const ogdf::node source,
                const ogdf::node target,
                const Point& epsilon,
-               std::list<Point> linear_bounds = std::list<Point>(),
+               const Point& bound,
+               bool test_only = false,
+               bool directed = false,
                unsigned int processes = 2,
-               double theta = 2.0,
-               bool directed = false);
+               double theta = 2.0);
 
 	~EpSolverWarburtonApprox() noexcept {}
 };
