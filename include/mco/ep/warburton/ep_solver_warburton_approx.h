@@ -30,6 +30,24 @@ public:
                double theta = 2.0);
 
 	~EpSolverWarburtonApprox() noexcept {}
+    
+private:
+    bool computeBounds(const ogdf::Graph& graph,
+                       std::function<Point&(ogdf::edge)> cost_function,
+                       const Point& epsilon,
+                       const Point& bound,
+                       const ogdf::node source,
+                       const ogdf::node target,
+                       double theta,
+                       unsigned dimension,
+                       bool directed,
+                       Point& lb,
+                       Point& ub,
+                       Point& label_limits);
+    
+    unsigned compute_skip_function(unsigned dimension,
+                                   const Point& lb,
+                                   const Point& ub);
 };
 
 }

@@ -44,7 +44,9 @@ protected:
 
 	template<class InputIterator>
 	void add_solutions(InputIterator begin, InputIterator end) {
-		solutions_.insert(solutions_.end(), begin, end);
+        if(std::distance(begin, end) > 0) {
+            solutions_.insert(solutions_.end(), begin, end);
+        }
 	}
 
 	void reset_solutions() {

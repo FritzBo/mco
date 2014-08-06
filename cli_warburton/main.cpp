@@ -149,7 +149,6 @@ int main(int argc, char** argv) {
             return distances[objective][n];
         };
         
-        
         parse_ideal_bounds(ideal_bounds_arg,
                            dimension,
                            heuristic,
@@ -164,6 +163,7 @@ int main(int argc, char** argv) {
                     Point linear_bound(dimension + 1);
                     linear_bound[i] = 1;
                     linear_bound[dimension] = -ideal_bound[i];
+                    
                     linear_bounds.push_back(std::move(linear_bound));
                 }
             }

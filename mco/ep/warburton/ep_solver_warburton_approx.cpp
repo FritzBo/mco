@@ -49,126 +49,30 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
                                     unsigned int processes,
                                     double theta) {
     
-	const unsigned int number_nodes = graph.numberOfNodes();
-
-//	vector<EdgeArray<double>> weight_functions(dimension - 1, EdgeArray<double>(graph, 0));
-	NodeArray<double> distances(graph);
-	NodeArray<edge> predecessor(graph);
-    
-	Point min_e(numeric_limits<double>::infinity(), dimension);
-	Point max_e(-numeric_limits<double>::infinity(), dimension);
-    
 	Point ub(numeric_limits<double>::infinity(), dimension);
 	Point lb(-numeric_limits<double>::infinity(), dimension);
     
 	Point label_limits(numeric_limits<double>::infinity(), dimension);
-    
-	double weight;
-
-    Dijkstra<double> sssp_solver;
 
 	// Computing the bounds
-	for(unsigned int k = 0; k < dimension; ++k) {
+    if(!computeBounds(graph,
+                      cost_function,
+                      epsilon,
+                      bound,
+                      source,
+                      target,
+                      theta,
+                      dimension,
+                      directed,
+                      lb,
+                      ub,
+                      label_limits)) {
         
-#ifndef NDEBUG
-        cout << "Objective function: " << k << endl;
-#endif
-        
-        // If epsilon == 0 we have to divide by 0 and the approximation would
-        // in fact be exact. So we disallow values of 0.
-        if(epsilon[k] == 0) {
-            return false;
-        }
-
-        // Let's find the lightest and heaviest edge
-		for(auto e : graph.edges) {
-			weight = cost_function(e)[k];
-            if(weight != round(weight)) {
-                return false;
-            }
-			min_e[k] = min(min_e[k], weight);
-			max_e[k] = max(max_e[k], weight);
-		}
-      
-#ifndef NDEBUG
-        cout << "Heaviest edge: " << max_e[k] << endl;
-        cout << "Lightest edge: " << min_e[k] << endl;
-#endif
-
-        // Initialize bounds for the labeling algorithm
-		label_limits[k] = (number_nodes - 1) * theta / epsilon[k];
-
-        // Compute an upper bound on the longest path
-		ub[k] = min({ceil(log(max_e[k] * (number_nodes - 1)) / log(theta)),
-            
-                    // Below this, all scaled edge weights in this objective
-                    // will be 0
-                    ceil(log(max_e[k] * (number_nodes - 1) / epsilon[k]) / log(theta)),
-            
-                    // Using the bounds, the user gives us, but at least 1.0
-                    max(1.0, ceil(log(bound[k])/log(theta)))});
-      
-#ifndef NDEBUG
-        cout << "Log-upperbound on the longest path: " << ub[k] << endl;
-#endif
-        
-        // Since L_k > (n - 1) / \varepsilon (p. 75)
-        lb[k] = max({1.0,
-                    floor(log((number_nodes - 1)/epsilon[k])/log(theta))});
-
-        // Try to rise the lower bound to reduce the number of subproblems
-        // to be solved.
-        unsigned i = lb[k];
-        while(lb[k] == i && ub[k] > lb[k]) {
-            
-#ifndef NDEBUG
-            cout << "Lower bound to probe: " << i << endl;
-#endif
-            
-            double Tk = epsilon[k] * pow(theta, i) / (number_nodes - 1);
-            
-            // Compute a scaled weight function for i
-            auto scaled_weight_function = [cost_function, k, &Tk] (edge e) {
-                return floor(cost_function(e)[k] / Tk);
-            };
-            
-            // Compute shortest path for objective k and scaling of i
-            sssp_solver.singleSourceShortestPaths(graph,
-                                                  scaled_weight_function,
-                                                  target,
-                                                  predecessor,
-                                                  distances,
-                                                  directed ? DijkstraModes::Backward : DijkstraModes::Undirected);
-
-#ifndef NDEBUG
-            cout << "Shortest path distance: " << distances[source] << endl;
-#endif
-            
-            // if the shortest path with respect to objective k is longer
-            // than the absolute limit on objective k: rise lower bound by one.
-            // Else: We found a lower bound which results in a feasible
-            // instance.
-            if(distances[source] > label_limits[k]) {
-                lb[k]++;
-            }
-            
-            i++;
-        }
-                
-#ifndef NDEBUG
-        cout << "===============================" << endl;
-#endif
-
-	}
-    
-    unsigned skip_function = 0;
-    int no_trials = 0;
-    for(unsigned i = 0; i < dimension; ++i) {
-        if(max((double) no_trials, ub[i] - lb[i]) > no_trials) {
-            no_trials = ub[i] - lb[i];
-            skip_function = i;
-        }
+        return false;
     }
+
+
+    unsigned skip_function = compute_skip_function(dimension, lb, ub);
     
     if(test_only) {
         unsigned number_subproblems = 1;
@@ -202,6 +106,12 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
     list<pair<list<edge>, Point>> solutions;
     
     list<Point> nondominated_cells;
+    
+    Dijkstra<double> sssp_solver;
+    NodeArray<double> distances(graph);
+	NodeArray<edge> predecessor(graph);
+    
+    const unsigned number_nodes = graph.numberOfNodes();
     
     while(true) {
         
@@ -371,6 +281,141 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
     
     return true;
 
+}
+    
+unsigned EpSolverWarburtonApprox::
+compute_skip_function(unsigned dimension,
+                      const Point& lb,
+                      const Point& ub) {
+    unsigned skip_function = 0;
+    int no_trials = 0;
+    for(unsigned i = 0; i < dimension; ++i) {
+        if(max((double) no_trials, ub[i] - lb[i]) > no_trials) {
+            no_trials = ub[i] - lb[i];
+            skip_function = i;
+        }
+    }
+    return skip_function;
+}
+    
+bool EpSolverWarburtonApprox::
+computeBounds(const Graph& graph,
+              std::function<Point&(edge)> cost_function,
+              const Point& epsilon,
+              const Point& bound,
+              const node source,
+              const node target,
+              double theta,
+              unsigned dimension,
+              bool directed,
+              Point& lb,
+              Point& ub,
+              Point& label_limits) {
+    
+    Point min_e(numeric_limits<double>::infinity(), dimension);
+	Point max_e(-numeric_limits<double>::infinity(), dimension);
+    
+    double weight;
+    
+    const unsigned int number_nodes = graph.numberOfNodes();
+    
+    Dijkstra<double> sssp_solver;
+    NodeArray<double> distances(graph);
+	NodeArray<edge> predecessor(graph);
+
+    for(unsigned int k = 0; k < dimension; ++k) {
+        
+#ifndef NDEBUG
+        cout << "Objective function: " << k << endl;
+#endif
+        
+        // If epsilon == 0 we have to divide by 0 and the approximation would
+        // in fact be exact. So we disallow values of 0.
+        if(epsilon[k] == 0) {
+            return false;
+        }
+        
+        // Let's find the lightest and heaviest edge
+		for(auto e : graph.edges) {
+			weight = cost_function(e)[k];
+            if(weight != round(weight)) {
+                return false;
+            }
+			min_e[k] = min(min_e[k], weight);
+			max_e[k] = max(max_e[k], weight);
+		}
+        
+#ifndef NDEBUG
+        cout << "Heaviest edge: " << max_e[k] << endl;
+        cout << "Lightest edge: " << min_e[k] << endl;
+#endif
+        
+        // Initialize bounds for the labeling algorithm
+		label_limits[k] = (number_nodes - 1) * theta / epsilon[k];
+        
+        // Compute an upper bound on the longest path
+		ub[k] = min({ceil(log(max_e[k] * (number_nodes - 1)) / log(theta)),
+            
+            // Below this, all scaled edge weights in this objective
+            // will be 0
+            ceil(log(max_e[k] * (number_nodes - 1) / epsilon[k]) / log(theta)),
+            
+            // Using the bounds, the user gives us, but at least 1.0
+            max(1.0, ceil(log(bound[k])/log(theta)))});
+        
+#ifndef NDEBUG
+        cout << "Log-upperbound on the longest path: " << ub[k] << endl;
+#endif
+        
+        // Since L_k > (n - 1) / \varepsilon (p. 75)
+        lb[k] = max({1.0,
+            floor(log((number_nodes - 1)/epsilon[k])/log(theta))});
+        
+        // Try to rise the lower bound to reduce the number of subproblems
+        // to be solved.
+        unsigned i = lb[k];
+        while(lb[k] == i && ub[k] > lb[k]) {
+            
+#ifndef NDEBUG
+            cout << "Lower bound to probe: " << i << endl;
+#endif
+            
+            double Tk = epsilon[k] * pow(theta, i) / (number_nodes - 1);
+            
+            // Compute a scaled weight function for i
+            auto scaled_weight_function = [cost_function, k, &Tk] (edge e) {
+                return floor(cost_function(e)[k] / Tk);
+            };
+            
+            // Compute shortest path for objective k and scaling of i
+            sssp_solver.singleSourceShortestPaths(graph,
+                                                  scaled_weight_function,
+                                                  target,
+                                                  predecessor,
+                                                  distances,
+                                                  directed ? DijkstraModes::Backward : DijkstraModes::Undirected);
+            
+#ifndef NDEBUG
+            cout << "Shortest path distance: " << distances[source] << endl;
+#endif
+            
+            // if the shortest path with respect to objective k is longer
+            // than the absolute limit on objective k: rise lower bound by one.
+            // Else: We found a lower bound which results in a feasible
+            // instance.
+            if(distances[source] > label_limits[k]) {
+                lb[k]++;
+            }
+            
+            i++;
+        }
+        
+#ifndef NDEBUG
+        cout << "===============================" << endl;
+#endif
+        
+	}
+    return true;
 }
 
 } // namespace mco
