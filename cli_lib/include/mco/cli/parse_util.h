@@ -50,6 +50,7 @@ void tokenize(const std::string& str, ContainerT& tokens,
     }
 };
 
+inline
 bool parse_ideal_bounds(const TCLAP::MultiArg<string>& argument,
                         unsigned dimension,
                         std::function<double(ogdf::node, unsigned)> heuristic,

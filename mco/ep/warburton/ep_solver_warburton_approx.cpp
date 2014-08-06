@@ -21,6 +21,7 @@ using std::floor;
 using std::numeric_limits;
 using std::function;
 using std::list;
+using std::pair;
 
 #include <ogdf/basic/Graph.h>
 
@@ -54,11 +55,11 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
 	NodeArray<double> distances(graph);
 	NodeArray<edge> predecessor(graph);
     
-	Point min_e(numeric_limits<double>::infinity(), dimension - 1);
-	Point max_e(-numeric_limits<double>::infinity(), dimension - 1);
+	Point min_e(numeric_limits<double>::infinity(), dimension);
+	Point max_e(-numeric_limits<double>::infinity(), dimension);
     
-	Point ub(numeric_limits<double>::infinity(), dimension - 1);
-	Point lb(-numeric_limits<double>::infinity(), dimension - 1);
+	Point ub(numeric_limits<double>::infinity(), dimension);
+	Point lb(-numeric_limits<double>::infinity(), dimension);
     
 	Point label_limits(numeric_limits<double>::infinity(), dimension);
     
@@ -67,7 +68,7 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
     Dijkstra<double> sssp_solver;
 
 	// Computing the bounds
-	for(unsigned int k = 0; k < dimension - 1; ++k) {
+	for(unsigned int k = 0; k < dimension; ++k) {
         
 #ifndef NDEBUG
         cout << "Objective function: " << k << endl;
@@ -160,15 +161,25 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
 
 	}
     
+    unsigned skip_function = 0;
+    int no_trials = 0;
+    for(unsigned i = 0; i < dimension; ++i) {
+        if(max((double) no_trials, ub[i] - lb[i]) > no_trials) {
+            no_trials = ub[i] - lb[i];
+            skip_function = i;
+        }
+    }
+    
     if(test_only) {
         unsigned number_subproblems = 1;
         
         cout << "bounds:" << endl;
-        for(unsigned int k = 0; k < dimension - 1; ++k) {
+        for(unsigned int k = 0; k < dimension; ++k) {
             cout << "k: " << k << ", lb: " << lb[k] << ", ub: " << ub[k] << ", limit: " << label_limits[k] << endl;
             
-            number_subproblems *= static_cast<unsigned>(round(max(1.0, ub[k] - lb[k])));
-            
+            if(k != skip_function) {
+                number_subproblems *= static_cast<unsigned>(round(max(1.0, ub[k] - lb[k])));
+            }
             
         }
         
@@ -183,145 +194,180 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
 #endif
     }
     
-    unsigned k = 0;
+    unsigned k = skip_function == 0 ? 1 : 0;
     Point current_log_bound(lb);
+    
+    current_log_bound[skip_function] = numeric_limits<double>::quiet_NaN();
+    
+    list<pair<list<edge>, Point>> solutions;
+    
+    list<Point> nondominated_cells;
     
     while(true) {
         
-//#ifndef NDEBUG
-        cout << "Computing for bound: " << current_log_bound << endl;
-//#endif
-        
-        list<Point> new_bounds;
-        Point T(epsilon);
-        for(unsigned i = 0; i < dimension - 1; ++i) {
-            T[i] *= epsilon[i] * pow(theta, current_log_bound[i]) / (number_nodes - 1);
-            
-            Point new_bound(0.0, dimension + 1);
-            new_bound[i] = 1.0;
-            new_bound[dimension] = - label_limits[i];
-            new_bounds.push_back(std::move(new_bound));
-        }
-        
-        EdgeArray<Point> scaled_costs(graph, Point(dimension));
-        
-        for(auto e : graph.edges) {
-            Point scaled_cost(cost_function(e));
-            for(unsigned i = 0; i < dimension - 1; ++i) {
-                scaled_cost[i] = floor(cost_function(e)[i] / T[i]);
-            }
-
-            scaled_costs[e] = std::move(scaled_cost);
-        }
-        
-        auto scaled_cost_function = [&scaled_costs] (edge e) {
-            return &scaled_costs[e];
-        };
-        
-        vector<NodeArray<double>> heuristic_lower_bounds(dimension, graph);
-        
-        for(unsigned k = 0; k < dimension; ++k) {
-            
-            auto weight = [scaled_cost_function, k] (edge e) {
-                return scaled_cost_function(e)->operator[](k);
-            };
-            
-            sssp_solver.singleSourceShortestPaths(graph,
-                                                  weight,
-                                                  target,
-                                                  predecessor,
-                                                  heuristic_lower_bounds[k],
-                                                  directed ? DijkstraModes::Backward :
-                                                  DijkstraModes::Undirected);
-        }
-        
-        auto heuristic = [&heuristic_lower_bounds] (node n, unsigned objective) {
-            return heuristic_lower_bounds[objective][n];
-        };
-        
-        EpSolverMartins solver;
-        
-        solver.Solve(graph,
-                     scaled_cost_function,
-                     dimension,
-                     source,
-                     target,
-                     Point(numeric_limits<double>::infinity(), dimension),
-                     std::list<std::pair<ogdf::NodeArray<Point*>,
-                     ogdf::NodeArray<ogdf::edge>>>(),
-                     heuristic,
-                     new_bounds,
-                     directed);
-        
-        unsigned new_solution_count = 0;
-        
-        for(auto solution_pair : solver.solutions()) {
-            auto solution = solution_pair.first;
-            
-            auto pred = [&solution] (const std::pair<const list<edge>, const Point>& s) {
-                auto test_solution = s.first;
-                if(solution.size() != test_solution.size()) {
-                    return false;
-                }
-                
-                auto input_sol_it = solution.begin();
-                auto test_sol_it = test_solution.begin();
-                while(input_sol_it != solution.end()) {
-                    
-                    if(*input_sol_it != *test_sol_it) {
-                        return false;
+        bool dominated_cell = false;
+        for(auto& cell : nondominated_cells) {
+            bool dominates = true;
+            for(unsigned i = 0; i < dimension; ++i) {
+                if(i != skip_function) {
+                    if(cell[i] >= current_log_bound[i]) {
+                        dominates = false;
+                        break;
                     }
-                    
-                    input_sol_it++;
-                    test_sol_it++;
                 }
-                
-                return true;
+            }
+            if(dominates) {
+                dominated_cell = true;
+                break;
+            }
+        }
+        
+        if(!dominated_cell) {
+            
+//#ifndef NDEBUG
+            cout << "Computing for bound: " << current_log_bound << endl;
+//#endif
+
+        
+            list<Point> new_bounds;
+            Point T(dimension);
+            for(unsigned i = 0; i < dimension; ++i) {
+                if(i != skip_function) {
+                    T[i] = epsilon[i] * pow(theta, current_log_bound[i]) / (number_nodes - 1);
+                    
+                    Point new_bound(0.0, dimension + 1);
+                    new_bound[i] = 1.0;
+                    new_bound[dimension] = - label_limits[i];
+                    new_bounds.push_back(std::move(new_bound));
+                }
+            }
+            
+            EdgeArray<Point> scaled_costs(graph, Point(dimension));
+            
+            for(auto e : graph.edges) {
+                Point scaled_cost(cost_function(e));
+                for(unsigned i = 0; i < dimension; ++i) {
+                    if(i != skip_function) {
+                        scaled_cost[i] = floor(cost_function(e)[i] / T[i]);
+                    }
+                }
+
+                scaled_costs[e] = std::move(scaled_cost);
+            }
+            
+            auto scaled_cost_function = [&scaled_costs] (edge e) {
+                return &scaled_costs[e];
             };
             
-            if(std::find_if(solutions().cbegin(),
-                            solutions().cend(),
-                            pred) == solutions().end()) {
+            vector<NodeArray<double>> heuristic_lower_bounds(dimension, graph);
+            
+            for(unsigned k = 0; k < dimension; ++k) {
+                
+                auto weight = [scaled_cost_function, k] (edge e) {
+                    return scaled_cost_function(e)->operator[](k);
+                };
+                
+                sssp_solver.singleSourceShortestPaths(graph,
+                                                      weight,
+                                                      target,
+                                                      predecessor,
+                                                      heuristic_lower_bounds[k],
+                                                      directed ? DijkstraModes::Backward :
+                                                      DijkstraModes::Undirected);
+            }
+            
+            auto heuristic = [&heuristic_lower_bounds] (node n, unsigned objective) {
+                return heuristic_lower_bounds[objective][n];
+            };
+            
+            EpSolverMartins solver;
+            
+            solver.Solve(graph,
+                         scaled_cost_function,
+                         dimension,
+                         source,
+                         target,
+                         Point(numeric_limits<double>::infinity(), dimension),
+                         std::list<std::pair<ogdf::NodeArray<Point*>,
+                         ogdf::NodeArray<ogdf::edge>>>(),
+                         heuristic,
+                         new_bounds,
+                         directed);
+            
+            unsigned new_solution_count = 0;
+            bool nondominated_cell = false;
+            
+            for(auto solution_pair : solver.solutions()) {
+                auto solution = solution_pair.first;
+                
                 Point value(dimension);
                 for(auto e : solution) {
                     value += cost_function(e);
                 }
+
+#ifndef NDEBUG
                 cout << "New solution: " << value << endl;
-                
-                add_solution(solution, value);
-                
-                new_solution_count++;
-                
+#endif
+            
+                bool dominated = false;
+                auto sol_it = solutions.begin();
+                while(sol_it != solutions.end()) {
+                    if(ComponentwisePointComparator(0, false)(sol_it->second, value)) {
+                        dominated = true;
+                        break;
+                    }
+                    
+                    if(ComponentwisePointComparator(0, false)(value, sol_it->second)) {
+                        sol_it = solutions.erase(sol_it);
+                    }
+                    
+                    sol_it++;
+                }
+                if(!dominated) {
+                    solutions.push_back(make_pair(solution, value));
+                    nondominated_cell = true;
+                }
             }
-        }
+            
+            if(nondominated_cell) {
+                nondominated_cells.push_back(current_log_bound);
+            }
         
 #ifndef NDEBUG
-        cout << "Number of new solutions acquired: " <<
-            new_solution_count << endl;
+            cout << "Number of new solutions acquired: " <<
+                new_solution_count << endl;
 #endif
         
+        }
         
         if(current_log_bound[k] < ub[k] - 1) {
             current_log_bound[k] += 1;
         } else {
             
-            while(k < dimension - 1 && current_log_bound[k] >= ub[k] - 1) {
+            while(k < dimension && current_log_bound[k] >= ub[k] - 1) {
                 k++;
+                if(k == skip_function) {
+                    k++;
+                }
             }
             
-            if(k == dimension - 1) {
+            if(k == dimension) {
                 break;
             }
             
             current_log_bound[k] += 1;
             
             for(unsigned i = 0; i < k; ++i) {
-                current_log_bound[i] = lb[i];
+                if(i != skip_function) {
+                    current_log_bound[i] = lb[i];
+                }
             }
             
             k = 0;
         }
     }
+    
+    add_solutions(solutions.begin(), solutions.end());
     
     return true;
 

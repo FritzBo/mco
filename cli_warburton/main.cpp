@@ -156,10 +156,6 @@ int main(int argc, char** argv) {
                            source,
                            ideal_bound);
         
-        cout << ideal_bound << endl;
-        
-        
-
         if(do_preprocessing) {
             ConstrainedReachabilityPreprocessing prepro;
             Point length_bound({0, 0, 0, 0, 0, 1, -34000});

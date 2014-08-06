@@ -292,13 +292,17 @@ Solve(Graph& graph,
             while(curr->n != source) {
                 for(auto adj: curr->n->adjEdges) {
                     edge e = adj->theEdge();
-                    if(e->source() == curr->pred->n && e->target() == curr->n) {
+                    if(directed ? e->source() == curr->pred->n && e->target() == curr->n :
+                       (e->source() == curr->pred->n && e->target() == curr->n) ||
+                       (e->target() == curr->pred->n && e->source() == curr->n)) {
                         path.push_back(e);
                         break;
                     }
                 }
                 curr = curr->pred;
             }
+            
+            assert(path.size() > 0);
             
             path.reverse();
             
@@ -321,10 +325,12 @@ Solve(Graph& graph,
 //      cout << endl;
 //      cout << *label->point << endl;
 //	}
-    
-//    cout << "Length bound deletions: " << bound_deletion << endl;
-//    cout << "Heuristic bound deletions: " << heuristic_deletion << endl;
-//    cout << "First phase bound deletions: " << first_phase_deletion << endl;
+
+#ifndef NDEBUG
+    cout << "Length bound deletions: " << bound_deletion << endl;
+    cout << "Heuristic bound deletions: " << heuristic_deletion << endl;
+    cout << "First phase bound deletions: " << first_phase_deletion << endl;
+#endif
     
 	node n;
 	forall_nodes(n, graph) {
