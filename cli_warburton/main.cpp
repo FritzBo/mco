@@ -158,9 +158,15 @@ int main(int argc, char** argv) {
         
         if(do_preprocessing) {
             ConstrainedReachabilityPreprocessing prepro;
-            Point length_bound({0, 0, 0, 0, 0, 1, -34000});
-            Point bundling_bound({1, 0, 0, 0, 0, 0, -26000});
-            list<Point> linear_bounds({length_bound, bundling_bound});
+            list<Point> linear_bounds;
+            for(unsigned i = 0; i < dimension; ++i) {
+                if(ideal_bound[i] != numeric_limits<double>::infinity()) {
+                    Point linear_bound(dimension + 1);
+                    linear_bound[i] = 1;
+                    linear_bound[dimension] = -ideal_bound[i];
+                    linear_bounds.push_back(std::move(linear_bound));
+                }
+            }
             prepro.preprocess(graph, cost_function2, dimension, source, target, linear_bounds);
         }
 
