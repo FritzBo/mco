@@ -164,6 +164,8 @@ int main(int argc, char** argv) {
                     linear_bound[i] = 1;
                     linear_bound[dimension] = -ideal_bound[i];
                     
+                    cout << linear_bound << endl;
+                    
                     linear_bounds.push_back(std::move(linear_bound));
                 }
             }
