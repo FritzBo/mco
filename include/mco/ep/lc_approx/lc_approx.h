@@ -104,7 +104,7 @@ private:
         }
     private:
         std::list<Label> labels_;
-        std::list<Label>::const_iterator labels_it_;
+        std::list<Label>::iterator labels_it_;
     };
     
     bool check_domination(std::list<Label>& new_labels,
