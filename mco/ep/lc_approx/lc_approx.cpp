@@ -26,15 +26,15 @@ check_domination(list<Label>& new_labels,
     
     bool changed = false;
     
-    const list<Label>& neighbor_labels = neighbor_entry.labels();
+    list<Label>& neighbor_labels = neighbor_entry.labels();
     
     bool dominated;
     
     for(auto new_label : new_labels) {
         dominated = false;
         
-        auto check_label_it = neighbor_labels.cbegin();
-        while(check_label_it != neighbor_labels.cend()) {
+        auto check_label_it = neighbor_labels.begin();
+        while(check_label_it != neighbor_labels.end()) {
             
             const Label& check_label = *check_label_it;
             

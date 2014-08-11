@@ -79,7 +79,7 @@ private:
             }
         }
         
-        const std::list<Label>::const_iterator erase(std::list<Label>::const_iterator it) {
+        std::list<Label>::iterator erase(std::list<Label>::iterator it) {
             if(it != labels_it_) {
                 return labels_.erase(it);
             } else {
@@ -87,7 +87,7 @@ private:
             }
         }
         
-        const std::list<Label>::const_iterator labels_it() {
+        const std::list<Label>::iterator labels_it() {
             return labels_it_;
         }
         
@@ -99,7 +99,7 @@ private:
             return labels_it_ != labels_.end();
         }
         
-        const std::list<Label>& labels() {
+        std::list<Label>& labels() {
             return labels_;
         }
     private:
