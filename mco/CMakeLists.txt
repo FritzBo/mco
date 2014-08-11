@@ -52,6 +52,7 @@ set(SOURCE_FILES
 ../include/mco/ep/tsaggouris/ep_solver_tsaggouris_approx.h
 ../include/mco/ep/warburton/ep_solver_warburton_approx.h
 ../include/mco/ep/warburton/product.h
+../include/mco/ep/lc_approx/lc_approx.h
 ../include/mco/ep/basic/binary_heap.h
 ../include/mco/ep/basic/dijkstra.h
 ../include/mco/ep/dual_benson/ep_dual_benson.h
@@ -118,6 +119,7 @@ ep/martins/martins.cpp
 ep/martins/weighted_martins.cpp
 ep/tsaggouris/ep_solver_tsaggouris_approx.cpp
 ep/warburton/ep_solver_warburton_approx.cpp
+ep/lc_approx/lc_approx.cpp
 ep/basic/dijkstra.cpp
 ep/preprocessing/constrained_reach.cpp
 
