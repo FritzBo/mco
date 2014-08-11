@@ -32,6 +32,7 @@ using ogdf::node;
 using ogdf::edge;
 
 #include <mco/ep/basic/dijkstra.h>
+#include <mco/ep/basic/ep_lagrange_bisect.h>
 #include <mco/ep/martins/martins.h>
 #include <mco/ep/warburton/ep_solver_warburton_approx.h>
 
@@ -71,8 +72,11 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
         return false;
     }
 
-
+    const unsigned number_nodes = graph.numberOfNodes();
     unsigned skip_function = compute_skip_function(dimension, lb, ub);
+    label_limits[skip_function] = bound[skip_function];
+    
+    cout << label_limits << endl;
     
     if(test_only) {
         unsigned number_subproblems = 1;
@@ -111,8 +115,6 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
     NodeArray<double> distances(graph);
 	NodeArray<edge> predecessor(graph);
     
-    const unsigned number_nodes = graph.numberOfNodes();
-    
     while(true) {
         
         bool dominated_cell = false;
@@ -145,11 +147,12 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
                 if(i != skip_function) {
                     T[i] = epsilon[i] * pow(theta, current_log_bound[i]) / (number_nodes - 1);
                     
-                    Point new_bound(0.0, dimension + 1);
-                    new_bound[i] = 1.0;
-                    new_bound[dimension] = - label_limits[i];
-                    new_bounds.push_back(std::move(new_bound));
                 }
+                
+                Point new_bound(0.0, dimension + 1);
+                new_bound[i] = 1.0;
+                new_bound[dimension] = - label_limits[i];
+                new_bounds.push_back(std::move(new_bound));
             }
             
             EdgeArray<Point> scaled_costs(graph, Point(dimension));
@@ -186,68 +189,87 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
                                                       DijkstraModes::Undirected);
             }
             
+            
+            
             auto heuristic = [&heuristic_lower_bounds] (node n, unsigned objective) {
                 return heuristic_lower_bounds[objective][n];
             };
             
-            EpSolverMartins solver;
             
-            solver.Solve(graph,
-                         scaled_cost_function,
-                         dimension,
-                         source,
-                         target,
-                         Point(numeric_limits<double>::infinity(), dimension),
-                         std::list<std::pair<ogdf::NodeArray<Point*>,
-                         ogdf::NodeArray<ogdf::edge>>>(),
-                         heuristic,
-                         new_bounds,
-                         directed);
+            if(!lagrange_prune(graph,
+                               scaled_cost_function,
+                               source,
+                               target,
+                               directed,
+                               label_limits,
+                               skip_function,
+                               dimension
+               )) {
             
-            unsigned new_solution_count = 0;
-            bool nondominated_cell = false;
-            
-            for(auto solution_pair : solver.solutions()) {
-                auto solution = solution_pair.first;
+                EpSolverMartins solver;
                 
-                Point value(dimension);
-                for(auto e : solution) {
-                    value += cost_function(e);
-                }
+                solver.Solve(graph,
+                             scaled_cost_function,
+                             dimension,
+                             source,
+                             target,
+                             Point(numeric_limits<double>::infinity(), dimension),
+                             std::list<std::pair<ogdf::NodeArray<Point*>,
+                             ogdf::NodeArray<ogdf::edge>>>(),
+                             heuristic,
+                             new_bounds,
+                             directed);
+                
+                unsigned new_solution_count = 0;
+                bool nondominated_cell = false;
+                
+                for(auto solution_pair : solver.solutions()) {
+                    auto solution = solution_pair.first;
+                    
+                    Point value(dimension);
+                    for(auto e : solution) {
+                        value += cost_function(e);
+                    }
 
 #ifndef NDEBUG
-                cout << "New solution: " << value << endl;
+                    cout << "New solution: " << value << endl;
 #endif
-            
-                bool dominated = false;
-                auto sol_it = solutions.begin();
-                while(sol_it != solutions.end()) {
-                    if(ComponentwisePointComparator(0, false)(sol_it->second, value)) {
-                        dominated = true;
-                        break;
+                
+                    bool dominated = false;
+                    auto sol_it = solutions.begin();
+                    while(sol_it != solutions.end()) {
+                        if(ComponentwisePointComparator(0, false)(sol_it->second, value)) {
+                            dominated = true;
+                            break;
+                        }
+                        
+                        if(ComponentwisePointComparator(0, false)(value, sol_it->second)) {
+                            sol_it = solutions.erase(sol_it);
+                        }
+                        
+                        sol_it++;
                     }
-                    
-                    if(ComponentwisePointComparator(0, false)(value, sol_it->second)) {
-                        sol_it = solutions.erase(sol_it);
+                    if(!dominated) {
+                        solutions.push_back(make_pair(solution, value));
+                        nondominated_cell = true;
                     }
-                    
-                    sol_it++;
                 }
-                if(!dominated) {
-                    solutions.push_back(make_pair(solution, value));
-                    nondominated_cell = true;
+                
+                if(nondominated_cell) {
+                    nondominated_cells.push_back(current_log_bound);
                 }
-            }
             
-            if(nondominated_cell) {
-                nondominated_cells.push_back(current_log_bound);
-            }
-        
 #ifndef NDEBUG
-            cout << "Number of new solutions acquired: " <<
-                new_solution_count << endl;
+                cout << "Number of new solutions acquired: " <<
+                    new_solution_count << endl;
 #endif
-        
+            
+            }  else {
+#ifndef NDEBUG
+                cout << "Lagrange pruned." << endl;
+#endif
+            }
+            
         }
         
         if(current_log_bound[k] < ub[k] - 1) {
@@ -273,7 +295,7 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
                 }
             }
             
-            k = 0;
+            k = skip_function == 0 ? 1 : 0;
         }
     }
     
@@ -296,6 +318,82 @@ compute_skip_function(unsigned dimension,
         }
     }
     return skip_function;
+}
+    
+bool EpSolverWarburtonApprox::
+lagrange_prune(const Graph& graph,
+               function<Point*(edge)> cost_function,
+               const node source,
+               const node target,
+               bool directed,
+               Point label_limits,
+               unsigned skip_function,
+               unsigned dimension) {
+    
+    EpLagrangeBisect bisect;
+    
+    Point* lambda = nullptr;
+    Point* temp_label_limits = nullptr;
+    
+    function<Point&(edge)> lagrange_cost_function;
+    
+    std::list<Point> points;
+    
+    if(label_limits[skip_function] == numeric_limits<double>::infinity()) {
+        
+        lagrange_cost_function = [cost_function, skip_function, dimension, &points] (edge e) -> Point&{
+            points.emplace_front(dimension - 1);
+            Point& new_point = *points.begin();
+            Point& target_point = *cost_function(e);
+            unsigned j = 0;
+            for(unsigned i = 0; i < dimension; ++i) {
+                if(i != skip_function) {
+                    new_point[j] = target_point[i];
+                    j++;
+                }
+            }
+            return *points.begin();
+        };
+
+        temp_label_limits = new Point(dimension - 1);
+        unsigned j = 0;
+        for(unsigned i = 0; i < dimension; ++i) {
+            if(i != skip_function) {
+                temp_label_limits->operator[](j) = label_limits[i];
+                j++;
+            }
+        }
+        
+        lambda = new Point(dimension - 1);
+
+        dimension--;
+        
+    } else {
+        
+        lagrange_cost_function = [cost_function] (edge e) -> Point& {
+            return *cost_function(e);
+        };
+        
+        lambda = new Point(dimension);
+        temp_label_limits = new Point(label_limits);
+        
+    }
+    
+    double value = bisect.find_lagrange_multi(graph,
+                                              lagrange_cost_function,
+                                              dimension,
+                                              source,
+                                              target,
+                                              directed,
+                                              *temp_label_limits,
+                                              *lambda);
+
+    bool prune = (*temp_label_limits) * (*lambda) < value;
+    
+    delete lambda;
+    delete temp_label_limits;
+    
+    return prune;
 }
     
 bool EpSolverWarburtonApprox::

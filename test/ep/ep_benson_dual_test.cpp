@@ -37,14 +37,7 @@ using mco::EPDualBensonSolver;
 using mco::TemporaryGraphParser;
 using mco::OnlineVertexEnumeratorCDD;
 
-
-class ParetoInstanceTestFixture
-: public ::testing::TestWithParam<tuple<string, unsigned>> {
-protected:
-    const string filename_ = get<0>(GetParam());
-    const unsigned expected_number_of_minimizers_ = get<1>(GetParam());
-    
-};
+#include <instance_fixture.h>
 
 TEST_P(ParetoInstanceTestFixture, CountMatch) {
     Graph graph;

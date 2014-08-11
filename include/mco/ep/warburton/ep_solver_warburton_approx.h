@@ -48,6 +48,15 @@ private:
     unsigned compute_skip_function(unsigned dimension,
                                    const Point& lb,
                                    const Point& ub);
+    
+    bool lagrange_prune(const Graph& graph,
+                        std::function<Point*(edge)> cost_function,
+                        const node source,
+                        const node target,
+                        bool directed,
+                        Point label_limits,
+                        unsigned skip_function,
+                        unsigned dimension);
 };
 
 }

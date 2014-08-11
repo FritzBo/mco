@@ -13,7 +13,6 @@
 #include <stdexcept>
 #include <cassert>
 #include <cmath>
-#include <iostream> // FIXME
 
 namespace mco {
     

@@ -42,6 +42,7 @@ set(SOURCE_FILES
 # MO Shortest Path
 ../include/mco/ep/basic/ep_instance.h
 ../include/mco/ep/basic/abstract_ep_solver.h
+../include/mco/ep/basic/ep_lagrange_bisect.h
 ../include/mco/ep/brum_shier/ep_solver_bs.h
 ../include/mco/ep/brum_shier/ep_weighted_bs.h
 ../include/mco/ep/martins/label.h
@@ -63,6 +64,9 @@ set(SOURCE_FILES
 ../include/mco/est/basic/kruskal_st_solver.h
 ../include/mco/est/2tree/est_solver2_trees.h
 ../include/mco/est/dual_benson/est_dual_benson_scalarizer.h
+
+# Generics
+../include/mco/generic/lagrange_bisect.h
 
 # Benson Dual
 ../include/mco/generic/benson_dual/abstract_online_vertex_enumerator.h
@@ -105,6 +109,7 @@ benchmarks/temporary_graphs_parser.cpp
 
 # MO Shortest Path
 ep/basic/ep_instance.cpp
+ep/basic/ep_lagrange_bisect.cpp
 ep/brum_shier/ep_solver_bs.cpp
 ep/brum_shier/ep_weighted_bs.cpp
 ep/martins/label.cpp
@@ -120,6 +125,9 @@ ep/preprocessing/constrained_reach.cpp
 est/basic/kruskal_st_solver.cpp
 est/2tree/est_solver2_trees.cpp
 est/dual_benson/est_dual_benson_scalarizer.cpp
+
+# Generic
+generic/lagrange_bisect.cpp
 
 # Benson Dual
 generic/benson_dual/ove_cdd.cpp
