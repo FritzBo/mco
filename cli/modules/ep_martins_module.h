@@ -31,6 +31,7 @@ private:
                                    unsigned dimension,
                                    const ogdf::node source,
                                    const ogdf::node target,
+                                   bool directed,
                                    std::vector<ogdf::NodeArray<double>>& distances);
     
     void parse_ideal_bounds(const TCLAP::MultiArg<string>& argument,

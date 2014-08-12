@@ -27,6 +27,26 @@ public:
                     const ogdf::node target,
                     std::list<Point> linear_bounds,
                     bool directed = false);
+    
+    void preprocess(ogdf::Graph& graph,
+                    std::function<Point&(ogdf::edge)> cost_function,
+                    unsigned dimension,
+                    const ogdf::node source,
+                    const ogdf::node target,
+                    std::list<Point> linear_bounds,
+                    bool directed = false) {
+        
+        auto cost_function_adaptor = [cost_function] (ogdf::edge e) {
+            return &cost_function(e);
+        };
+        
+        preprocess(graph,
+                   cost_function_adaptor,
+                   dimension,
+                   source,
+                   target,
+                   linear_bounds);
+    }
 private:
 };
     

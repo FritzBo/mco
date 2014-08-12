@@ -119,6 +119,7 @@ void EpMartinsModule::perform(int argc, char** argv) {
                                       dimension,
                                       source,
                                       target,
+                                      is_directed,
                                       distances);
             
         } else {
@@ -396,6 +397,7 @@ void EpMartinsModule::calculate_ideal_heuristic(
                     unsigned dimension,
                     const node source,
                     const node target,
+                    bool directed,
                     vector<NodeArray<double>>& distances) {
     
     Dijkstra<double> sssp_solver;
@@ -412,6 +414,7 @@ void EpMartinsModule::calculate_ideal_heuristic(
                                               target,
                                               predecessor,
                                               distances[i],
+                                              directed ? DijkstraModes::Backward :
                                               DijkstraModes::Undirected);
     }
 
