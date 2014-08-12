@@ -8,6 +8,7 @@
 
 #include <mco/ep/lc_approx/lc_approx.h>
 
+using std::pair;
 using std::list;
 
 using ogdf::node;
@@ -89,6 +90,8 @@ Solve(const Graph& graph,
     {
         Label initial_label(Point(0.0, dimension),
                             source,
+                            nullptr,
+                            nullptr,
                             *this);
         
         node_entries[source].push_back(std::move(initial_label));
@@ -123,6 +126,8 @@ Solve(const Graph& graph,
                     
                     Label new_label(current_label_it->cost + cost_function(current_edge),
                                     neighbor,
+                                    current_edge,
+                                    &*current_label_it,
                                     *this);
                     
                     new_labels.push_back(std::move(new_label));
@@ -132,7 +137,10 @@ Solve(const Graph& graph,
                 bool changed = check_domination(new_labels,
                                                 neighbor_entry);
                 
-                if(changed) {
+                if(changed &&
+                   neighbor != target &&
+                   neighbor != source) {
+                    
                     queue.push_back(neighbor);
                 }
                 
@@ -144,11 +152,23 @@ Solve(const Graph& graph,
         
     }
     
-    for(auto label : node_entries[target].labels()) {
-        std::cout << label.cost << std::endl;
+	for(auto label : node_entries[target].labels()) {
+        list<edge> path;
+        const Label* curr = &label;
+        while(curr->n != source) {
+            
+            path.push_back(curr->pred_edge);
+            curr = curr->pred_label;
+            
+        }
+        
+        assert(path.size() > 0);
+        
+        path.reverse();
+        
+        add_solution(path, label.cost);
     }
     
-    std::cout << "no labels: " << node_entries[target].labels().size() << std::endl;
 }
 
 }

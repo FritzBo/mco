@@ -143,6 +143,7 @@ int main(int argc, char** argv) {
                 auto solution_it = solutions.cbegin();
                 while(solution_it != solutions.cend() && (
                       count < 25 || force_print_all)) {
+                    
                     auto solution = *solution_it;
                     
                     if(print_frontier) {
@@ -152,10 +153,24 @@ int main(int argc, char** argv) {
                         }
                     }
                     if(print_solutions) {
+                        edge first_edge = *solution.first.begin();
+                        edge second_edge = *(++solution.first.begin());
+                        
+                        node last_node = first_edge->target() == second_edge->target() ||
+                            first_edge->target() == second_edge->source() ?
+                            first_edge->source() : first_edge->target();
+                        
+                        cout << last_node << ", ";
+                        
                         for(auto edge : solution.first) {
-                            cout << edge->source() << ", ";
+                            if(edge->target() != last_node) {
+                                cout << edge->target() << ", ";
+                                last_node = edge->target();
+                            } else {
+                                cout << edge->source() << ", ";
+                                last_node = edge->source();
+                            }
                         }
-                        cout << (*solution.first.rbegin())->target() << ", ";
                     }
                     cout << endl;
                     solution_it++;

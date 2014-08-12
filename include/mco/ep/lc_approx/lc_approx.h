@@ -55,13 +55,19 @@ private:
         const Point cost;
         const Point pos;
         const ogdf::node n;
+        const ogdf::edge pred_edge;
+        const Label* pred_label;
 
         Label(const Point cost,
               const ogdf::node n,
+              const ogdf::edge p_edge,
+              const Label* p_label,
               const LCApprox& app)
         :   cost(cost),
             pos(app.compute_pos(cost)),
-            n(n) { }
+            n(n),
+            pred_edge(p_edge),
+            pred_label(p_label) { }
     };
     
     struct NodeEntry {
