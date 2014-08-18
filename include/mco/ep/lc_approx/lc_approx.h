@@ -17,6 +17,7 @@ namespace mco {
 
 class LCApprox : public AbstractSolver<std::list<ogdf::edge>> {
     using cost_function_type = std::function<Point&(ogdf::edge)>;
+    using heuristic_type = std::function<double(ogdf::node, unsigned)>;
 public:
     
     void Solve(const ogdf::Graph& graph,
@@ -27,11 +28,26 @@ public:
                bool directed,
                double epsilon);
     
+    void set_heuristic(heuristic_type heuristic) {
+        heuristic_ = heuristic;
+        use_heuristic_ = true;
+    }
+    
+    void set_bounds(Point bounds) {
+        bounds_ = std::move(bounds);
+        use_bounds_ = true;
+    }
+    
 private:
     
     Point min_e_;
     double epsilon_;
     unsigned dimension_;
+    
+    bool use_heuristic_ = false;
+    heuristic_type heuristic_;
+    bool use_bounds_ = false;
+    Point bounds_;
     
     void compute_pos(const Point& cost, Point& pos) const {
         for(unsigned i = 0; i < dimension_; ++i) {
@@ -73,8 +89,11 @@ private:
     struct NodeEntry {
         using value_type = Label;
         
+        bool in_queue;
+        
         NodeEntry()
-        :   labels_(),
+        :   in_queue(false),
+            labels_(),
             labels_it_(labels_.begin()) { }
         
         void push_back(Label&& label) {
@@ -115,6 +134,9 @@ private:
     
     bool check_domination(std::list<Label>& new_labels,
                           NodeEntry& neighbor_entry);
+    
+    bool check_heuristic_prunable(const Label& label,
+                                  const Point& bounds);
     
 };
     

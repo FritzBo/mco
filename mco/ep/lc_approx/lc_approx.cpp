@@ -63,6 +63,19 @@ check_domination(list<Label>& new_labels,
     return changed;
 }
     
+bool LCApprox::check_heuristic_prunable(const Label& label,
+                                        const Point& bounds) {
+    
+    Point heuristic_cost(dimension_);
+    for(unsigned i = 0; i < dimension_; ++i) {
+        heuristic_cost[i] = label.cost[i] + heuristic_(label.n, i);
+    }
+    
+    compute_pos(heuristic_cost, heuristic_cost);
+    
+    return !ComponentwisePointComparator(0, false)(heuristic_cost, bounds);
+}
+    
 void LCApprox::
 Solve(const Graph& graph,
       cost_function_type cost_function,
@@ -83,6 +96,12 @@ Solve(const Graph& graph,
         }
     }
     
+    Point scaled_bounds(dimension_);
+    
+    if(use_bounds_) {
+        compute_pos(bounds_, scaled_bounds);
+    }
+    
     NodeArray<NodeEntry> node_entries(graph);
     
     list<node> queue;
@@ -98,12 +117,14 @@ Solve(const Graph& graph,
     }
     
     queue.push_back(source);
+    node_entries[source].in_queue = true;
     
     while(!queue.empty()) {
         node current_node = queue.front();
         queue.pop_front();
         
         NodeEntry& current_node_entry = node_entries[current_node];
+        current_node_entry.in_queue = false;
         
         if(current_node_entry.has_new_labels()) {
             
@@ -130,18 +151,27 @@ Solve(const Graph& graph,
                                     &*current_label_it,
                                     *this);
                     
-                    new_labels.push_back(std::move(new_label));
+                    if(!use_bounds_ || !use_heuristic_ ||
+                       !check_heuristic_prunable(new_label, scaled_bounds)) {
+                        
+                        new_labels.push_back(std::move(new_label));
+                    }
                 }
                 
+                if(!new_labels.empty()) {
                 
-                bool changed = check_domination(new_labels,
-                                                neighbor_entry);
                 
-                if(changed &&
-                   neighbor != target &&
-                   neighbor != source) {
+                    bool changed = check_domination(new_labels,
+                                                    neighbor_entry);
                     
-                    queue.push_back(neighbor);
+                    if(!node_entries[neighbor].in_queue &&
+                       changed &&
+                       neighbor != target &&
+                       neighbor != source) {
+                        
+                        queue.push_back(neighbor);
+                    }
+                    
                 }
                 
                 

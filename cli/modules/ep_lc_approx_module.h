@@ -30,7 +30,7 @@ private:
                             unsigned dimension,
                             std::function<double(ogdf::node, unsigned)> heuristic,
                             const ogdf::node source,
-                            std::list<mco::Point>& bounds);
+                            mco::Point& bounds);
     
     void calculate_ideal_heuristic(const ogdf::Graph& graph,
                                    const ogdf::EdgeArray<mco::Point>& costs,

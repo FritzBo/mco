@@ -93,7 +93,7 @@ void EpLCApproxModule::perform(int argc, char** argv) {
             return distances[objective][n];
         };
         
-        list<Point> bounds;
+        Point bounds(numeric_limits<double>::infinity(), dimension);
         parse_ideal_bounds(ideal_bounds_arg,
                            dimension,
                            ideal_heuristic,
@@ -105,16 +105,27 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         };
         
         ConstrainedReachabilityPreprocessing prepro;
-        
+        list<Point> bounds_list;
+        for(unsigned i = 0; i < dimension; ++i) {
+            if(bounds[i] < numeric_limits<double>::infinity()) {
+                Point new_bound(dimension + 1);
+                new_bound[i] = 1;
+                new_bound[dimension] = -bounds[i];
+                bounds_list.push_back(std::move(new_bound));
+            }
+        }
         prepro.preprocess(graph,
                           cost_function,
                           dimension,
                           source,
                           target,
-                          bounds);
+                          bounds_list);
         
         
         LCApprox solver;
+        
+        solver.set_bounds(bounds);
+        solver.set_heuristic(ideal_heuristic);
         
         solver.Solve(graph,
                      cost_function,
@@ -137,12 +148,10 @@ void EpLCApproxModule::parse_ideal_bounds(const MultiArg<string>& argument,
                                          unsigned dimension,
                                          function<double(node, unsigned)> heuristic,
                                          const node source,
-                                         list<Point>& bounds) {
+                                         Point& bounds) {
     
     auto bounds_it = argument.begin();
     while(bounds_it != argument.end()) {
-        Point bound(0.0, dimension + 1);
-        
         vector<string> tokens;
         mco::tokenize(*bounds_it, tokens, ":");
         
@@ -164,10 +173,7 @@ void EpLCApproxModule::parse_ideal_bounds(const MultiArg<string>& argument,
             return;
         }
         
-        bound[objective_function - 1] = 1;
-        bound[dimension] = -factor * heuristic(source, objective_function - 1);
-        
-        bounds.push_back(std::move(bound));
+        bounds[objective_function - 1] = factor * heuristic(source, objective_function - 1);
         
         bounds_it++;
     }
