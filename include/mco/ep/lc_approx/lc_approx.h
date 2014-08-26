@@ -26,7 +26,7 @@ public:
                const ogdf::node source,
                const ogdf::node target,
                bool directed,
-               double epsilon);
+               const Point& epsilon);
     
     void set_heuristic(heuristic_type heuristic) {
         heuristic_ = heuristic;
@@ -41,7 +41,7 @@ public:
 private:
     
     Point min_e_;
-    double epsilon_;
+    Point epsilon_;
     unsigned dimension_;
     
     bool use_heuristic_ = false;
@@ -51,12 +51,16 @@ private:
     
     void compute_pos(const Point& cost, Point& pos) const {
         for(unsigned i = 0; i < dimension_; ++i) {
-            if(min_e_[i] != 0 && cost[i] != 0) {
-                pos[i] = floor(log(cost[i] / min_e_[i]) / log(epsilon_));
-            } else if(cost[i] != 0){
-                pos[i] = floor(log(cost[i]) / log(epsilon_));
+            if(epsilon_[i] != 0.0) {
+                if(min_e_[i] != 0 && cost[i] != 0) {
+                    pos[i] = floor(log(cost[i] / min_e_[i]) / log(epsilon_[i]));
+                } else if(cost[i] != 0){
+                    pos[i] = floor(log(cost[i]) / log(epsilon_[i]));
+                } else {
+                    pos[i] = 0;
+                }
             } else {
-                pos[i] = 0;
+                pos[i] = cost[i];
             }
         }
     }

@@ -32,6 +32,10 @@ private:
                             const ogdf::node source,
                             mco::Point& bounds);
     
+    void parse_epsilon(const TCLAP::MultiArg<string>& epsilon_argument,
+                       unsigned dimension,
+                       mco::Point& epsilon);
+    
     void calculate_ideal_heuristic(const ogdf::Graph& graph,
                                    const ogdf::EdgeArray<mco::Point>& costs,
                                    unsigned dimension,

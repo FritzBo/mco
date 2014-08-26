@@ -50,7 +50,9 @@ void EpLCApproxModule::perform(int argc, char** argv) {
     try {
         CmdLine cmd("Label Correcting Approximation for the Efficient Path Problem.", ' ', "0.1");
         
-        ValueArg<double> epsilon_argument("e", "epsilon", "The approximation factor to use.", true, 1, "epsilon");
+        MultiArg<string> epsilon_argument("E", "epsilon", "The approximation factor to use.", false, "epsilon");
+        
+        ValueArg<double> epsilon_all_argument("e", "epsilon-all", "The approximation factor to use for all objective functions.", false, 0.0, "epsilon");
         
         UnlabeledValueArg<string> file_name_argument("filename", "Name of the instance file", true, "","filename");
         
@@ -60,6 +62,7 @@ void EpLCApproxModule::perform(int argc, char** argv) {
                                           "objective:factor");
         
         cmd.add(epsilon_argument);
+        cmd.add(epsilon_all_argument);
         cmd.add(file_name_argument);
         cmd.add(is_directed_arg);
         cmd.add(ideal_bounds_arg);
@@ -67,8 +70,8 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         cmd.parse(argc, argv);
         
         string file_name = file_name_argument.getValue();
-        double epsilon = epsilon_argument.getValue();
         bool directed = is_directed_arg.getValue();
+        double epsilon_all = epsilon_all_argument.getValue();
         
         Graph graph;
         EdgeArray<Point> costs(graph);
@@ -121,6 +124,11 @@ void EpLCApproxModule::perform(int argc, char** argv) {
                           target,
                           bounds_list);
         
+        Point epsilon(epsilon_all, dimension);
+        
+        parse_epsilon(epsilon_argument,
+                      dimension,
+                      epsilon);
         
         LCApprox solver;
         
@@ -181,6 +189,41 @@ void EpLCApproxModule::parse_ideal_bounds(const MultiArg<string>& argument,
     
 }
 
+void EpLCApproxModule::parse_epsilon(const MultiArg<string>& epsilon_argument,
+                                     unsigned dimension,
+                                     Point& epsilon) {
+    
+    auto epsilon_it = epsilon_argument.begin();
+    while(epsilon_it != epsilon_argument.end()) {
+        vector<string> tokens;
+        mco::tokenize(*epsilon_it, tokens, ":");
+        
+        if(tokens.size() != 2) {
+            cout << "Error" << endl;
+            return;
+        }
+        
+        unsigned objective_function = stoul(tokens[0]);
+        double epsilon_value = stod(tokens[1]);
+        
+        if(objective_function > dimension) {
+            cout << "Error" << endl;
+            return;
+        }
+        
+        if(objective_function == 0) {
+            cout << "Error" << endl;
+            return;
+        }
+        
+        epsilon[objective_function - 1] = epsilon_value;
+        
+        epsilon_it++;
+    }
+    
+}
+
+
 void EpLCApproxModule::calculate_ideal_heuristic(const Graph& graph,
                                                  const EdgeArray<Point>& costs,
                                                  unsigned dimension,
@@ -188,16 +231,16 @@ void EpLCApproxModule::calculate_ideal_heuristic(const Graph& graph,
                                                  const node target,
                                                  bool directed,
                                                  vector<NodeArray<double>>& distances) {
-    
+
     Dijkstra<double> sssp_solver;
-    
+
     NodeArray<edge> predecessor(graph);
-    
+
     for(unsigned i = 0; i < dimension; ++i) {
         auto length = [&costs, i] (edge e) {
             return costs[e][i];
         };
-        
+
         sssp_solver.singleSourceShortestPaths(graph,
                                               length,
                                               target,
@@ -206,7 +249,7 @@ void EpLCApproxModule::calculate_ideal_heuristic(const Graph& graph,
                                               directed ? DijkstraModes::Backward :
                                               DijkstraModes::Undirected);
     }
-    
+
 }
 
 

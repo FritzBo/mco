@@ -83,7 +83,7 @@ Solve(const Graph& graph,
       const node source,
       const node target,
       bool directed,
-      double epsilon) {
+      const Point& epsilon) {
     
     epsilon_ = epsilon;
     dimension_ = dimension;
