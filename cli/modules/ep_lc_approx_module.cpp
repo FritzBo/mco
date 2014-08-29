@@ -53,6 +53,8 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         MultiArg<string> epsilon_argument("E", "epsilon", "The approximation factor to use.", false, "epsilon");
         
         ValueArg<double> epsilon_all_argument("e", "epsilon-all", "The approximation factor to use for all objective functions.", false, 0.0, "epsilon");
+
+        ValueArg<unsigned> exact_argument("X", "exact", "When using the epsilon-all or e parameter, this objective function will not be approximated.", false, 0, "objective function");
         
         UnlabeledValueArg<string> file_name_argument("filename", "Name of the instance file", true, "","filename");
         
@@ -66,12 +68,14 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         cmd.add(file_name_argument);
         cmd.add(is_directed_arg);
         cmd.add(ideal_bounds_arg);
+        cmd.add(exact_argument);
         
         cmd.parse(argc, argv);
         
         string file_name = file_name_argument.getValue();
         bool directed = is_directed_arg.getValue();
         double epsilon_all = epsilon_all_argument.getValue();
+        unsigned exact_objective = exact_argument.getValue();
         
         Graph graph;
         EdgeArray<Point> costs(graph);
@@ -125,6 +129,9 @@ void EpLCApproxModule::perform(int argc, char** argv) {
                           bounds_list);
         
         Point epsilon(epsilon_all, dimension);
+        if(exact_argument.isSet()) {
+            epsilon[exact_objective] = 0.0;
+        }
         
         parse_epsilon(epsilon_argument,
                       dimension,
