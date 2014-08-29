@@ -28,6 +28,7 @@ using TCLAP::CmdLine;
 using TCLAP::ArgException;
 using TCLAP::ValueArg;
 using TCLAP::UnlabeledValueArg;
+using TCLAP::SwitchArg;
 
 #include <mco/ep/dual_benson/ep_dual_benson.h>
 #include <mco/benchmarks/temporary_graphs_parser.h>
@@ -44,14 +45,18 @@ void EpBensonModule::perform(int argc, char** argv) {
         ValueArg<double> epsilon_argument("e", "epsilon", "Epsilon to be used in floating point calculations.", false, 1E-8, "epsilon");
         
         UnlabeledValueArg<string> file_name_argument("filename", "Name of the instance file", true, "","filename");
+
+        SwitchArg is_directed_arg("d", "directed", "Should the input be interpreted as a directed graph?", false);
         
         cmd.add(epsilon_argument);
         cmd.add(file_name_argument);
+        cmd.add(is_directed_arg);
         
         cmd.parse(argc, argv);
         
         string file_name = file_name_argument.getValue();
         double epsilon = epsilon_argument.getValue();
+        bool directed = is_directed_arg.getValue();
         
         Graph graph;
         EdgeArray<Point> costs(graph);

@@ -37,6 +37,7 @@ using ogdf::node;
 #include <mco/cli/output_formatter.h>
 
 #include <mco/ep/basic/dijkstra.h>
+#include <mco/ep/basic/instance_scalarizer.h>
 #include <mco/ep/preprocessing/constrained_reach.h>
 #include <mco/ep/warburton/ep_solver_warburton_approx.h>
 
@@ -110,13 +111,21 @@ int main(int argc, char** argv) {
         bool test_only          = test_only_arg.getValue();
             
         Graph graph;
-        EdgeArray<Point> costs(graph);
+        EdgeArray<Point> raw_costs(graph);
         unsigned dimension;
         node source;
         node target;
             
         TemporaryGraphParser parser;
-        parser.getGraph(filename, graph, costs, dimension, source, target);
+        parser.getGraph(filename, graph, raw_costs, dimension, source, target);
+
+        EdgeArray<Point> costs(graph, Point(dimension));
+        Point factor(100.0, dimension);
+        InstanceScalarizer::scaleround_instance(graph,
+                                                raw_costs,
+                                                dimension,
+                                                factor,
+                                                costs);
         
         auto cost_function = [&costs] (edge e) -> Point& {
             return costs[e];

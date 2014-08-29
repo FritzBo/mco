@@ -125,14 +125,16 @@ Solve(const ogdf::Graph& graph,
       ogdf::node source,
       ogdf::node target,
       std::function<void(ogdf::NodeArray<Point*>&, ogdf::NodeArray<ogdf::edge>&)> callback) {
-    
+
+    unsigned dimension = weights(graph.chooseEdge())->dimension();
+
     std::list<Point *> frontier;
     
     DualBensonScalarizer<OnlineVertexEnumerator>
     dual_benson_solver(LexDijkstraSolverAdaptor(graph, weights, source, target, callback),
                        weights(graph.chooseEdge())->dimension(),
                        epsilon_);
-    
+
     dual_benson_solver.Calculate_solutions(frontier);
     
     std::list<std::pair<std::list<edge>, Point>> solutions;

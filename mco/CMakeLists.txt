@@ -58,6 +58,7 @@ set(SOURCE_FILES
 ../include/mco/ep/dual_benson/ep_dual_benson.h
 ../include/mco/ep/dual_benson/constrained_ep_dual_benson.h
 ../include/mco/ep/preprocessing/constrained_reach.h
+../include/mco/ep/basic/instance_scalarizer.h
 
 
 # MO Spanning Tree
@@ -122,6 +123,7 @@ ep/warburton/ep_solver_warburton_approx.cpp
 ep/lc_approx/lc_approx.cpp
 ep/basic/dijkstra.cpp
 ep/preprocessing/constrained_reach.cpp
+ep/basic/instance_scalarizer.cpp
 
 # MO Spanning Tree
 est/basic/kruskal_st_solver.cpp

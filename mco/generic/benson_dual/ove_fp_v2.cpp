@@ -446,6 +446,8 @@ add_cut_point(const GraphlessPoint& outside_point,
         
     cut_point->set_father(&inside_point);
     cut_point->birth_index_ = inequalities_.size() - 1;
+
+    assert(cut_point->dimension() == dimension_ + 1);
         
 #ifndef NDEBUG
     if(debug_output) {

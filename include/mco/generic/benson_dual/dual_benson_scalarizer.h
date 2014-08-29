@@ -31,7 +31,7 @@ class DualBensonScalarizer {
 public:
 	DualBensonScalarizer(std::function<double(const Point& weighting, Point& value)> solver,
                          unsigned int dimension,
-                         double epsilon)
+                         double epsilon = 1E-8)
     :   dimension_(dimension),
 		epsilon_(epsilon),
 		solver_(solver),
@@ -58,31 +58,37 @@ private:
 
 	int vertices_;
 	int facets_;
+
+    void normalize(Point& vector, const Point& normalization);
+    double normalize(double value, const Point& weighting, const Point& normalization);
 };
     
 template<typename OnlineVertexEnumerator>
 void DualBensonScalarizer<OnlineVertexEnumerator>::
 Calculate_solutions(std::list<Point *>& solutions) {
+
     int nondominated_values = 1;
     int iteration_counter = 0;
     int weighting_counter = 1;
-    
+
     Point v(dimension_);
     Point value(dimension_);
     
-    for(unsigned int i = 0; i < dimension_ - 1; ++i)
+    for(unsigned int i = 0; i < dimension_ - 1; ++i) {
         v[i] = 0;
-        v[0] = 1;
+    }
+    v[0] = 1;
 
-        v[dimension_ - 1] = solver_(v, value);
+    double weighted_value = solver_(v, value);
+
+    solutions.push_back(new Point(value));
     
-        solutions.push_back(new Point(value));
-        
-        vertex_container = new OnlineVertexEnumerator(value, dimension_, epsilon_);
-        delete vertex_container->next_vertex();
-        
-        Point *candidate, weighting(dimension_), inequality(dimension_);
-        double scalar_value;
+    vertex_container = new OnlineVertexEnumerator(value, dimension_, epsilon_);
+    delete vertex_container->next_vertex();
+    
+    Point *candidate, weighting(dimension_), inequality(dimension_);
+    double scalar_value;
+
     while(vertex_container->has_next()) {
         iteration_counter++;
         
@@ -103,8 +109,9 @@ Calculate_solutions(std::list<Point *>& solutions) {
         }
         weighting[dimension_ - 1] = 1 - sum;
         
-        for(unsigned int i = 0; i < dimension_; ++i)
-        value[i] = 0;
+        for(unsigned int i = 0; i < dimension_; ++i) {
+            value[i] = 0;
+        }
         
 #ifndef NDEBUG
         std::cout << "weighting: " << weighting << std::endl;

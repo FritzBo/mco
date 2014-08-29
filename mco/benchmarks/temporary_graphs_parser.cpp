@@ -79,7 +79,6 @@ void TemporaryGraphParser::getGraph(string filename,
                 new_point[j] = std::round(value * pow(2, precision)) / pow(2, precision);
             } else {
                 file >> new_point[j];
-                new_point[j] = round(new_point[j] * 100);
             }
         }
         
