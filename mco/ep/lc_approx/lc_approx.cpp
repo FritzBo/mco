@@ -227,24 +227,26 @@ Solve(const Graph& graph,
         
     }
     
-	for(auto label : node_entries[target].labels()) {
+	for(auto& label : node_entries[target].labels()) {
         list<edge> path;
         const Label* curr = &label;
-        while(curr->n != source) {
+        if(!curr->deleted) {
+            while(curr->n != source) {
 
-            assert(curr->pred_edge->source() == curr->n ||
-                   curr->pred_edge->target() == curr->n);
+                assert(curr->pred_edge->source() == curr->n ||
+                       curr->pred_edge->target() == curr->n);
+                
+                path.push_back(curr->pred_edge);
+                curr = curr->pred_label;
+                
+            }
             
-            path.push_back(curr->pred_edge);
-            curr = curr->pred_label;
+            assert(path.size() > 0);
             
+            path.reverse();
+            
+            add_solution(path, label.cost);
         }
-        
-        assert(path.size() > 0);
-        
-        path.reverse();
-        
-        add_solution(path, label.cost);
     }
     
 }
