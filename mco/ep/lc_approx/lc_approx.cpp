@@ -31,29 +31,49 @@ check_domination(list<Label>& new_labels,
     
     bool dominated;
     
-    for(auto new_label : new_labels) {
+    for(auto& new_label : new_labels) {
         dominated = false;
         
         auto check_label_it = neighbor_labels.begin();
         while(check_label_it != neighbor_labels.end()) {
             
-            const Label& check_label = *check_label_it;
+            Label& check_label = *check_label_it;
 
-            if(leq(new_label.pos, check_label.pos)) {
+            if(check_label.deleted) {
+
                 check_label_it = neighbor_entry.erase(check_label_it);
-                changed = true;
-            } else {
-                ++check_label_it;
-            }
 
-            if(leq(check_label.pos, new_label.pos)) {
+            } else if(leq(check_label.pos, new_label.pos)) {
+
                 dominated = true;
                 break;
+
+            } else if(leq(new_label.pos, check_label.pos)) {
+
+                auto it = find(check_label.pred_label->succ_label.begin(),
+                               check_label.pred_label->succ_label.end(),
+                               &check_label);
+
+                assert(it != check_label.pred_label->succ_label.end());
+
+                check_label.pred_label->succ_label.erase(it);
+
+                recursive_delete(check_label);
+
+                check_label_it = neighbor_entry.erase(check_label_it);
+
+                changed = true;
+
+            } else {
+                ++check_label_it;
             }
         }
         
         if(!dominated) {
+            Label* pred = new_label.pred_label;
             neighbor_entry.push_back(std::move(new_label));
+            pred->succ_label.push_back(&neighbor_entry.labels().back());
+            
             changed = true;
         }
         
@@ -73,6 +93,24 @@ bool LCApprox::check_heuristic_prunable(const Label& label,
     compute_pos(heuristic_cost, heuristic_cost);
     
     return !ComponentwisePointComparator(0, false)(heuristic_cost, bounds);
+}
+
+void LCApprox::
+recursive_delete(Label& label) {
+    list<Label*> queue;
+    queue.push_back(&label);
+
+    while(!queue.empty()) {
+        Label* curr = queue.front();
+        queue.pop_front();
+
+        curr->deleted = true;
+
+        for(auto succ : curr->succ_label) {
+            queue.push_back(succ);
+        }
+    }
+
 }
     
 void LCApprox::
@@ -134,7 +172,7 @@ Solve(const Graph& graph,
                     continue;
                 }
                 
-                auto neighbor = current_edge->target() != current_node ? current_edge->target() : current_edge->source();
+                auto neighbor = current_edge->opposite(current_node);
                 
                 auto& neighbor_entry = node_entries[neighbor];
                 
@@ -143,17 +181,24 @@ Solve(const Graph& graph,
                 for(auto current_label_it = current_node_entry.labels_it();
                     current_label_it != current_node_entry.labels().end();
                     ++current_label_it) {
-                    
-                    Label new_label(current_label_it->cost + cost_function(current_edge),
-                                    neighbor,
-                                    current_edge,
-                                    &*current_label_it,
-                                    *this);
-                    
-                    if(!use_bounds_ || !use_heuristic_ ||
-                       !check_heuristic_prunable(new_label, scaled_bounds)) {
+
+                    Label& label = *current_label_it;
+
+                    assert(label.n == current_node);
+
+                    if(!label.deleted) {
+
+                        Label new_label(label.cost + cost_function(current_edge),
+                                        neighbor,
+                                        current_edge,
+                                        &label,
+                                        *this);
                         
-                        new_labels.push_back(std::move(new_label));
+                        if(!use_bounds_ || !use_heuristic_ ||
+                           !check_heuristic_prunable(new_label, scaled_bounds)) {
+                            
+                            new_labels.push_back(std::move(new_label));
+                        }
                     }
                 }
                 
@@ -169,6 +214,7 @@ Solve(const Graph& graph,
                        neighbor != source) {
                         
                         queue.push_back(neighbor);
+                        node_entries[neighbor].in_queue = true;
                     }
                     
                 }

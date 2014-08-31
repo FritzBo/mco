@@ -76,18 +76,29 @@ private:
         const Point pos;
         const ogdf::node n;
         const ogdf::edge pred_edge;
-        const Label* pred_label;
+        Label* pred_label;
+        std::list<Label*> succ_label;
+        bool deleted = false;
 
         Label(const Point cost,
               const ogdf::node n,
               const ogdf::edge p_edge,
-              const Label* p_label,
+              Label* p_label,
               const LCApprox& app)
         :   cost(cost),
             pos(app.compute_pos(cost)),
             n(n),
             pred_edge(p_edge),
-            pred_label(p_label) { }
+            pred_label(p_label),
+            deleted(false) { }
+
+        Label(Label&& other)
+        :   cost(std::move(other.cost)),
+            pos(std::move(other.pos)),
+            n(other.n),
+            pred_edge(other.pred_edge),
+            pred_label(other.pred_label) {
+        }
     };
     
     struct NodeEntry {
@@ -99,6 +110,19 @@ private:
         :   in_queue(false),
             labels_(),
             labels_it_(labels_.begin()) { }
+
+        NodeEntry(const NodeEntry& other)
+        :   in_queue(false),
+            labels_(),
+            labels_it_(labels_.begin()) {
+        }
+
+        NodeEntry(NodeEntry&& other)
+        :   in_queue(false),
+            labels_(),
+            labels_it_(labels_.begin()) {
+
+        }
         
         void push_back(Label&& label) {
             if(labels_it_ == labels_.end()) {
@@ -141,6 +165,8 @@ private:
     
     bool check_heuristic_prunable(const Label& label,
                                   const Point& bounds);
+
+    void recursive_delete(Label& label);
     
 };
     
