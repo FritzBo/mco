@@ -38,19 +38,18 @@ check_domination(list<Label>& new_labels,
         while(check_label_it != neighbor_labels.end()) {
             
             const Label& check_label = *check_label_it;
-            
-            if(leq(check_label.pos, new_label.pos)) {
-                dominated = true;
-                break;
-            }
-            
+
             if(leq(new_label.pos, check_label.pos)) {
                 check_label_it = neighbor_entry.erase(check_label_it);
                 changed = true;
             } else {
                 ++check_label_it;
             }
-            
+
+            if(leq(check_label.pos, new_label.pos)) {
+                dominated = true;
+                break;
+            }
         }
         
         if(!dominated) {
@@ -186,6 +185,9 @@ Solve(const Graph& graph,
         list<edge> path;
         const Label* curr = &label;
         while(curr->n != source) {
+
+            assert(curr->pred_edge->source() == curr->n ||
+                   curr->pred_edge->target() == curr->n);
             
             path.push_back(curr->pred_edge);
             curr = curr->pred_label;
