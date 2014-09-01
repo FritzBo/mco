@@ -19,6 +19,8 @@ modules/ep_martins_module.h
 modules/ep_martins_module.cpp
 modules/ep_lc_approx_module.h
 modules/ep_lc_approx_module.cpp
+modules/ep_ideal_point.h
+modules/ep_ideal_point.cpp
 )
 
 add_executable(mco_cli ${SOURCE_FILES})
