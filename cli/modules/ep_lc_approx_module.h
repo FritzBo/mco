@@ -31,6 +31,10 @@ private:
                             std::function<double(ogdf::node, unsigned)> heuristic,
                             const ogdf::node source,
                             mco::Point& bounds);
+
+    void parse_absolute_bounds(const TCLAP::MultiArg<std::string>& argument,
+                            unsigned dimension,
+                            mco::Point& bounds);
     
     void parse_epsilon(const TCLAP::MultiArg<string>& epsilon_argument,
                        unsigned dimension,

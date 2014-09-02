@@ -62,14 +62,17 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         
         SwitchArg is_directed_arg("d", "directed", "Should the input be interpreted as a directed graph?", false);
         
-        MultiArg<string> ideal_bounds_arg("I", "ideal-bound", "Bounds the given objective function by factor times the ideal heuristic value of this objective function. Implies -H.", false,
+        MultiArg<string> ideal_bounds_arg("I", "ideal-bound", "Bounds the given objective function by factor times the ideal heuristic value of this objective function.", false,
                                           "objective:factor");
-        
+
+        MultiArg<string> absolute_bounds_arg("i", "absolute-bound", "Bounds the given objective function by the given value.", false, "objective:value");
+
         cmd.add(epsilon_argument);
         cmd.add(epsilon_all_argument);
         cmd.add(file_name_argument);
         cmd.add(is_directed_arg);
         cmd.add(ideal_bounds_arg);
+        cmd.add(absolute_bounds_arg);
         cmd.add(exact_argument);
         
         cmd.parse(argc, argv);
@@ -117,11 +120,15 @@ void EpLCApproxModule::perform(int argc, char** argv) {
                            ideal_heuristic,
                            source,
                            bounds);
+
+        parse_absolute_bounds(absolute_bounds_arg,
+                              dimension,
+                              bounds);
         
         auto cost_function = [&costs] (edge e) -> Point& {
             return costs[e];
         };
-        
+
         ConstrainedReachabilityPreprocessing prepro;
         list<Point> bounds_list;
         for(unsigned i = 0; i < dimension; ++i) {
@@ -207,6 +214,41 @@ void EpLCApproxModule::parse_ideal_bounds(const MultiArg<string>& argument,
     
 }
 
+void EpLCApproxModule::parse_absolute_bounds(const MultiArg<string>& argument,
+                                          unsigned dimension,
+                                          Point& bounds) {
+
+    auto bounds_it = argument.begin();
+    while(bounds_it != argument.end()) {
+        vector<string> tokens;
+        mco::tokenize(*bounds_it, tokens, ":");
+
+        if(tokens.size() != 2) {
+            cout << "Error" << endl;
+            return;
+        }
+
+        unsigned objective_function = stoul(tokens[0]);
+        double value = stod(tokens[1]);
+
+        if(objective_function > dimension) {
+            cout << "Error" << endl;
+            return;
+        }
+
+        if(objective_function == 0) {
+            cout << "Error" << endl;
+            return;
+        }
+
+        bounds[objective_function - 1] = value;
+
+        bounds_it++;
+    }
+
+
+}
+
 void EpLCApproxModule::parse_epsilon(const MultiArg<string>& epsilon_argument,
                                      unsigned dimension,
                                      Point& epsilon) {
@@ -240,7 +282,6 @@ void EpLCApproxModule::parse_epsilon(const MultiArg<string>& epsilon_argument,
     }
     
 }
-
 
 void EpLCApproxModule::calculate_ideal_heuristic(const Graph& graph,
                                                  const EdgeArray<Point>& costs,
