@@ -145,10 +145,11 @@ void EpLCApproxModule::perform(int argc, char** argv) {
                           source,
                           target,
                           bounds_list);
+
         
         Point epsilon(epsilon_all, dimension);
         if(exact_argument.isSet()) {
-            epsilon[exact_objective] = 0.0;
+            epsilon[exact_objective - 1] = 0.0;
         }
         
         parse_epsilon(epsilon_argument,
