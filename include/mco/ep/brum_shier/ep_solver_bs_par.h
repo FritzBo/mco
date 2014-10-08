@@ -12,6 +12,7 @@
 #include <mco/basic/abstract_solver.h>
 
 #include <thread>
+#include <atomic>
 
 namespace mco {
 
