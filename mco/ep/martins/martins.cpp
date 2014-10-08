@@ -46,7 +46,8 @@ Solve(Graph& graph,
                 NodeArray<edge>>> initial_labels,
       list<Point> first_phase_bounds,
       bool directed) {
-    
+
+    heuristic_ = heuristic;
     
     unsigned bound_deletion = 0;
     unsigned heuristic_deletion = 0;
@@ -58,7 +59,7 @@ Solve(Graph& graph,
     
     ComponentwisePointComparator comp_leq(0, false);
 
-	Label *null_label = new Label(Point::Null(dimension), source, nullptr);
+	Label *null_label = new Label(Point::Null(dimension), source, nullptr, this);
     null_label->in_queue = true;
 	labels[source].push_back(null_label);
     
@@ -274,7 +275,7 @@ Solve(Graph& graph,
 				continue;
 			}
 
-			Label * new_label = new Label(new_cost, v, label);
+			Label * new_label = new Label(new_cost, v, label, this);
 			labels[v].push_back(new_label);
 
 			lex_min_label.push(new_label);
@@ -462,7 +463,7 @@ construct_labels(NodeArray<list<Label*>> & labels,
                 path.pop_back();
                 
                 // Create a new label
-                auto label = new Label(new Point(*distance[n]), n, pred);
+                auto label = new Label(new Point(*distance[n]), n, pred, this);
                 
                 // add it to the node
                 labels[n].push_back(label);

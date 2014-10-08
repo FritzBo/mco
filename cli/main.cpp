@@ -69,6 +69,8 @@ using mco::EqualityPointComparator;
 #include "modules/ep_martins_module.h"
 #include "modules/ep_lc_approx_module.h"
 #include "modules/ep_ideal_point.h"
+#include "modules/ep_bs_module.h"
+#include "modules/ep_bs_par_module.h"
 
 int main(int argc, char** argv) {
     try {
@@ -77,10 +79,14 @@ int main(int argc, char** argv) {
         EpBensonModule benson_module;
         EpMartinsModule martins_module;
         EpLCApproxModule lc_approx_module;
+        EpBsModule bs_module;
+        EpBsParModule bs_par_module;
         EpIdealModule ideal_module;
     
         module_factory.add_module("ep-dual-benson", benson_module);
         module_factory.add_module("ep-martins", martins_module);
+        module_factory.add_module("ep-bs", bs_module);
+        module_factory.add_module("ep-bs-par", bs_par_module);
         module_factory.add_module("lc-approx", lc_approx_module);
         module_factory.add_module("ep-ideal-point", ideal_module);
         

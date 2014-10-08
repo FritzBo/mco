@@ -19,6 +19,9 @@ namespace mco {
 class EpSolverMartins : public AbstractSolver<std::list<ogdf::edge>> {
 
 public:
+
+    using heuristic_type = std::function<double(ogdf::node, unsigned)>;
+
 	explicit EpSolverMartins(double epsilon = 0)
     :   epsilon_(epsilon),
         do_value_callback_(false),
@@ -58,7 +61,7 @@ public:
                const Point& absolute_bound,
                std::list<std::pair<ogdf::NodeArray<Point*>,
                                    ogdf::NodeArray<ogdf::edge>>> initial_labels,
-               std::function<double(ogdf::node, unsigned)> heuristic,
+               heuristic_type heuristic,
                const std::list<Point>& linear_bounds = std::list<Point>(),
                bool directed = true) {
         
@@ -117,6 +120,8 @@ public:
     
 private:
     const double epsilon_;
+
+    heuristic_type heuristic_;
     
     bool do_value_callback_;
     std::function<void(Point)> value_callback_;
@@ -140,29 +145,34 @@ private:
                bool directed = true);
     
     struct Label {
-        const Point * const point;
+        const Point * point;
+        const Point * heuristic_cost;
         ogdf::node n;
         const Label * const pred;
         bool mark_dominated;
         bool in_queue;
         
-        inline Label(const Point *point, ogdf::node n, const Label *pred);
+        inline Label(const Point *point,
+                     ogdf::node n,
+                     const Label *pred,
+                     EpSolverMartins* martins);
         inline Label(const Label &label);
         
         Label & operator=(const Label &label) = delete;
         
         ~Label() {
             delete point;
+            delete heuristic_cost;
         }
     };
     
     struct LexLabelComp {
         bool operator()(const Label& l1, const Label& l2) {
-            return LexPointComparator()(l2.point, l1.point);
+            return LexPointComparator()(l2.heuristic_cost, l1.heuristic_cost);
         }
         
         bool operator()(const Label* l1, const Label* l2) {
-            return LexPointComparator()(l2->point, l1->point);
+            return LexPointComparator()(l2->heuristic_cost, l1->heuristic_cost);
         }
     };
     
@@ -208,23 +218,33 @@ private:
 };
     
 EpSolverMartins::Label::
-Label(const Point *point,
+Label(const Point * point,
       ogdf::node n,
-      const Label *pred)
+      const Label *pred,
+      EpSolverMartins* martins)
 :   point(point),
     n(n),
     pred(pred),
     mark_dominated(false),
     in_queue(true) {
+
+    Point* hpoint = new Point(point->dimension());
+    for(unsigned i = 0; i < point->dimension(); ++i) {
+        hpoint->operator[](i) = point->operator[](i) + martins->heuristic_(n, i);
+    }
+
+    heuristic_cost = hpoint;
 }
 
 EpSolverMartins::Label::
 Label(const Label &label)
 :   point(new Point(*label.point)),
+    heuristic_cost(label.heuristic_cost),
     n(label.n),
     pred(label.pred),
     mark_dominated(label.mark_dominated),
     in_queue(label.in_queue) {
+
 }
 
 }

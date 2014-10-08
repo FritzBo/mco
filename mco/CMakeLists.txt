@@ -44,6 +44,7 @@ set(SOURCE_FILES
 ../include/mco/ep/basic/abstract_ep_solver.h
 ../include/mco/ep/basic/ep_lagrange_bisect.h
 ../include/mco/ep/brum_shier/ep_solver_bs.h
+../include/mco/ep/brum_shier/ep_solver_bs_par.h
 ../include/mco/ep/brum_shier/ep_weighted_bs.h
 ../include/mco/ep/martins/label.h
 ../include/mco/ep/martins/martins_smart.h
@@ -113,6 +114,7 @@ benchmarks/temporary_graphs_parser.cpp
 ep/basic/ep_instance.cpp
 ep/basic/ep_lagrange_bisect.cpp
 ep/brum_shier/ep_solver_bs.cpp
+ep/brum_shier/ep_solver_bs_par.cpp
 ep/brum_shier/ep_weighted_bs.cpp
 ep/martins/label.cpp
 ep/martins/martins_smart.cpp

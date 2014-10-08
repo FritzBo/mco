@@ -6,23 +6,24 @@
  *      Author: fritz
  */
 
-#ifndef BSSSA_H_
-#define BSSSA_H_
+#ifndef BSSSA_PAR_H_
+#define BSSSA__PAR_H_
 
 #include <mco/basic/abstract_solver.h>
 
+#include <thread>
+
 namespace mco {
 
-class EpSolverBS : public AbstractSolver<std::list<ogdf::edge>> {
+class EpSolverBSPar : public AbstractSolver<std::list<ogdf::edge>> {
 
     using heuristic_type = std::function<double(ogdf::node, unsigned)>;
+    using cost_type = std::function<const Point*(const ogdf::edge)>;
     
 public:
-	EpSolverBS(double epsilon = 0)
-    : epsilon_(epsilon) { }
-    
+
 	virtual void Solve(const ogdf::Graph& graph,
-                       std::function<const Point*(const ogdf::edge)> costs,
+                       cost_type costs,
                        unsigned dimension,
                        const ogdf::node source,
                        const ogdf::node target,
@@ -38,10 +39,20 @@ public:
         use_bounds_ = true;
     }
 
+    void set_no_threads(unsigned no) {
+        no_threads_ = no;
+    }
+
 
 private:
-    const double epsilon_;
     unsigned dimension_;
+    bool directed_;
+    ogdf::node source_;
+    ogdf::node target_;
+    cost_type weights_;
+
+    unsigned no_threads_ = 1;
+    std::atomic<unsigned> pushing_threads_;
 
     bool use_heuristic_ = false;
     heuristic_type heuristic_;
@@ -132,10 +143,24 @@ private:
         std::list<Label>::iterator labels_it_;
     };
 
+    ogdf::NodeArray<NodeEntry>* node_entries_;
+
+    std::list<ogdf::node>* queue_;
+    std::mutex queue_mutex_;
+
+    std::mutex neighborhood_lock_;
+    ogdf::NodeArray<bool>* neighborhood_locks_;
+    bool lock_neighborhood(ogdf::node n);
+    void unlock_neighborhood(ogdf::node n);
+
+    void thread_worker();
+
     bool check_domination(std::list<Label>& new_labels,
                           NodeEntry& neighbor_entry);
 
     bool check_heuristic_prunable(const Label& label);
+
+    void push_labels(ogdf::node current_node);
 
 
 };

@@ -18,11 +18,16 @@ scaleround_instance(const Graph& graph,
                     const EdgeArray<Point>& cost_array,
                     unsigned dimension,
                     const Point& factor,
-                    EdgeArray<Point>& new_cost_array) {
+                    EdgeArray<Point>& new_cost_array,
+                    bool round) {
 
     for(auto edge : graph.edges) {
         for(unsigned i = 0; i < dimension; ++i) {
-            new_cost_array[edge][i] = std::round(cost_array[edge][i] * factor[i]);
+            if(round) {
+                new_cost_array[edge][i] = std::round(cost_array[edge][i] * factor[i]);
+            } else {
+                new_cost_array[edge][i] = cost_array[edge][i] * factor[i];
+            }
         }
     }
 }

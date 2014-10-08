@@ -15,6 +15,10 @@ basic/modules.cpp
 #### Modules
 modules/ep_benson_module.h
 modules/ep_benson_module.cpp
+modules/ep_bs_module.h
+modules/ep_bs_module.cpp
+modules/ep_bs_par_module.h
+modules/ep_bs_par_module.cpp
 modules/ep_martins_module.h
 modules/ep_martins_module.cpp
 modules/ep_lc_approx_module.h

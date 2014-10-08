@@ -167,7 +167,11 @@ Solve(const Graph& graph,
             
             for(auto adj : current_node->adjEdges) {
                 edge current_edge = adj->theEdge();
-                
+
+                if(current_edge->isSelfLoop()) {
+                    continue;
+                }
+
                 if(directed && current_edge->target() == current_node) {
                     continue;
                 }
