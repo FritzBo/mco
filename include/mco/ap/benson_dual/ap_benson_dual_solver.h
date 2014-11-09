@@ -51,6 +51,8 @@ public:
                             epsilon_);
         
 		dual_benson_solver_.Calculate_solutions(frontier);
+
+        facets_ = dual_benson_solver_.number_facets();
         
         std::list<std::pair<std::list<ogdf::edge>, Point>> solutions;
         
@@ -61,8 +63,13 @@ public:
 		add_solutions(solutions.begin(), solutions.end());
 	}
 
+    unsigned number_facets() {
+        return facets_;
+    }
+
 private:
     double epsilon_;
+    unsigned facets_;
 };
     
         
