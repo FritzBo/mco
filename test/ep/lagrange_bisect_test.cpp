@@ -85,7 +85,7 @@ INSTANTIATE_TEST_CASE_P(InstanceTests,
                         BoundedParetoInstanceTestFixture,
                         Values(
                                //                               make_tuple(string("../../../instances/ep/graph_1000_1000"), (unsigned) 1421),
-                               make_tuple(string("../../../../instances/ep/grid50_50_7"), (unsigned) 2,
+                               make_tuple(string("../../../instances/ep/grid50_50_7"), (unsigned) 2,
                                           Point({251900, 237542}))
 //                               make_tuple(string("../../../instances/ep/grid50_50_7"), (unsigned) 13)
                                ));
