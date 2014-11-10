@@ -65,7 +65,6 @@ private:
         const ogdf::node n;
         const ogdf::edge pred_edge;
         Label* pred_label;
-        bool deleted = false;
 
         Label(const Point cost,
               const ogdf::node n,
@@ -74,8 +73,7 @@ private:
         :   cost(cost),
             n(n),
             pred_edge(p_edge),
-            pred_label(p_label),
-            deleted(false) { }
+            pred_label(p_label) { }
 
         Label(Label&& other)
         :   cost(std::move(other.cost)),

@@ -58,11 +58,7 @@ check_domination(list<Label>& new_labels,
 
             Label& check_label = *check_label_it;
 
-            if(check_label.deleted) {
-
-                check_label_it = neighbor_entry.erase(check_label_it);
-
-            } else if(leq(check_label.cost, new_label.cost)) {
+            if(leq(check_label.cost, new_label.cost)) {
 
                 dominated = true;
                 break;
@@ -149,23 +145,21 @@ void EpSolverBSPar::Solve(const Graph& graph,
     for(auto& label : node_entries[target].labels()) {
         list<edge> path;
         const Label* curr = &label;
-        if(!curr->deleted) {
-            while(curr->n != source) {
+        while(curr->n != source) {
 
-                assert(curr->pred_edge->source() == curr->n ||
-                       curr->pred_edge->target() == curr->n);
+            assert(curr->pred_edge->source() == curr->n ||
+                   curr->pred_edge->target() == curr->n);
 
-                path.push_back(curr->pred_edge);
-                curr = curr->pred_label;
+            path.push_back(curr->pred_edge);
+            curr = curr->pred_label;
 
-            }
-
-            assert(path.size() > 0);
-
-            path.reverse();
-
-            add_solution(path, label.cost);
         }
+
+        assert(path.size() > 0);
+
+        path.reverse();
+
+        add_solution(path, label.cost);
     }
 
     delete node_entries_;
@@ -258,18 +252,15 @@ void EpSolverBSPar::push_labels(node current_node) {
 
                 assert(label.n == current_node);
 
-                if(!label.deleted) {
+                Label new_label(label.cost + *weights_(current_edge),
+                                neighbor,
+                                current_edge,
+                                &label);
 
-                    Label new_label(label.cost + *weights_(current_edge),
-                                    neighbor,
-                                    current_edge,
-                                    &label);
+                if(!use_bounds_ || !use_heuristic_ ||
+                   !check_heuristic_prunable(new_label)) {
 
-                    if(!use_bounds_ || !use_heuristic_ ||
-                       !check_heuristic_prunable(new_label)) {
-
-                        new_labels.push_back(std::move(new_label));
-                    }
+                    new_labels.push_back(std::move(new_label));
                 }
             }
 
