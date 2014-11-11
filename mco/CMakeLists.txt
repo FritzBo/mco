@@ -78,6 +78,7 @@ set(SOURCE_FILES
 ../include/mco/generic/benson_dual/ove_node_lists.h
 ../include/mco/generic/benson_dual/ove_edge_lists.h
 ../include/mco/generic/benson_dual/ove_fp_v2.h
+../include/mco/generic/benson_dual/upper_image_container.h
 
 # Geometry Tools
 ../include/mco/geometric/projective_geometry_utilities.h

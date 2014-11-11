@@ -18,6 +18,7 @@
 #include <mco/basic/weight_function_adaptors.h>
 #include <mco/generic/benson_dual/dual_benson_scalarizer.h>
 #include <mco/generic/benson_dual/ove_fp_v2.h>
+#include <mco/generic/benson_dual/upper_image_container.h>
 #include <mco/ep/basic/dijkstra.h>
 
 namespace mco {
@@ -54,7 +55,8 @@ private:
 };
     
 template<typename OnlineVertexEnumerator = GraphlessOVE>
-class EPDualBensonSolver : public AbstractSolver<std::list<ogdf::edge>> {
+class EPDualBensonSolver : public AbstractSolver<std::list<ogdf::edge>>,
+    public UpperImageContainer<std::list<Point*>::const_iterator> {
 public:
     EPDualBensonSolver(double epsilon = 1E-8)
     :   epsilon_(epsilon) {}
@@ -65,9 +67,27 @@ public:
                const ogdf::node target,
                std::function<void(ogdf::NodeArray<Point*>&, ogdf::NodeArray<ogdf::edge>&)> callback
                = [] (ogdf::NodeArray<Point*>&, ogdf::NodeArray<ogdf::edge>&) {return;});
+
+    std::list<Point*>::const_iterator cbeginExtremePoints() {
+        return extreme_points_.cbegin();
+    }
+
+    std::list<Point*>::const_iterator cendExtremePoints() {
+        return extreme_points_.cend();
+    }
+
+    std::list<Point*>::const_iterator cbeginInequalities() {
+        return inequalities_.cbegin();
+    }
+    std::list<Point*>::const_iterator cendInequalities() {
+        return inequalities_.cend();
+    }
     
 private:
     double epsilon_;
+
+    std::list<Point*> extreme_points_;
+    std::list<Point*> inequalities_;
     
 };
     
@@ -128,6 +148,9 @@ Solve(const ogdf::Graph& graph,
 
     unsigned dimension = weights(graph.chooseEdge())->dimension();
 
+    extreme_points_.clear();
+    inequalities_.clear();
+
     std::list<Point *> frontier;
     
     DualBensonScalarizer<OnlineVertexEnumerator>
@@ -141,8 +164,13 @@ Solve(const ogdf::Graph& graph,
     
     for(auto point : frontier) {
         solutions.push_back(make_pair(std::list<edge>(), *point));
+        extreme_points_.push_back(point);
     }
-                            
+
+    for(Point& inequality : dual_benson_solver.facets_list()) {
+        inequalities_.push_back(new Point(inequality));
+    }
+
     add_solutions(solutions.begin(), solutions.end());
     
 }

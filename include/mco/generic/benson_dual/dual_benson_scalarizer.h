@@ -47,6 +47,10 @@ public:
 	int number_vertices() { return vertices_; }
 	int number_facets() { return facets_; }
 
+    std::list<Point> & facets_list() {
+        return permanent_facets_;
+    }
+
 protected:
 	unsigned int dimension_;
 	double epsilon_;
@@ -56,16 +60,17 @@ protected:
 private:
 	OnlineVertexEnumerator *vertex_container;
 
+    std::list<Point> permanent_facets_;
+
 	int vertices_;
 	int facets_;
-
-    void normalize(Point& vector, const Point& normalization);
-    double normalize(double value, const Point& weighting, const Point& normalization);
 };
     
 template<typename OnlineVertexEnumerator>
 void DualBensonScalarizer<OnlineVertexEnumerator>::
 Calculate_solutions(std::list<Point *>& solutions) {
+
+    permanent_facets_.clear();
 
     int nondominated_values = 1;
     int iteration_counter = 0;
@@ -79,7 +84,9 @@ Calculate_solutions(std::list<Point *>& solutions) {
     }
     v[0] = 1;
 
-    double weighted_value = solver_(v, value);
+    permanent_facets_.push_back(v);
+
+    value[dimension_ - 1] = solver_(v, value);
 
     solutions.push_back(new Point(value));
     
@@ -126,8 +133,10 @@ Calculate_solutions(std::list<Point *>& solutions) {
         
         if(scalar_value - (*candidate)[dimension_ - 1] > -epsilon_) {
             weighting_counter++;
+            permanent_facets_.push_back(std::move(*candidate));
+
 #ifndef NDEBUG
-            std::cout << "found a new permanent extreme point. continuing." << std::endl;
+            std::cout << "found a new permanent facet. continuing." << std::endl;
             
 #endif
         } else {

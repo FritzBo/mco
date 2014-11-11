@@ -36,11 +36,14 @@ using TCLAP::SwitchArg;
 #include <mco/benchmarks/temporary_graphs_parser.h>
 #include <mco/basic/point.h>
 
+#include <mco/generic/benson_dual/upper_image_container.h>
+
 using mco::InstanceScalarizer;
 using mco::EPDualBensonSolver;
 using mco::OnlineVertexEnumeratorCDD;
 using mco::TemporaryGraphParser;
 using mco::Point;
+using mco::UpperImageWriter;
 
 void EpBensonModule::perform(int argc, char** argv) {
     try {
@@ -55,12 +58,15 @@ void EpBensonModule::perform(int argc, char** argv) {
         SwitchArg use_cdd_arg("", "cdd", "Using CDD Library for the vertex enumeration", false);
 
         SwitchArg use_gl_ove_arg("", "gl-ove", "Using the graphless online vertex enumerator", false);
+
+        ValueArg<string> output_files_arg("o", "output", "Saves a discription of the upper image to .ine and .ext files.", false, "", "filname");
         
         cmd.add(epsilon_argument);
         cmd.add(file_name_argument);
         cmd.add(is_directed_arg);
         cmd.add(use_cdd_arg);
         cmd.add(use_gl_ove_arg);
+        cmd.add(output_files_arg);
 
         cmd.parse(argc, argv);
         
@@ -69,6 +75,7 @@ void EpBensonModule::perform(int argc, char** argv) {
         bool directed = is_directed_arg.getValue();
         bool use_cdd = use_cdd_arg.getValue();
         bool use_gl_ove = use_gl_ove_arg.getValue();
+        string output_file_name = output_files_arg.getValue();
         
         Graph graph;
         EdgeArray<Point> raw_costs(graph);
@@ -106,6 +113,10 @@ void EpBensonModule::perform(int argc, char** argv) {
                 }
                 solutions_.push_back(make_pair(list<edge>(), point));
             }
+
+            auto writer = get_upper_image_writer(&solver);
+            writer.write_image(output_file_name, &solver);
+
         } else {
             EPDualBensonSolver<OnlineVertexEnumeratorCDD> solver(epsilon);
 
@@ -120,6 +131,9 @@ void EpBensonModule::perform(int argc, char** argv) {
                 }
                 solutions_.push_back(make_pair(list<edge>(), point));
             }
+
+            auto writer = get_upper_image_writer(&solver);
+            writer.write_image(output_file_name, &solver);
         }
         
     } catch(ArgException& e) {
