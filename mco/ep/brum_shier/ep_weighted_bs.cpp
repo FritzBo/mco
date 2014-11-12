@@ -24,7 +24,7 @@ using std::function;
 using std::pair;
 
 #include <setoper.h>
-#include <cdd.h>
+#include <cdd_f.h>
 #include <ogdf/basic/Graph.h>
 
 using ogdf::edge;
@@ -83,10 +83,10 @@ ConvexHull(const list<const Point *> &source1,
     
     bool changed = false;
     
-    dd_MatrixPtr points = dd_CreateMatrix(no_points + dim,
+    ddf_MatrixPtr points = ddf_CreateMatrix(no_points + dim,
                                           dim + 1);
     
-    points->representation = dd_Generator;
+    points->representation = ddf_Generator;
     
     int row_index = 0;
     
@@ -94,16 +94,16 @@ ConvexHull(const list<const Point *> &source1,
     for(unsigned j = 0; j < dim; ++j) {
         
         for(unsigned k = 1; k < dim + 1; ++k) {
-            dd_set_d(points->matrix[row_index][k], j + 1 == k ? 1 : 0);
+            ddf_set_d(points->matrix[row_index][k], j + 1 == k ? 1 : 0);
         }
         
-        dd_set_d(points->matrix[row_index][0], 0);
+        ddf_set_d(points->matrix[row_index][0], 0);
         
         ++row_index;
     }
     
     for(unsigned j = dim; j < no_points + dim; ++j) {
-        dd_set_d(points->matrix[j][dim], 1);
+        ddf_set_d(points->matrix[j][dim], 1);
     }
     
     // Insert points from source2 (old points)
@@ -111,17 +111,17 @@ ConvexHull(const list<const Point *> &source1,
         Point point = *pointPtr;
         
         for(unsigned k = 1; k < dim + 1; ++k) {
-            dd_set_d(points->matrix[row_index][k], point[k - 1]);
+            ddf_set_d(points->matrix[row_index][k], point[k - 1]);
         }
         
-        dd_set_d(points->matrix[row_index][0], 1);
+        ddf_set_d(points->matrix[row_index][0], 1);
         
         ++row_index;
         
     }
     
-    dd_ErrorType err;
-    dd_Arow cert = new double[dim + 1][1];
+    ddf_ErrorType err;
+    ddf_Arow cert = new double[dim + 1][1];
     
     // Check all new points for redundancy and insert new non-redundant
     // points
@@ -129,15 +129,15 @@ ConvexHull(const list<const Point *> &source1,
         Point point = *pointPtr;
         
         for(unsigned k = 1; k < dim + 1; ++k) {
-            dd_set_d(points->matrix[row_index][k], point[k - 1]);
+            ddf_set_d(points->matrix[row_index][k], point[k - 1]);
         }
         
-        dd_set_d(points->matrix[row_index][0], 1);
+        ddf_set_d(points->matrix[row_index][0], 1);
         
-        if(dd_Redundant(points, row_index + 1, cert, &err)) {
+        if(ddf_Redundant(points, row_index + 1, cert, &err)) {
             dominated_subset.push_back(pointPtr);
             for(unsigned k = 0; k < dim + 1; ++k) {
-                dd_set_d(points->matrix[row_index][k], k == dim);
+                ddf_set_d(points->matrix[row_index][k], k == dim);
             }
         } else {
             nondominated_subset.push_back(pointPtr);
@@ -162,11 +162,11 @@ ConvexHull(const list<const Point *> &source1,
     for(auto pointPtr : source2) {
         Point point = *pointPtr;
 
-        if(dd_Redundant(points, i + 1, cert, &err)) {
+        if(ddf_Redundant(points, i + 1, cert, &err)) {
             dominated_subset.push_back(pointPtr);
             
             for(unsigned k = 0; k < dim + 1; ++k) {
-                dd_set_d(points->matrix[i][k], k == dim);
+                ddf_set_d(points->matrix[i][k], k == dim);
             }
             
         } else {
@@ -179,7 +179,7 @@ ConvexHull(const list<const Point *> &source1,
     
 //    dd_WriteMatrix(stdout, points);
 
-    dd_FreeMatrix(points);
+    ddf_FreeMatrix(points);
     
     // FIXME
 //    cout << "dominated" << endl;
@@ -206,7 +206,7 @@ void EpWeightedBS::Solve(const Graph& graph,
 	NodeArray<bool> nodes_in_queue(graph, false);
 	NodeArray<list<const Point *>> labels(graph);
     
-    dd_set_global_constants();
+    ddf_set_global_constants();
 
 	queue.push(source);
 	nodes_in_queue[source] = true;
@@ -314,7 +314,7 @@ void EpWeightedBS::Solve(const Graph& graph,
     
 	add_solutions(solutions.begin(), solutions.end());
     
-    dd_free_global_constants();
+    ddf_free_global_constants();
 }
 
 }

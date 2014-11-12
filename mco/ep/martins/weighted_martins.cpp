@@ -64,18 +64,18 @@ add_label(Label& new_label) {
             label_set[0] = &new_label;
             
             for(unsigned i = 0; i < dimension_; ++i) {
-                dd_set_d(hull_matrix->matrix[head - 1][i + 1], point2[i]);
+                ddf_set_d(hull_matrix->matrix[head - 1][i + 1], point2[i]);
             }
-            dd_set_d(hull_matrix->matrix[head - 1][0], 1.0);
+            ddf_set_d(hull_matrix->matrix[head - 1][0], 1.0);
             
             return true;
 
         } else {
             
             for(unsigned i = 0; i < dimension_; ++i) {
-                dd_set_d(hull_matrix->matrix[head][i + 1], point2[i]);
+                ddf_set_d(hull_matrix->matrix[head][i + 1], point2[i]);
             }
-            dd_set_d(hull_matrix->matrix[head][0], 1.0);
+            ddf_set_d(hull_matrix->matrix[head][0], 1.0);
             
             label_set[1] = &new_label;
             
@@ -102,7 +102,7 @@ add_label(Label& new_label) {
         
         // Find position to insert and insert point in hull_matrix at
         // a free position or at head pointer
-        dd_rowrange position;
+        ddf_rowrange position;
         bool used_free_list = false;
         if(free_list.empty()) {
             position = head;
@@ -112,19 +112,19 @@ add_label(Label& new_label) {
         }
         
         for(unsigned i = 0; i < dimension_; ++i) {
-            dd_set_d(hull_matrix->matrix[position][i + 1], new_cost[i]);
+            ddf_set_d(hull_matrix->matrix[position][i + 1], new_cost[i]);
         }
-        dd_set_d(hull_matrix->matrix[position][0], 1.0);
+        ddf_set_d(hull_matrix->matrix[position][0], 1.0);
         
 //        dd_WriteMatrix(stdout, hull_matrix);
         
         // Check if new point is redundant
-        dd_Arow cert = new double [dimension_ + 1][1];
-        dd_ErrorType err = dd_NoError;
-        if(dd_Redundant(hull_matrix, position + 1, cert, &err)) {
+        ddf_Arow cert = new double [dimension_ + 1][1];
+        ddf_ErrorType err = ddf_NoError;
+        if(ddf_Redundant(hull_matrix, position + 1, cert, &err)) {
             
             for(unsigned i = 0; i < dimension_ + 1; ++i) {
-                dd_set_d(hull_matrix->matrix[position][i], 0.0);
+                ddf_set_d(hull_matrix->matrix[position][i], 0.0);
             }
             
             return false;
@@ -142,10 +142,10 @@ add_label(Label& new_label) {
         for(unsigned i = dimension_; i < head; ++i) {
             Label* label = label_set[i - dimension_];
             if(label != nullptr && label->in_queue && i != position) {
-                if(dd_Redundant(hull_matrix, i + 1, cert, &err)) {
+                if(ddf_Redundant(hull_matrix, i + 1, cert, &err)) {
                     
                     for(unsigned j = 0; j < dimension_ + 1; ++j) {
-                        dd_set_d(hull_matrix->matrix[i][j], 0.0);
+                        ddf_set_d(hull_matrix->matrix[i][j], 0.0);
                     }
                     
                     if(i < head - 1) {
@@ -183,7 +183,7 @@ Solve(Graph& graph,
     
     using LabelPriorityQueue = priority_queue<Label *, vector<Label *>, LexLabelComp>;
     
-    dd_set_global_constants();
+    ddf_set_global_constants();
     
 	LabelPriorityQueue lex_min_label((LexLabelComp()));
 	NodeArray<NodeEntry> node_entry(graph, dimension);
@@ -295,7 +295,7 @@ Solve(Graph& graph,
 			delete label;
 	}
     
-    dd_free_global_constants();
+    ddf_free_global_constants();
 }
 
 }

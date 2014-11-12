@@ -4,6 +4,7 @@ include_directories(../cli_lib/include)
 include_directories(${GUROBI_INCLUDE_PATH})
 include_directories(${COIN_INCLUDE_PATH})
 include_directories(${OGDF_INCLUDE_PATH})
+include_directories(${GMP_INCLUDE_PATH})
 
 set(SOURCE_FILES
 main.cpp
@@ -25,12 +26,17 @@ modules/ep_lc_approx_module.h
 modules/ep_lc_approx_module.cpp
 modules/ep_ideal_point.h
 modules/ep_ideal_point.cpp
+modules/ui_verifier.h
+modules/ui_verifier.cpp
 )
 
 add_executable(mco_cli ${SOURCE_FILES})
+
+add_definitions(-DGMPRATIONAL)
 
 target_link_libraries(mco_cli mco)
 target_link_libraries(mco_cli debug ${OGDF-DBG} optimized ${OGDF})
 target_link_libraries(mco_cli debug ${COIN-DBG} optimized ${COIN})
 target_link_libraries(mco_cli ${CDD})
 target_link_libraries(mco_cli pthread)
+target_link_libraries(mco_cli ${GMP})

@@ -13,7 +13,7 @@
 #include <mco/basic/abstract_solver.h>
 
 #include <setoper.h>
-#include <cdd.h>
+#include <cdd_f.h>
 
 namespace mco {
 
@@ -54,7 +54,7 @@ private:
         std::vector<Label*> label_set;
         std::list<unsigned> free_list;
         unsigned head;
-        dd_MatrixPtr hull_matrix;
+        ddf_MatrixPtr hull_matrix;
         unsigned dimension_;
         
         inline NodeEntry(unsigned dimension)
@@ -103,22 +103,22 @@ Label(const Label &label)
     
 void EpWeightedMartins::NodeEntry::
 initialHullMatrix(unsigned dimension, Label& new_label) {
-    hull_matrix = dd_CreateMatrix(dimension * 2,
+    hull_matrix = ddf_CreateMatrix(dimension * 2,
                                   dimension + 1);
     
     for(unsigned i = 0; i < dimension; ++i) {
         for(unsigned j = 0; j < dimension + 1; ++j) {
-            dd_set_d(hull_matrix->matrix[i][j], i + 1 == j ? 1.0 : 0.0);
+            ddf_set_d(hull_matrix->matrix[i][j], i + 1 == j ? 1.0 : 0.0);
         }
-        dd_set_d(hull_matrix->matrix[i][0], 0);
+        ddf_set_d(hull_matrix->matrix[i][0], 0);
     }
     
     for(unsigned j = 0; j < dimension; ++j) {
-        dd_set_d(hull_matrix->matrix[dimension][j + 1], new_label.point->operator[](j));
+        ddf_set_d(hull_matrix->matrix[dimension][j + 1], new_label.point->operator[](j));
     }
-    dd_set_d(hull_matrix->matrix[dimension][0], 1.0);
+    ddf_set_d(hull_matrix->matrix[dimension][0], 1.0);
     
-    hull_matrix->representation = dd_Generator;
+    hull_matrix->representation = ddf_Generator;
     
     head = dimension + 1;
     
@@ -131,18 +131,18 @@ void EpWeightedMartins::NodeEntry::
 extend_hull_matrix() {
     unsigned new_rowsize = 2 * hull_matrix->rowsize;
     unsigned colsize = hull_matrix->colsize;
-    dd_MatrixPtr new_matrix = dd_CreateMatrix(new_rowsize, colsize);
+    ddf_MatrixPtr new_matrix = ddf_CreateMatrix(new_rowsize, colsize);
     
     for(unsigned i = 0; i < hull_matrix->rowsize; ++i) {
         for(unsigned j = 0; j < hull_matrix->colsize; ++j) {
-            double old_value = dd_get_d(hull_matrix->matrix[i][j]);
-            dd_set_d(new_matrix->matrix[i][j], old_value);
+            double old_value = ddf_get_d(hull_matrix->matrix[i][j]);
+            ddf_set_d(new_matrix->matrix[i][j], old_value);
         }
     }
     
-    new_matrix->representation = dd_Generator;
+    new_matrix->representation = ddf_Generator;
     
-    dd_FreeMatrix(hull_matrix);
+    ddf_FreeMatrix(hull_matrix);
     
     hull_matrix = new_matrix;
     

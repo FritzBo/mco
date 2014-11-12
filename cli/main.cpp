@@ -71,6 +71,7 @@ using mco::EqualityPointComparator;
 #include "modules/ep_ideal_point.h"
 #include "modules/ep_bs_module.h"
 #include "modules/ep_bs_par_module.h"
+#include "modules/ui_verifier.h"
 
 int main(int argc, char** argv) {
     try {
@@ -82,6 +83,7 @@ int main(int argc, char** argv) {
         EpBsModule bs_module;
         EpBsParModule bs_par_module;
         EpIdealModule ideal_module;
+        UpperImageVerifier ui_verifier;
     
         module_factory.add_module("ep-dual-benson", benson_module);
         module_factory.add_module("ep-martins", martins_module);
@@ -89,6 +91,7 @@ int main(int argc, char** argv) {
         module_factory.add_module("ep-bs-par", bs_par_module);
         module_factory.add_module("lc-approx", lc_approx_module);
         module_factory.add_module("ep-ideal-point", ideal_module);
+        module_factory.add_module("ui-verify", ui_verifier);
         
         list<pair<unsigned, BasicModule*>> modules = module_factory.parse_module_list(argc, argv);
         

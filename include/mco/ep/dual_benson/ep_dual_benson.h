@@ -56,7 +56,7 @@ private:
     
 template<typename OnlineVertexEnumerator = GraphlessOVE>
 class EPDualBensonSolver : public AbstractSolver<std::list<ogdf::edge>>,
-    public UpperImageContainer<std::list<Point*>::const_iterator> {
+    public AbstractUpperImageContainer<std::list<Point*>::const_iterator> {
 public:
     EPDualBensonSolver(double epsilon = 1E-8)
     :   epsilon_(epsilon) {}

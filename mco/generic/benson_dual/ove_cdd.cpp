@@ -20,14 +20,14 @@ OnlineVertexEnumeratorCDD::OnlineVertexEnumeratorCDD(Point &initial_value, unsig
 	number_hyperplanes_(0),
 	h_representation_(nullptr) {
 
-	dd_set_global_constants();
+	ddf_set_global_constants();
 
-	h_representation_ = dd_CreateMatrix(dimension + 1, dimension + 1);
+	h_representation_ = ddf_CreateMatrix(dimension + 1, dimension + 1);
 
 	for(unsigned int i = 0; i < dimension_ - 1; ++i) {
 		for(unsigned int j = 0; j < dimension_; ++j)
-			dd_set_d(h_representation_->matrix[i][j + 1], i == j ? 1 : 0);
-		dd_set_d(h_representation_->matrix[i][0], 0);
+			ddf_set_d(h_representation_->matrix[i][j + 1], i == j ? 1 : 0);
+		ddf_set_d(h_representation_->matrix[i][0], 0);
 
 		Point p(dimension_);
 		for(unsigned int j = 0; j < dimension_ - 1; ++j)
@@ -43,16 +43,16 @@ OnlineVertexEnumeratorCDD::OnlineVertexEnumeratorCDD(Point &initial_value, unsig
 	unprocessed_vertices_.push_back(p);
 
 	for(unsigned int j = 0; j < dimension_ - 1; ++j)
-		dd_set_d(h_representation_->matrix[dimension_ - 1][j + 1], -1);
-	dd_set_d(h_representation_->matrix[dimension_ - 1][dimension_], 0);
-	dd_set_d(h_representation_->matrix[dimension_ - 1][0], 1);
+		ddf_set_d(h_representation_->matrix[dimension_ - 1][j + 1], -1);
+	ddf_set_d(h_representation_->matrix[dimension_ - 1][dimension_], 0);
+	ddf_set_d(h_representation_->matrix[dimension_ - 1][0], 1);
 
 	for(unsigned int j = 0; j < dimension_ - 1; ++j)
-		dd_set_d(h_representation_->matrix[dimension_][j + 1], initial_value[j] - initial_value[dimension_ - 1]);
-	dd_set_d(h_representation_->matrix[dimension_][dimension_], -1);
-	dd_set_d(h_representation_->matrix[dimension_][0], initial_value[dimension_ - 1]);
+		ddf_set_d(h_representation_->matrix[dimension_][j + 1], initial_value[j] - initial_value[dimension_ - 1]);
+	ddf_set_d(h_representation_->matrix[dimension_][dimension_], -1);
+	ddf_set_d(h_representation_->matrix[dimension_][0], initial_value[dimension_ - 1]);
 
-	h_representation_->representation = dd_Inequality;
+	h_representation_->representation = ddf_Inequality;
 
 //	dd_WriteMatrix(stdout, h_representation_);
 //
@@ -62,9 +62,9 @@ OnlineVertexEnumeratorCDD::OnlineVertexEnumeratorCDD(Point &initial_value, unsig
 
 OnlineVertexEnumeratorCDD::~OnlineVertexEnumeratorCDD() {
 
-	dd_FreeMatrix(h_representation_);
+	ddf_FreeMatrix(h_representation_);
 
-	dd_free_global_constants();
+	ddf_free_global_constants();
 }
 
 bool OnlineVertexEnumeratorCDD::has_next() {
@@ -92,33 +92,33 @@ void OnlineVertexEnumeratorCDD::add_hyperplane(Point &vertex, Point &normal, dou
 
 	number_hyperplanes_++;
 
-	dd_PolyhedraPtr poly;
-	dd_MatrixPtr v_representation, new_face;
-	dd_MatrixPtr new_equality;
-	dd_ErrorType err;
+	ddf_PolyhedraPtr poly;
+	ddf_MatrixPtr v_representation, new_face;
+	ddf_MatrixPtr new_equality;
+	ddf_ErrorType err;
 
-	new_equality = dd_CreateMatrix(1, dimension_ + 1);
+	new_equality = ddf_CreateMatrix(1, dimension_ + 1);
 	for(unsigned int i = 0; i < dimension_; ++i)
-		dd_set_d(new_equality->matrix[0][i + 1], normal[i]);
-	dd_set_d(new_equality->matrix[0][0], -rhs);
+		ddf_set_d(new_equality->matrix[0][i + 1], normal[i]);
+	ddf_set_d(new_equality->matrix[0][0], -rhs);
 
-	dd_MatrixAppendTo(&h_representation_, new_equality);
+	ddf_MatrixAppendTo(&h_representation_, new_equality);
 
-	new_face = dd_CopyMatrix(h_representation_);
+	new_face = ddf_CopyMatrix(h_representation_);
 	set_addelem(new_face->linset, new_face->rowsize);
-	new_face->representation = dd_Inequality;
+	new_face->representation = ddf_Inequality;
 
 //	dd_WriteMatrix(stdout, new_face);
 
-	poly = dd_DDMatrix2Poly(new_face, &err);
+	poly = ddf_DDMatrix2Poly(new_face, &err);
 
-	if(err != dd_NoError) {
-		dd_WriteErrorMessages(stdout, err);
+	if(err != ddf_NoError) {
+		ddf_WriteErrorMessages(stdout, err);
 		assert(false);
         exit(-1);
 	}
 
-	v_representation = dd_CopyGenerators(poly);
+	v_representation = ddf_CopyGenerators(poly);
 
 //	dd_WriteMatrix(stdout, v_representation);
 
@@ -136,22 +136,22 @@ void OnlineVertexEnumeratorCDD::add_hyperplane(Point &vertex, Point &normal, dou
 //	std::cout << "adding.." << std::endl;
 
 	for(int i = 0; i < v_representation->rowsize; ++i) {
-		if(dd_get_d(v_representation->matrix[i][0]) != 1)
+		if(ddf_get_d(v_representation->matrix[i][0]) != 1)
 			continue;
 
 		Point p(dimension_);
 		for(unsigned j = 0; j < dimension_; ++j)
-			p[j] = dd_get_d(v_representation->matrix[i][j + 1]);
+			p[j] = ddf_get_d(v_representation->matrix[i][j + 1]);
 
 		unprocessed_vertices_.push_back(p);
 
 //		std::cout << "Added " << p << std::endl;
 	}
 
-	dd_FreeMatrix(v_representation);
-	dd_FreeMatrix(new_face);
-	dd_FreeMatrix(new_equality);
-	dd_FreePolyhedra(poly);
+	ddf_FreeMatrix(v_representation);
+	ddf_FreeMatrix(new_face);
+	ddf_FreeMatrix(new_equality);
+	ddf_FreePolyhedra(poly);
 
 //	std::cout << "end" << std::endl;
 //	std::cout << clock() << std::endl;

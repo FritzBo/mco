@@ -20,7 +20,7 @@ using std::make_pair;
 
 #include <gurobi_c++.h>
 #include <setoper.h>
-#include <cdd.h>
+#include <cdd_f.h>
 
 #include <mco/molp/weightset/weightset_solver.h>
 #include <mco/molp/basic/molp_model.h>
@@ -81,7 +81,7 @@ void WeightSetMolpSolver::Solve() {
 
 	Init();
 
-	dd_set_global_constants();
+	ddf_set_global_constants();
 
 	/* ************************************************
 	 * Finding an initial solution/extreme point pair *
@@ -186,17 +186,17 @@ void WeightSetMolpSolver::Solve() {
 		 * Constructing points on edges adjacent to y *
 		 *********************************************/
 
-		dd_ErrorType err;
-		dd_MatrixPtr S = dd_CreateMatrix(tangent_cone_constraints.size() + 1, objectives + 1);
+		ddf_ErrorType err;
+		ddf_MatrixPtr S = ddf_CreateMatrix(tangent_cone_constraints.size() + 1, objectives + 1);
 
 		unsigned int i = 0;
 		for(auto constr: tangent_cone_constraints) {
 			double value = 0;
 			for(unsigned int j = 0; j < objectives; ++j) {
 				value += y[j] * constr[j];
-				dd_set_d(S->matrix[i][j + 1], constr[j]);
+				ddf_set_d(S->matrix[i][j + 1], constr[j]);
 			}
-			dd_set_d(S->matrix[i][0], -value);
+			ddf_set_d(S->matrix[i][0], -value);
 
 			i++;
 		}
@@ -204,27 +204,27 @@ void WeightSetMolpSolver::Solve() {
 		double normal_value = 0;
 		for(unsigned int i = 0; i < objectives; ++i) {
 			normal_value += normal_vector[i] * y[i];
-			dd_set_d(S->matrix[tangent_cone_constraints.size()][i + 1], normal_vector[i]);
+			ddf_set_d(S->matrix[tangent_cone_constraints.size()][i + 1], normal_vector[i]);
 		}
-		dd_set_d(S->matrix[tangent_cone_constraints.size()][0], -(normal_value + 1));
+		ddf_set_d(S->matrix[tangent_cone_constraints.size()][0], -(normal_value + 1));
 
-		S->representation = dd_Inequality;
+		S->representation = ddf_Inequality;
 
-		dd_PolyhedraPtr P = dd_DDMatrix2Poly(S, &err);
-		dd_MatrixPtr G = dd_CopyGenerators(P);
+		ddf_PolyhedraPtr P = ddf_DDMatrix2Poly(S, &err);
+		ddf_MatrixPtr G = ddf_CopyGenerators(P);
 
-		dd_WriteMatrix(stdout, G);
-		dd_WriteMatrix(stdout, S);
+		ddf_WriteMatrix(stdout, G);
+		ddf_WriteMatrix(stdout, S);
 
 		list<double *> edge_points;
 
 		for(int i = 0; i < G->rowsize; ++i) {
-			if(dd_get_d(G->matrix[i][0]) != 1)
+			if(ddf_get_d(G->matrix[i][0]) != 1)
 				continue;
 
 			obj_constr = new double[objectives];
 			for(unsigned int j = 0; j < objectives; ++j)
-				obj_constr[j] = dd_get_d(G->matrix[i][j + 1]);
+				obj_constr[j] = ddf_get_d(G->matrix[i][j + 1]);
 
 			if(is_dominated(obj_constr, y, objectives, 1E-6)) {
 				delete[] obj_constr;
@@ -309,7 +309,7 @@ void WeightSetMolpSolver::Solve() {
 
 	}
 
-	dd_free_global_constants();
+	ddf_free_global_constants();
 
 	std::cout << "Finished. Extreme points are:" << std::endl;
 	for(auto point: permanent_points) {

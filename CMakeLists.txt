@@ -70,10 +70,25 @@ find_path(CDD_INCLUDE_PATH
 )
 
 find_library(CDD
-	NAMES libcdd.a
+	NAMES libcddgmp.a
 	PATHS	/usr/
 		/usr/local
 		/opt/local
+)
+
+## GMP ##
+find_path(GMP_INCLUDE_PATH
+    NAMES   gmp.h
+    PATHS 	/usr/
+            /usr/local/
+            /opt/local/
+)
+
+find_library(GMP
+    NAMES   libgmp.a
+    PATHS   /usr/
+            /usr/local
+            /opt/local
 )
 
 add_subdirectory(mco)

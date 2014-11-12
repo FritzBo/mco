@@ -58,6 +58,7 @@ set(SOURCE_FILES
 ../include/mco/ep/basic/dijkstra.h
 ../include/mco/ep/dual_benson/ep_dual_benson.h
 ../include/mco/ep/dual_benson/constrained_ep_dual_benson.h
+../include/mco/ep/dual_benson/ep_benson_verifier.h
 ../include/mco/ep/preprocessing/constrained_reach.h
 ../include/mco/ep/basic/instance_scalarizer.h
 

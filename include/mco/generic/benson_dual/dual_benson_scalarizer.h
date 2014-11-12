@@ -84,9 +84,9 @@ Calculate_solutions(std::list<Point *>& solutions) {
     }
     v[0] = 1;
 
+    v[dimension_ - 1] = solver_(v, value);
+    
     permanent_facets_.push_back(v);
-
-    value[dimension_ - 1] = solver_(v, value);
 
     solutions.push_back(new Point(value));
     
