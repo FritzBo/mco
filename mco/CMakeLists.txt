@@ -27,6 +27,7 @@ set(SOURCE_FILES
 ../include/mco/ap/benson_dual/ap_grb_benson_dual_solver.h
 ../include/mco/ap/brute_force/ap_brute_force_solver.h
 ../include/mco/ap/molp_solver/assignment_molp_model.h
+../include/mco/ap/ok10/ap_ok10_solver.h
 
 # Benchmarks
 ../include/mco/benchmarks/abstract_objective_vector_generator.h
@@ -80,6 +81,9 @@ set(SOURCE_FILES
 ../include/mco/generic/benson_dual/ove_edge_lists.h
 ../include/mco/generic/benson_dual/ove_fp_v2.h
 ../include/mco/generic/benson_dual/upper_image_container.h
+
+# Generics
+../include/mco/generic/ok10/ok10_scalarizer.h
 
 # Geometry Tools
 ../include/mco/geometric/projective_geometry_utilities.h

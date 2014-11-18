@@ -65,32 +65,42 @@ using mco::ComponentwisePointComparator;
 using mco::EqualityPointComparator;
 
 #include "basic/modules.h"
+
+#include "modules/ap_ok10_module.h"
+
 #include "modules/ep_benson_module.h"
 #include "modules/ep_martins_module.h"
 #include "modules/ep_lc_approx_module.h"
 #include "modules/ep_ideal_point.h"
 #include "modules/ep_bs_module.h"
 #include "modules/ep_bs_par_module.h"
+
 #include "modules/ui_verifier.h"
 
 int main(int argc, char** argv) {
     try {
         ModuleFactory module_factory;
-        
+
+        ApOk10Module ap_ok10_module;
+
         EpBensonModule benson_module;
         EpMartinsModule martins_module;
         EpLCApproxModule lc_approx_module;
         EpBsModule bs_module;
         EpBsParModule bs_par_module;
         EpIdealModule ideal_module;
+
         UpperImageVerifier ui_verifier;
-    
+
+        module_factory.add_module("ap-ok10", ap_ok10_module);
+
         module_factory.add_module("ep-dual-benson", benson_module);
         module_factory.add_module("ep-martins", martins_module);
         module_factory.add_module("ep-bs", bs_module);
         module_factory.add_module("ep-bs-par", bs_par_module);
         module_factory.add_module("lc-approx", lc_approx_module);
         module_factory.add_module("ep-ideal-point", ideal_module);
+
         module_factory.add_module("ui-verify", ui_verifier);
         
         list<pair<unsigned, BasicModule*>> modules = module_factory.parse_module_list(argc, argv);
