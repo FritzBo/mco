@@ -12,6 +12,7 @@
 #include <string>
 #include <fstream>
 #include <iterator>
+#include <iomanip>
 
 #include <setoper.h>
 #include <cdd.h>

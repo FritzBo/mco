@@ -19,6 +19,8 @@
 #include <mco/generic/benson_dual/dual_benson_scalarizer.h>
 #include <mco/generic/benson_dual/ove_fp_v2.h>
 
+#include <mco/generic/benson_dual/upper_image_container.h>
+
 namespace mco {
 
 class LexHungarianSolverAdaptor {
@@ -35,14 +37,33 @@ private:
     
 template<typename OnlineVertexEnumerator = GraphlessOVE>
 class APBensonDualSolver
-: public AbstractSolver<std::list<ogdf::edge>> {
+: public AbstractSolver<std::list<ogdf::edge>>,
+    public AbstractUpperImageContainer<std::list<Point*>::const_iterator> {
         
 public:
     APBensonDualSolver(double epsilon = 1E-8)
     :   epsilon_(epsilon) { }
 
+    ~APBensonDualSolver() {
+        for(auto point : extreme_points_) {
+            delete point;
+        }
+        for(auto point : inequalities_) {
+            delete point;
+        }
+    }
+
 	void Solve(AssignmentInstance & instance) {
-        
+
+        for(auto point : inequalities_) {
+            delete point;
+        }
+        for(auto point : extreme_points_) {
+            delete point;
+        }
+        inequalities_.clear();
+        extreme_points_.clear();
+
 		std::list<Point *> frontier;
         
         DualBensonScalarizer<OnlineVertexEnumerator>
@@ -52,24 +73,44 @@ public:
         
 		dual_benson_solver_.Calculate_solutions(frontier);
 
-        facets_ = dual_benson_solver_.number_facets();
-        
         std::list<std::pair<std::list<ogdf::edge>, Point>> solutions;
         
         for(auto point : frontier) {
             solutions.push_back(make_pair(std::list<ogdf::edge>(), *point));
+            extreme_points_.push_back(new Point(*point));
+        }
+
+        for(auto inequality : dual_benson_solver_.facets_list()) {
+            inequalities_.push_back(new Point(inequality));
         }
         
 		add_solutions(solutions.begin(), solutions.end());
 	}
 
+    std::list<Point*>::const_iterator cbeginExtremePoints() {
+        return extreme_points_.cbegin();
+    }
+
+    std::list<Point*>::const_iterator cendExtremePoints() {
+        return extreme_points_.cend();
+    }
+
+    std::list<Point*>::const_iterator cbeginInequalities() {
+        return inequalities_.cbegin();
+    }
+    std::list<Point*>::const_iterator cendInequalities() {
+        return inequalities_.cend();
+    }
+
     unsigned number_facets() {
-        return facets_;
+        return inequalities_.size();
     }
 
 private:
     double epsilon_;
-    unsigned facets_;
+
+    std::list<Point*> extreme_points_;
+    std::list<Point*> inequalities_;
 };
     
         
@@ -89,6 +130,8 @@ operator()(const Point& weighting, Point& value) {
                                                                  weighting),
                                         ap_instance_.dimension() + 1,
                                         ap_instance_.agents());
+
+
     
     for(unsigned i = 0; i < ap_instance_.dimension(); ++i) {
         value[i] = result[i + 1];

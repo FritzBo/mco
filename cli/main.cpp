@@ -66,6 +66,7 @@ using mco::EqualityPointComparator;
 
 #include "basic/modules.h"
 
+#include "modules/ap_benson_module.h"
 #include "modules/ap_ok10_module.h"
 
 #include "modules/ep_benson_module.h"
@@ -81,6 +82,7 @@ int main(int argc, char** argv) {
     try {
         ModuleFactory module_factory;
 
+        ApBensonModule ap_benson_module;
         ApOk10Module ap_ok10_module;
 
         EpBensonModule benson_module;
@@ -92,9 +94,10 @@ int main(int argc, char** argv) {
 
         UpperImageVerifier ui_verifier;
 
+        module_factory.add_module("ap-benson", ap_benson_module);
         module_factory.add_module("ap-ok10", ap_ok10_module);
 
-        module_factory.add_module("ep-dual-benson", benson_module);
+        module_factory.add_module("ep-benson", benson_module);
         module_factory.add_module("ep-martins", martins_module);
         module_factory.add_module("ep-bs", bs_module);
         module_factory.add_module("ep-bs-par", bs_par_module);

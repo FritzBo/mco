@@ -16,6 +16,8 @@ basic/modules.cpp
 #### Modules
 
 ## AP
+modules/ap_benson_module.h
+modules/ap_benson_module.cpp
 modules/ap_ok10_module.h
 modules/ap_ok10_module.cpp
 
