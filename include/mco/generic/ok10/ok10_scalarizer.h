@@ -23,10 +23,13 @@ namespace mco {
 class Ok10Scalarizer {
 public:
     Ok10Scalarizer(std::function<double(const Point& weighting, Point& value)> solver,
+                   Point& upper_bounds,
                    unsigned int dimension)
     :   dimension_(dimension),
-    epsilon_(1E-8),
-    solver_(solver) {
+        epsilon_(1E-8),
+        upper_bounds_(upper_bounds),
+        solver_(solver) {
+
         assert(dimension_ > 1);
     }
 
@@ -35,6 +38,10 @@ public:
 protected:
     unsigned int dimension_;
     double epsilon_;
+    Point& upper_bounds_;
+
+    double initial_hyperplane_;
+    double normalization_;
 
     std::function<double(const Point&, Point&)> solver_;
 
@@ -78,7 +85,7 @@ void Ok10Scalarizer::
 Calculate_solutions(std::list<Point *>& solutions) {
 
     LexStageCompare stage_cmp(epsilon_);
-    ComponentwisePointComparator cmp(epsilon_);
+    ComponentwisePointComparator cmp(epsilon_, false);
     EqualityPointComparator eq(epsilon_);
 
     const Point zero(dimension_);
@@ -87,15 +94,26 @@ Calculate_solutions(std::list<Point *>& solutions) {
 
     std::set<stage_type, LexStageCompare> already_found_stages(stage_cmp);
 
-    ddf_set_global_constants();
+    dd_set_global_constants();
 
     pending_stage_queue.clear();
+
+
+    initial_hyperplane_ = 0;
+    normalization_ = std::numeric_limits<double>::infinity();
+    for(double x : upper_bounds_) {
+        initial_hyperplane_ += x;
+        normalization_ = min(normalization_, x);
+    }
+
+    cout << "Initial hyperplane offset: " << initial_hyperplane_ << endl;
+    cout << "Normalization: " << normalization_ << endl;
 
     stage_type initial_stage;
     for(unsigned objective_i = 0; objective_i < dimension_; ++objective_i) {
 
         Point point(dimension_);
-        point[objective_i] = 1E5;
+        point[objective_i] = 1000 * initial_hyperplane_;
         initial_stage.insert(std::move(point));
     }
     pending_stage_queue.push_back(std::move(initial_stage));
@@ -105,15 +123,6 @@ Calculate_solutions(std::list<Point *>& solutions) {
         stage_type pending_stage = pending_stage_queue.back();
         pending_stage_queue.pop_back();
 
-        if(already_found_stages.find(pending_stage) != already_found_stages.end()) {
-#ifndef NDEBUG
-            cout << "Stage already investigated" << endl;
-#endif
-            continue;
-        } else {
-            already_found_stages.insert(pending_stage);
-        }
-
 #ifndef NDEBUG
         cout << "Current stage:" << endl;
         for(auto& point : pending_stage) {
@@ -122,6 +131,14 @@ Calculate_solutions(std::list<Point *>& solutions) {
         cout << "Currently " << pending_stage_queue.size() << " stages in queue." << endl;
 #endif
 
+        if(already_found_stages.find(pending_stage) != already_found_stages.end()) {
+#ifndef NDEBUG
+            cout << "Stage already investigated" << endl;
+#endif
+            continue;
+        } else {
+            already_found_stages.insert(pending_stage);
+        }
 
         if(!calculate_lambda(pending_stage, lambda)) {
 #ifndef NDEBUG
@@ -202,8 +219,6 @@ Calculate_solutions(std::list<Point *>& solutions) {
             cout << "Negative components. Creating help stages." << endl;
 #endif
 
-            Point old_ex(dimension_);
-
             auto ex_point_it = solutions.begin();
             while(ex_point_it != solutions.end()) {
                 Point& test_point = **ex_point_it;
@@ -211,12 +226,17 @@ Calculate_solutions(std::list<Point *>& solutions) {
                 auto pos_it = pending_stage.find(test_point);
 
                 if(pos_it == pending_stage.end()) {
-                    old_ex = test_point;
+                    value = test_point;
                     break;
                 }
 
                 ++ex_point_it;
 
+            }
+
+            if(ex_point_it == solutions.end()) {
+                pending_stage_queue.push_back(pending_stage);
+                continue;
             }
 
 #ifndef NDEBUG
@@ -236,7 +256,7 @@ Calculate_solutions(std::list<Point *>& solutions) {
                     ++old_point_it;
                     ++j;
                 }
-                new_stage.insert(old_ex);
+                new_stage.insert(value);
 
                 pending_stage_queue.push_back(new_stage);
             }
@@ -249,7 +269,7 @@ Calculate_solutions(std::list<Point *>& solutions) {
     cout << "Total number of stages: " << already_found_stages.size() << endl;
 //#endif
 
-    ddf_free_global_constants();
+    dd_free_global_constants();
 }
 
 bool Ok10Scalarizer::calculate_lambda(stage_reference stage,
@@ -257,7 +277,7 @@ bool Ok10Scalarizer::calculate_lambda(stage_reference stage,
 
     std::list<Point> hp_defining_vectors;
 
-    ddf_MatrixPtr ls = ddf_CreateMatrix(dimension_,
+    dd_MatrixPtr ls = dd_CreateMatrix(dimension_,
                                         dimension_ + 1);
 
     const Point* ref_point =  &*stage.begin();
@@ -268,11 +288,11 @@ bool Ok10Scalarizer::calculate_lambda(stage_reference stage,
     while(point_it != stage.end()) {
 
         for(unsigned col_i = 1; col_i < dimension_ + 1; ++col_i) {
-            ddf_set_si(ls->matrix[row_i][col_i], (int)
+            dd_set_si(ls->matrix[row_i][col_i], (long)
                       ref_point->operator[](col_i - 1) - point_it->operator[](col_i - 1));
         }
 
-        ddf_set_si(ls->matrix[row_i][0], 0);
+        dd_set_si(ls->matrix[row_i][0], 0);
         set_addelem(ls->linset, row_i+1);
 
         ++row_i;
@@ -280,30 +300,34 @@ bool Ok10Scalarizer::calculate_lambda(stage_reference stage,
     }
 
     for(unsigned col_i = 1; col_i < dimension_ + 1; ++col_i) {
-        ddf_set_si(ls->matrix[row_i][col_i], 1);
+        dd_set_si(ls->matrix[row_i][col_i], 1);
     }
 
-    ddf_set_si(ls->matrix[row_i][0], -100);
+    dd_set_si(ls->matrix[row_i][0], -normalization_);
     set_addelem(ls->linset, row_i+1);
 
-    ls->representation = ddf_Inequality;
+    ls->representation = dd_Inequality;
 
-//    ddf_WriteMatrix(stdout, ls);
+#ifndef NDEBUG
+    dd_WriteMatrix(stdout, ls);
+#endif
 
-    ddf_ErrorType err;
-    ddf_PolyhedraPtr poly = ddf_DDMatrix2Poly(ls, &err);
+    dd_ErrorType err;
+    dd_PolyhedraPtr poly = dd_DDMatrix2Poly(ls, &err);
 
-    ddf_MatrixPtr sol;
-    sol = ddf_CopyGenerators(poly);
+    dd_MatrixPtr sol;
+    sol = dd_CopyGenerators(poly);
 
-//    ddf_WriteMatrix(stdout, sol);
+#ifndef NDEBUG
+    dd_WriteMatrix(stdout, sol);
+#endif
 
     if(sol->rowsize != 1) {
         return false;
     }
 
     for(unsigned i = 1; i < dimension_ + 1; ++i) {
-        lambda[i - 1] = ddf_get_d(sol->matrix[0][i]);
+        lambda[i - 1] = dd_get_d(sol->matrix[0][i]);
     }
 
     return true;

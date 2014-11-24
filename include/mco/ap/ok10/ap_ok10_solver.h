@@ -80,8 +80,24 @@ Solve(AssignmentInstance & instance) {
 
     std::list<Point *> frontier;
 
+    Point upper_bounds(-std::numeric_limits<double>::infinity(), dimension);
+
+    for(auto e : instance.graph().edges) {
+        for(unsigned i = 0; i < dimension; ++i) {
+            upper_bounds[i] = max(upper_bounds[i],
+                                  instance.weights()(e)->operator[](i));
+        }
+    }
+
+    for(unsigned i = 0; i < dimension; ++i) {
+        upper_bounds[i] *= instance.graph().numberOfNodes() / 2;
+    }
+
     LexHungarianSolverAdaptor solver(instance);
-    Ok10Scalarizer scalarizer(solver, dimension);
+
+    Ok10Scalarizer scalarizer(solver,
+                              upper_bounds,
+                              dimension);
 
     scalarizer.Calculate_solutions(frontier);
 
