@@ -33,6 +33,7 @@ using TCLAP::SwitchArg;
 #include <mco/ep/basic/instance_scalarizer.h>
 #include <mco/ep/dual_benson/ep_dual_benson.h>
 #include <mco/generic/benson_dual/ove_cdd.h>
+#include <mco/generic/benson_dual/ove_cdd_gmp.h>
 #include <mco/benchmarks/temporary_graphs_parser.h>
 #include <mco/basic/point.h>
 
@@ -41,6 +42,7 @@ using TCLAP::SwitchArg;
 using mco::InstanceScalarizer;
 using mco::EPDualBensonSolver;
 using mco::OnlineVertexEnumeratorCDD;
+using mco::OnlineVertexEnumeratorCddGmp;
 using mco::TemporaryGraphParser;
 using mco::Point;
 using mco::UpperImageWriter;
@@ -57,6 +59,8 @@ void EpBensonModule::perform(int argc, char** argv) {
 
         SwitchArg use_cdd_arg("", "cdd", "Using CDD Library for the vertex enumeration", false);
 
+        SwitchArg use_gmp_arg("", "gmp", "Using CDD in GMP mode.", false);
+
         SwitchArg use_gl_ove_arg("", "gl-ove", "Using the graphless online vertex enumerator", false);
 
         ValueArg<string> output_files_arg("o", "output", "Saves a discription of the upper image to .ine and .ext files.", false, "", "filname");
@@ -65,6 +69,7 @@ void EpBensonModule::perform(int argc, char** argv) {
         cmd.add(file_name_argument);
         cmd.add(is_directed_arg);
         cmd.add(use_cdd_arg);
+        cmd.add(use_gmp_arg);
         cmd.add(use_gl_ove_arg);
         cmd.add(output_files_arg);
 
@@ -74,6 +79,7 @@ void EpBensonModule::perform(int argc, char** argv) {
         double epsilon = epsilon_argument.getValue();
         bool directed = is_directed_arg.getValue();
         bool use_cdd = use_cdd_arg.getValue();
+        bool use_gmp = use_gmp_arg.getValue();
         bool use_gl_ove = use_gl_ove_arg.getValue();
         string output_file_name = output_files_arg.getValue();
         
@@ -118,22 +124,43 @@ void EpBensonModule::perform(int argc, char** argv) {
             writer.write_image(output_file_name, &solver);
 
         } else {
-            EPDualBensonSolver<OnlineVertexEnumeratorCDD> solver(epsilon);
+            if(use_gmp) {
+                EPDualBensonSolver<OnlineVertexEnumeratorCddGmp> solver(epsilon);
 
-            auto cost_function = [costs] (edge e) { return &costs[e]; };
+                auto cost_function = [costs] (edge e) { return &costs[e]; };
 
-            solver.Solve(graph, cost_function, source, target);
+                solver.Solve(graph, cost_function, source, target);
 
-            for(auto sol : solver.solutions()) {
-                Point point = sol.second;
-                for(unsigned i = 0; i < dimension; ++i) {
-                    point[i] /= factor[i];
+                for(auto sol : solver.solutions()) {
+                    Point point = sol.second;
+                    for(unsigned i = 0; i < dimension; ++i) {
+                        point[i] /= factor[i];
+                    }
+                    solutions_.push_back(make_pair(list<edge>(), point));
                 }
-                solutions_.push_back(make_pair(list<edge>(), point));
-            }
 
-            auto writer = get_upper_image_writer(&solver);
-            writer.write_image(output_file_name, &solver);
+                auto writer = get_upper_image_writer(&solver);
+                writer.write_image(output_file_name, &solver);
+
+            } else {
+
+                EPDualBensonSolver<OnlineVertexEnumeratorCDD> solver(epsilon);
+
+                auto cost_function = [costs] (edge e) { return &costs[e]; };
+
+                solver.Solve(graph, cost_function, source, target);
+
+                for(auto sol : solver.solutions()) {
+                    Point point = sol.second;
+                    for(unsigned i = 0; i < dimension; ++i) {
+                        point[i] /= factor[i];
+                    }
+                    solutions_.push_back(make_pair(list<edge>(), point));
+                }
+
+                auto writer = get_upper_image_writer(&solver);
+                writer.write_image(output_file_name, &solver);
+            }
         }
         
     } catch(ArgException& e) {

@@ -40,9 +40,9 @@ modules/ui_verifier.h
 modules/ui_verifier.cpp
 )
 
-add_executable(mco_cli ${SOURCE_FILES})
-
 add_definitions(-DGMPRATIONAL)
+
+add_executable(mco_cli ${SOURCE_FILES})
 
 target_link_libraries(mco_cli mco)
 target_link_libraries(mco_cli debug ${OGDF-DBG} optimized ${OGDF})

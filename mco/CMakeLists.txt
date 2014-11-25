@@ -2,6 +2,7 @@ include_directories(../include)
 include_directories(${GUROBI_INCLUDE_PATH})
 include_directories(${COIN_INCLUDE_PATH})
 include_directories(${OGDF_INCLUDE_PATH})
+include_directories(${GMP_INCLUDE_PATH})
 
 set(SOURCE_FILES
 
@@ -77,6 +78,7 @@ set(SOURCE_FILES
 ../include/mco/generic/benson_dual/abstract_online_vertex_enumerator.h
 ../include/mco/generic/benson_dual/dual_benson_scalarizer.h
 ../include/mco/generic/benson_dual/ove_cdd.h
+../include/mco/generic/benson_dual/ove_cdd_gmp.h
 ../include/mco/generic/benson_dual/ove_node_lists.h
 ../include/mco/generic/benson_dual/ove_edge_lists.h
 ../include/mco/generic/benson_dual/ove_fp_v2.h
@@ -143,6 +145,7 @@ generic/lagrange_bisect.cpp
 
 # Benson Dual
 generic/benson_dual/ove_cdd.cpp
+generic/benson_dual/ove_cdd_gmp.cpp
 generic/benson_dual/ove_node_lists.cpp
 generic/benson_dual/ove_edge_lists.cpp
 generic/benson_dual/ove_fp_v2.cpp
@@ -153,5 +156,7 @@ molp/benson/benson_exact.cpp
 molp/benson/benson.cpp
 molp/weightset/weightset_solver.cpp
 )
+
+add_definitions(-DGMPRATIONAL)
 
 add_library(mco STATIC ${SOURCE_FILES})
