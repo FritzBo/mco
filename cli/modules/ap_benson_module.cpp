@@ -35,6 +35,7 @@ using TCLAP::SwitchArg;
 #include <mco/benchmarks/mcap_parser.h>
 #include <mco/ap/benson_dual/ap_benson_dual_solver.h>
 #include <mco/generic/benson_dual/ove_cdd.h>
+#include <mco/generic/benson_dual/ove_cdd_gmp.h>
 #include <mco/basic/point.h>
 
 #include <mco/generic/benson_dual/upper_image_container.h>
@@ -44,6 +45,7 @@ using mco::MCAPParser;
 using mco::AssignmentInstance;
 using mco::APBensonDualSolver;
 using mco::OnlineVertexEnumeratorCDD;
+using mco::OnlineVertexEnumeratorCddGmp;
 
 using mco::UpperImageWriter;
 
@@ -58,6 +60,8 @@ void ApBensonModule::perform(int argc, char** argv) {
 
         SwitchArg use_cdd_arg("", "cdd", "Using CDD Library for the vertex enumeration", false);
 
+        SwitchArg use_cdd_gmp_arg("", "gmp", "Using CDD Library in GMP mode", false);
+
         SwitchArg use_gl_ove_arg("", "gl-ove", "Using the graphless online vertex enumerator", false);
 
         ValueArg<string> output_files_arg("o", "output", "Saves a discription of the upper image to .ine and .ext files.", false, "", "filname");
@@ -66,6 +70,7 @@ void ApBensonModule::perform(int argc, char** argv) {
         cmd.add(epsilon_argument);
         cmd.add(file_name_argument);
         cmd.add(use_cdd_arg);
+        cmd.add(use_cdd_gmp_arg);
         cmd.add(use_gl_ove_arg);
         cmd.add(output_files_arg);
 
@@ -75,6 +80,7 @@ void ApBensonModule::perform(int argc, char** argv) {
         string output_file_name = output_files_arg.getValue();
         double epsilon = epsilon_argument.getValue();
         bool use_cdd = use_cdd_arg.getValue();
+        bool use_gmp = use_cdd_gmp_arg.getValue();
         bool use_gl_ove = use_gl_ove_arg.getValue();
 
         Graph graph;
@@ -98,16 +104,29 @@ void ApBensonModule::perform(int argc, char** argv) {
             auto writer = get_upper_image_writer(&solver);
             writer.write_image(output_file_name, &solver);
         } else {
-            APBensonDualSolver<mco::OnlineVertexEnumeratorCDD> solver(epsilon);
+            if(use_gmp) {
+                APBensonDualSolver<mco::OnlineVertexEnumeratorCddGmp> solver(epsilon);
 
-            solver.Solve(instance);
+                solver.Solve(instance);
 
-            solutions_.insert(solutions_.begin(),
-                              solver.solutions().cbegin(),
-                              solver.solutions().cend());
+                solutions_.insert(solutions_.begin(),
+                                  solver.solutions().cbegin(),
+                                  solver.solutions().cend());
 
-            auto writer = get_upper_image_writer(&solver);
-            writer.write_image(output_file_name, &solver);
+                auto writer = get_upper_image_writer(&solver);
+                writer.write_image(output_file_name, &solver);
+            } else {
+                APBensonDualSolver<mco::OnlineVertexEnumeratorCDD> solver(epsilon);
+
+                solver.Solve(instance);
+
+                solutions_.insert(solutions_.begin(),
+                                  solver.solutions().cbegin(),
+                                  solver.solutions().cend());
+
+                auto writer = get_upper_image_writer(&solver);
+                writer.write_image(output_file_name, &solver);
+            }
         }
 
     } catch(ArgException& e) {

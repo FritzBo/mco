@@ -66,6 +66,7 @@ using mco::EqualityPointComparator;
 
 #include "basic/modules.h"
 
+#include "modules/ap_bf_module.h"
 #include "modules/ap_benson_module.h"
 #include "modules/ap_ok10_module.h"
 
@@ -82,6 +83,7 @@ int main(int argc, char** argv) {
     try {
         ModuleFactory module_factory;
 
+        ApBfModule ap_bf_module;
         ApBensonModule ap_benson_module;
         ApOk10Module ap_ok10_module;
 
@@ -94,6 +96,7 @@ int main(int argc, char** argv) {
 
         UpperImageVerifier ui_verifier;
 
+        module_factory.add_module("ap-bf", ap_bf_module);
         module_factory.add_module("ap-benson", ap_benson_module);
         module_factory.add_module("ap-ok10", ap_ok10_module);
 
@@ -172,9 +175,10 @@ int main(int argc, char** argv) {
                     auto solution = *solution_it;
                     
                     if(print_frontier) {
+                        cout << "1\t";
                         auto point_it = solution.second.cbegin();
                         while(point_it != solution.second.cend()) {
-                            cout << *point_it++ << ", ";
+                            cout << *point_it++ << "\t";
                         }
                     }
                     if(print_solutions) {

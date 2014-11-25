@@ -301,23 +301,21 @@ template<typename OutputIterator>
 void UpperImageDDVerifier::compare(AbstractUpperImageContainer<OutputIterator>& container) {
 
     unsigned num_rows = v_representation_->rowsize;
-    unsigned num_ext = std::distance(container.cbeginExtremePoints(),
-                                     container.cendExtremePoints());
 
-    if(num_ext != num_rows - dimension_) {
-        return;
-    }
+    std::cout << "Exact computation found " << num_rows << " extreme points." << std::endl;
+
+//    dd_WriteMatrix(stdout, v_representation_);
 
     double max_pair_distance = - std::numeric_limits<double>::infinity();
 
-    for(unsigned i = 0; i < v_representation_->rowsize; ++i) {
+    auto it = container.cbeginExtremePoints();
+    while(it != container.cendExtremePoints()) {
 
-        if(dd_get_d(v_representation_->matrix[i][0]) == 1) {
+        double min_distance = std::numeric_limits<double>::infinity();
 
-            double min_distance = std::numeric_limits<double>::infinity();
+        for(unsigned i = 0; i < v_representation_->rowsize; ++i) {
 
-            auto it = container.cbeginExtremePoints();
-            while(it != container.cendExtremePoints()) {
+            if(dd_get_d(v_representation_->matrix[i][0]) == 1) {
 
                 double distance = 0;
                 for(unsigned j = 1; j < dimension_ + 1; ++j) {
@@ -326,14 +324,12 @@ void UpperImageDDVerifier::compare(AbstractUpperImageContainer<OutputIterator>& 
 
                 distance = std::sqrt(distance);
                 min_distance = std::min(min_distance, distance);
-
-                ++it;
-
             }
-
-            max_pair_distance = std::max(max_pair_distance, min_distance);
         }
 
+        ++it;
+
+        max_pair_distance = std::max(max_pair_distance, min_distance);
     }
 
     std::cout << max_pair_distance << std::endl;

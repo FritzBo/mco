@@ -16,6 +16,8 @@ basic/modules.cpp
 #### Modules
 
 ## AP
+modules/ap_bf_module.h
+modules/ap_bf_module.cpp
 modules/ap_benson_module.h
 modules/ap_benson_module.cpp
 modules/ap_ok10_module.h
@@ -38,9 +40,9 @@ modules/ui_verifier.h
 modules/ui_verifier.cpp
 )
 
-add_executable(mco_cli ${SOURCE_FILES})
-
 add_definitions(-DGMPRATIONAL)
+
+add_executable(mco_cli ${SOURCE_FILES})
 
 target_link_libraries(mco_cli mco)
 target_link_libraries(mco_cli debug ${OGDF-DBG} optimized ${OGDF})
