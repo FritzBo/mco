@@ -100,28 +100,33 @@ Calculate_solutions(std::list<Point *>& solutions) {
 
 
     initial_hyperplane_ = 0;
+    double max_ub = -std::numeric_limits<double>::infinity();
     normalization_ = std::numeric_limits<double>::infinity();
     for(double x : upper_bounds_) {
         initial_hyperplane_ += x;
+        max_ub = max(max_ub, x);
         normalization_ = min(normalization_, x);
     }
+    initial_hyperplane_ *= max_ub;
 
+#ifndef NDEBUG
     cout << "Initial hyperplane offset: " << initial_hyperplane_ << endl;
     cout << "Normalization: " << normalization_ << endl;
+#endif
 
     stage_type initial_stage;
     for(unsigned objective_i = 0; objective_i < dimension_; ++objective_i) {
 
         Point point(dimension_);
-        point[objective_i] = 1000 * initial_hyperplane_;
+        point[objective_i] = 0x7FFFFFFF;
         initial_stage.insert(std::move(point));
     }
     pending_stage_queue.push_back(std::move(initial_stage));
 
     while(!pending_stage_queue.empty()) {
 
-        stage_type pending_stage = pending_stage_queue.back();
-        pending_stage_queue.pop_back();
+        stage_type pending_stage = pending_stage_queue.front();
+        pending_stage_queue.pop_front();
 
 #ifndef NDEBUG
         cout << "Current stage:" << endl;
@@ -265,9 +270,9 @@ Calculate_solutions(std::list<Point *>& solutions) {
 
     }
 
-//#ifndef NDEBUG
+#ifndef NDEBUG
     cout << "Total number of stages: " << already_found_stages.size() << endl;
-//#endif
+#endif
 
     dd_free_global_constants();
 }
@@ -288,7 +293,7 @@ bool Ok10Scalarizer::calculate_lambda(stage_reference stage,
     while(point_it != stage.end()) {
 
         for(unsigned col_i = 1; col_i < dimension_ + 1; ++col_i) {
-            dd_set_si(ls->matrix[row_i][col_i], (long)
+            dd_set_si(ls->matrix[row_i][col_i], (int)
                       ref_point->operator[](col_i - 1) - point_it->operator[](col_i - 1));
         }
 
@@ -303,7 +308,7 @@ bool Ok10Scalarizer::calculate_lambda(stage_reference stage,
         dd_set_si(ls->matrix[row_i][col_i], 1);
     }
 
-    dd_set_si(ls->matrix[row_i][0], -normalization_);
+    dd_set_si(ls->matrix[row_i][0], -10000);
     set_addelem(ls->linset, row_i+1);
 
     ls->representation = dd_Inequality;
