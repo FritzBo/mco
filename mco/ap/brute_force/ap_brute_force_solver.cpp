@@ -52,8 +52,10 @@ void APBruteForceSolver::recursive_find(unsigned int agent_index,
     
     ParetoDominationPointComparator pareto_dominates(0.0);
     
-	edge e;
-	forall_adj_edges(e, agent_list[agent_index]) {
+    for(auto adj : agent_list[agent_index]->adjEdges) {
+
+        auto e = adj->theEdge();
+
 		if(jobs.count(e->target()) > 0)
 			continue;
 
@@ -72,12 +74,12 @@ void APBruteForceSolver::recursive_find(unsigned int agent_index,
 					break;
 				}
 				if(pareto_dominates(current_cost, *cost_it)) {
-					costs.erase(cost_it);
-//					matchings.erase(matching_it);
-				}
-
-				cost_it++;
-				matching_it++;
+					cost_it = costs.erase(cost_it);
+					matching_it = matchings.erase(matching_it);
+				} else {
+                    cost_it++;
+                    matching_it++;
+                }
 			}
 
 			if(dominated) {
