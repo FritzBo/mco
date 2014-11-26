@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
         
         SwitchArg print_timing_arg("t", "timing", "Prints timing information", false);
 
-        SwitchArg print_cdd_v_rep_arg("", "v-rep", "Print a V-representation file.", false);
+        SwitchArg print_cdd_v_rep_arg("", "v-rep", "Print a V-representation output.", false);
         
         cmd.add(print_frontier_arg);
         cmd.add(print_solutions_arg);
