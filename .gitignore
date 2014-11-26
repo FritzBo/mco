@@ -5,3 +5,4 @@ cmake*/**
 instances/ep/grid80*
 instances/ep/grid90*
 instances/ap/ap_6_*
+Doxyfile

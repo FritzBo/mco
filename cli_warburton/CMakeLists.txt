@@ -1,4 +1,4 @@
-include_directories(../include)
+include_directories(../mco/include)
 include_directories(../tclap)
 include_directories(../cli_lib/include)
 include_directories(${GUROBI_INCLUDE_PATH})

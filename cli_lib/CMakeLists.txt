@@ -1,5 +1,5 @@
 include_directories(include)
-include_directories(../include)
+include_directories(../mco/include)
 include_directories(../tclap)
 include_directories(${GUROBI_INCLUDE_PATH})
 include_directories(${COIN_INCLUDE_PATH})
