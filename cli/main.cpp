@@ -49,6 +49,7 @@ using TCLAP::ValueArg;
 #include <mco/ep/martins/weighted_martins.h>
 #include <mco/generic/benson_dual/ove_cdd.h>
 #include <mco/generic/benson_dual/ove_node_lists.h>
+#include <mco/basic/cdd_files.h>
 
 using mco::Point;
 using mco::TemporaryGraphParser;
@@ -63,6 +64,7 @@ using mco::LexPointComparator;
 using mco::ParetoDominationPointComparator;
 using mco::ComponentwisePointComparator;
 using mco::EqualityPointComparator;
+using mco::CddFiles;
 
 #include "basic/modules.h"
 
@@ -137,6 +139,8 @@ int main(int argc, char** argv) {
         SwitchArg print_count_arg("c", "count", "Prints the size of the found Pareto-frontier.", false);
         
         SwitchArg print_timing_arg("t", "timing", "Prints timing information", false);
+
+        SwitchArg print_cdd_v_rep_arg("", "v-rep", "Print a V-representation file.", false);
         
         cmd.add(print_frontier_arg);
         cmd.add(print_solutions_arg);
@@ -144,6 +148,7 @@ int main(int argc, char** argv) {
         cmd.add(print_count_arg);
         cmd.add(print_verbose_arg);
         cmd.add(print_timing_arg);
+        cmd.add(print_cdd_v_rep_arg);
         
         cmd.parse(argument_position, argv);
         
@@ -153,19 +158,24 @@ int main(int argc, char** argv) {
         bool print_count = print_count_arg.getValue();
         bool print_verbose = print_verbose_arg.getValue();
         bool print_timing = print_timing_arg.getValue();
+        bool print_cdd_v_rep = print_cdd_v_rep_arg.getValue();
         
         choosen_module->perform(argc - argument_position,
                                 argv + argument_position);
         
         
-        if(print_frontier || print_solutions || print_count) {
+        if(print_frontier ||
+           print_solutions ||
+           print_count ||
+           print_cdd_v_rep) {
+
             auto ep_algo_module = dynamic_cast<AlgorithmModule<list<edge>>*>(choosen_module);
             
             auto solutions = ep_algo_module->solutions();
             
-            cout << solutions.size() << " points" << endl;
-            
-            if(print_frontier || print_solutions) {
+            if(print_frontier || print_solutions || print_count) {
+
+                cout << solutions.size() << " points" << endl;
                 
                 int count = 0;
                 auto solution_it = solutions.cbegin();
@@ -207,12 +217,22 @@ int main(int argc, char** argv) {
                 }
                 
             }
+            if(print_cdd_v_rep) {
+                unsigned dimension = solutions.begin()->second.dimension();
+                CddFiles::write_v_rep(cout,
+                                      solutions.size(),
+                                      dimension,
+                                      solutions.begin(),
+                                      solutions.end());
+
+
+            }
         }
         
         if(print_timing) {
             cout << "Timining information" << endl;
         }
-        
+
     } catch (exception& e) {
         cout << e.what() << endl;
     }
