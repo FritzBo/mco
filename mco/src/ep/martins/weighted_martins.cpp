@@ -188,7 +188,7 @@ Solve(Graph& graph,
 	LabelPriorityQueue lex_min_label((LexLabelComp()));
 	NodeArray<NodeEntry> node_entry(graph, dimension);
 
-	Label *null_label = new Label(Point::Null(dimension), source, nullptr);
+	Label *null_label = new Label(new Point(dimension), source, nullptr);
     null_label->in_queue = true;
     node_entry[source].label_set.push_back(null_label);
     

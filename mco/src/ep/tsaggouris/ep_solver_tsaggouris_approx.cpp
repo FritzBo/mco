@@ -109,7 +109,7 @@ void EpSolverTsaggourisApprox::Solve() {
 		(*old_Py)[n].resize(size, nullptr);
 	}
 
-	(*old_Py)[instance().source()][0] = new Label(Point::Null(dimension), nullptr, nullptr);
+	(*old_Py)[instance().source()][0] = new Label(new Point(dimension), nullptr, nullptr);
 
 	for(int i = 1; i < graph.numberOfNodes(); ++i)
 		forall_nodes(n, graph) {

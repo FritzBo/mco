@@ -1,16 +1,27 @@
-//
-//  componentwise_point_comparator.h
-//  mco
-//
-//  Created by Fritz Bökler on 31.03.14.
-//
-//
+/*!
+ \file
+ \brief Contains a functor for the canonical partial order on R^d.
+ \date 2014-03-31
+ \author Fritz Bökler
+ */
 
 #ifndef mco_componentwise_point_comparator_h
 #define mco_componentwise_point_comparator_h
 
+// Class Definition
+
+/*!
+ \brief A functor to compare two point objects using the canonical partial order on R^d.
+ \author Fritz Bökler
+ \date 2014-03-31
+ \ingroup basic
+ */
 class ComponentwisePointComparator {
 public:
+    /*!
+     \param epsilon The epsilon value to be used in comparison. Defaults to 0.
+     \param strict If true (default), the strict partial order is used.
+     */
     inline ComponentwisePointComparator(double epsilon = 0, bool strict = true)
     : epsilon_(epsilon), strict_(strict) { }
     
@@ -32,6 +43,8 @@ private:
     const double epsilon_;
     const bool strict_;
 };
+
+// Implementation of inline functions
 
 inline bool ComponentwisePointComparator::
 operator()(const Point* p1,

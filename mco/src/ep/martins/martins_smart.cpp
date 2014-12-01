@@ -63,7 +63,7 @@ void EpSolverMartinsSmart::Solve() {
 	LabelPriorityQueue lex_min_label(&lexicographic_smaller_label_smart);
 	LabelListNodeArray labels(instance().graph());
 
-	shared_ptr<const LabelSmart> null_label = make_shared<LabelSmart>(shared_ptr<const Point>(Point::Null(instance().dimension())), instance().source(), nullptr);
+	shared_ptr<const LabelSmart> null_label = make_shared<LabelSmart>(make_shared<const Point>(instance().dimension()), instance().source(), nullptr);
 	lex_min_label.push(null_label);
     
     ComponentwisePointComparator comp_leq(0.0, false);

@@ -1,16 +1,27 @@
-//
-//  equality_point_comparator.h
-//  mco
-//
-//  Created by Fritz Bökler on 31.03.14.
-//
-//
+/*!
+ \file
+ \brief Contains a functor to test if two Point objects are equal.
+ \date 2014-03-31
+ \author Fritz Bökler
+ */
 
 #ifndef mco_equality_point_comparator_h
 #define mco_equality_point_comparator_h
 
+// Class Definition
+
+/*!
+ \brief A functor which tests if two Point objects are equal with respect to an optional epsilon value.
+ 
+ \date 2014-03-31
+ \author Fritz Bökler
+ \ingroup basic
+ */
 class EqualityPointComparator {
 public:
+    /*!
+     \param epsilon An epsilon value which is used in the comparison.
+     */
     inline EqualityPointComparator(double epsilon = 0)
     : epsilon_(epsilon) { }
     
@@ -27,6 +38,8 @@ public:
 private:
     const double epsilon_;
 };
+
+// Implementation of inline methods
 
 inline bool EqualityPointComparator::
 operator()(const Point * p1,

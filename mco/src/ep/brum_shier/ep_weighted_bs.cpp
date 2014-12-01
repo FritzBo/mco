@@ -211,7 +211,7 @@ void EpWeightedBS::Solve(const Graph& graph,
 	queue.push(source);
 	nodes_in_queue[source] = true;
 
-	labels[source].push_back(Point::Null(dim));
+    labels[source].push_back(new Point(dim));
 
 	while(!queue.empty()) {
 		node n = queue.front();

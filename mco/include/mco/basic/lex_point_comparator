@@ -1,16 +1,29 @@
-//
-//  lex_point_comparator.h
-//  mco
-//
-//  Created by Fritz Bökler on 31.03.14.
-//
-//
+/*!
+ \file
+ \brief Contains code for comparing two Point objects by the lexicographic ordering.
+ \date 2014-03-31
+ \author Fritz Bökler
+
+*/
 
 #ifndef mco_lex_point_comparator_h
 #define mco_lex_point_comparator_h
 
+// Class definitions
+
+/*!
+ Functor which compares to Point objects by the lexicographic order.
+
+ \date 2014-03-31
+ \author Fritz Bökler
+ \ingroup basic
+ */
 class LexPointComparator {
 public:
+    /*!
+     \param epsilon The epsilon value to use in comparisons.
+     \param strict If true (default), the strict lexicographic ordering is used.
+     */
     inline LexPointComparator(double epsilon = 0, bool strict = true)
     : epsilon_(epsilon), strict_(strict) {}
     
@@ -28,6 +41,43 @@ private:
     const double epsilon_;
     const bool strict_;
 };
+
+/*!
+ \brief Functor which compares two Point objects by the lexicographic ordering where a component before the first is added which corresponds to the weighted sum of the objectives.
+ 
+ \date 2014-03-31
+ \author Fritz Bökler
+ \ingroup basic
+ */
+class LexWeightedPointComparator {
+public:
+    /*!
+     \param weighting A Point object such that the inner product of weighting and the given Points will form a new first component.
+     \param epsilon The epsilon value to use in comparisons.
+     \param strict If true (default), the strict lexicographic ordering is used.
+     */
+    inline LexWeightedPointComparator(Point weighting,
+                                      double epsilon = 0,
+                                      bool strict = true)
+    :   epsilon_(epsilon),
+        strict_(strict),
+        weighting_(weighting) { }
+
+    inline bool operator()(const Point * p1,
+                           const Point * p2) const noexcept;
+
+    inline bool operator()(const Point& p1,
+                           const Point& p2) const noexcept;
+
+
+private:
+    const double epsilon_;
+    const bool strict_;
+
+    Point weighting_;
+};
+
+// Implementation of inline methods.
 
 inline bool LexPointComparator::
 operator()(const Point& p1,
@@ -85,27 +135,6 @@ is_lex_leq(const Point &p1,
     }
     return true;
 }
-
-class LexWeightedPointComparator {
-public:
-    inline LexWeightedPointComparator(Point weighting,
-                                      double epsilon = 0,
-                                      bool strict = true)
-    : epsilon_(epsilon), strict_(strict), weighting_(weighting) {}
-    
-    inline bool operator()(const Point * p1,
-                           const Point * p2) const noexcept;
-    
-    inline bool operator()(const Point& p1,
-                           const Point& p2) const noexcept;
-    
-    
-private:
-    const double epsilon_;
-    const bool strict_;
-    
-    Point weighting_;
-};
 
 inline bool LexWeightedPointComparator::
 operator()(const Point& p1,

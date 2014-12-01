@@ -59,7 +59,7 @@ Solve(Graph& graph,
     
     ComponentwisePointComparator comp_leq(0, false);
 
-	Label *null_label = new Label(Point::Null(dimension), source, nullptr, this);
+	Label *null_label = new Label(new Point(dimension), source, nullptr, this);
     null_label->in_queue = true;
 	labels[source].push_back(null_label);
     

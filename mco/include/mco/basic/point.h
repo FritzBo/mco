@@ -1,13 +1,12 @@
 #pragma once
-/*
- * point.h
- *
- *  Created on: 15.03.2013
- *      Author: fritz
+/*! \file
+ \brief Holds all information for the mco::Point class and additional functions usuful in connection with the mco::Point class.
+ \date 2013-03-15
+ \author Fritz Bökler
  */
 
-#ifndef POINT_H_
-#define POINT_H_
+#ifndef MCO_POINT_H_
+#define MCO_POINT_H_
 
 #include <ostream>
 #include <stdexcept>
@@ -15,69 +14,144 @@
 #include <cmath>
 
 namespace mco {
-    
+
+//! Class to model points in R^d.
+/*!
+ Exceptions are omitted for performance reasons. All methods are inlined to also allow for better performance.
+
+ \author Fritz Bökler
+ \ingroup basic
+ \date 2013-03-15
+ \todo Memory Pool allocator for the chunks of IEEE data.
+ */
 class Point {
 public:
 
-    /// Destructor
+    //! Destructor deletes all allocated values.
     virtual ~Point() noexcept { delete[] values_; }
-    
+
+    //! Creates a well defined Point object with no components.
     inline Point() : dimension_(0), values_(nullptr) { }
+
+    //! Creates a well defined Point object with \p dimension components. The components will be initialized with 0.0.
     inline explicit Point(unsigned int dimension);
+
+    //! Creates a Point object with \p dimension components consisting of the first \p dimension values of \p values.
 	inline Point(const double *values, unsigned int dimension);
+
+    //! Creates a Point object with \p dimension components which are all set to \p value.
     inline Point(double value, unsigned int dimension);
+
+    //! Creates a Point object using all values from the initialzer list values.
     inline Point(std::initializer_list<double> values);
 
-    /// Copy constructor
+    //! Copy constructor
 	inline Point(const Point &p);
     
-    /// Move constructor
+    //! Move constructor (employing swap)
     inline Point(Point&& that) noexcept;
     
-    /// Copy assignment
+    //! Copy assignment
 	inline Point & operator=(const Point& that) noexcept;
     
-    // Move assignment
+    //! Move assignment (employing swap)
     inline Point & operator=(Point&& that) noexcept;
-    
+
+    //! Returns the number of components the Point object has.
     unsigned dimension() const noexcept { return dimension_; }
 
+    //! Adds the Point object \p that to this object.
+    /*!
+     In debug mode, an assertion is fired if both objects have different number of components.
+
+     \warning In release mode the compatibility of the numbers of components will not be checked!
+     */
     inline Point & operator+=(const Point &that) noexcept;
+
+    //! Substracts \p that from the point object.
+    /*!
+     In debug mode, an assertion is fired if both objects have different number of components.
+
+     \warning In release mode the compatibility of the numbers of components will not be checked!     */
     inline Point & operator-=(const Point &that) noexcept;
-    
+
+    //! Conducts a multiplication of this Point object with the scalar \p d.
     inline Point & operator*=(double d) noexcept;
 
+    //! Returns a new Point object which represents the negative of this Point object.
     inline Point operator-() const &;
+
+    //! Sames as (*this) *= -1;
     inline Point operator-() &&;
 
+    //! Adds this Point object and \p that.
+    /*!
+     This version of addition works if that is an rvalue or called by value.
+
+     In debug mode, an assertion is fired if both objects have different number of components.
+
+     \warning In release mode the compatibility of the numbers of components will not be checked!     */
     inline Point operator+(Point that) const & noexcept;
+
+    //! Adds this Point object and \p that.
+    /*!
+     This version of addition works if this is an rvalue and that is an lvalue.
+
+     In debug mode, an assertion is fired if both objects have different number of components.
+
+     \warning In release mode the compatibility of the numbers of components will not be checked!
+     */
     inline Point operator+(const Point& that) && noexcept;
-    
+
+    //! Subtracts \p that from this.
+    /*!
+     This version of subtract works if that is an rvalue or called by value.
+
+     In debug mode, an assertion is fired if both objects have different number of components.
+
+     \warning In release mode the compatibility of the numbers of components will not be checked! 
+     */
     inline Point operator-(Point that) const & noexcept;
+
+    //! Subtracts \p that from this.
+    /*!
+     This version of subtract works if this is an rvalue and that is an lvalue.
+
+     In debug mode, an assertion is fired if both objects have different number of components.
+
+     \warning In release mode the compatibility of the numbers of components will not be checked!
+     */
     inline Point operator-(const Point& that) && noexcept;
     
-    /// Inner Product
+    //! Inner product of this and \p that
     inline double operator*(const Point &point) const noexcept;
 
+    //! Returns a reference to component \p index.
 	double& operator[](unsigned int index) { return values_[index]; }
+
+    //! Returns a const reference to component \p index.
 	const double& operator[](unsigned int index) const { return values_[index]; }
 
+    //! Returns a const_iterator to beginning.
     const double* cbegin() const { return values_; }
-    const double* cend() const { return values_ + dimension_; }
-    
-    double* begin() { return values_; }
-    double* end() { return values_ + dimension_; }
 
-	static Point * Null(const unsigned int dimension) { return new Point(0.0, dimension); }
-	static Point * One(const unsigned int dimension) { return new Point(1.0, dimension); }
+    //! Returns a const_iterator to end.
+    const double* cend() const { return values_ + dimension_; }
+
+    //! Returns an interator to beginning.
+    double* begin() { return values_; }
+
+    //! Returns an iterator to end.
+    double* end() { return values_ + dimension_; }
 
 	friend std::ostream & operator<<(std::ostream &, const Point &);
     friend void swap(Point& p1, Point& p2);
 
     
 private:
-    unsigned int dimension_ = 0;
-    double * values_ = nullptr;
+    unsigned int dimension_ = 0; //! The number of components of this Point object.
+
+    double * values_ = nullptr; //! A pointer pointing to the values of this point object.
 };
 
 inline Point::Point(unsigned dimension)
@@ -209,14 +283,17 @@ inline double Point::operator*(const Point &point) const noexcept {
     return i == dimension_ + 1 ? sum : sum + (*this)[dimension_ - 1] * point[dimension_-1];
 }
 
+//! Multiplies the Point object \p p and the scalar value \p d.
 inline Point operator*(Point p, double d) {
     return std::move(p *= d);
 }
-    
+
+//! Multiplies the Point object \p p and the scalar value \p d.
 inline Point operator*(double d, Point p) {
     return std::move(p *= d);
 }
-    
+
+//! Writes a Point object to an output stream.
 inline std::ostream & operator<<(std::ostream &os, const Point &point) {
     os << "(";
     
@@ -232,7 +309,8 @@ inline std::ostream & operator<<(std::ostream &os, const Point &point) {
     
     return os;
 }
-    
+
+//! Swaps the value pointers of two Point objectives without copying.
 inline void swap(Point& p1, Point& p2) {
     using std::swap;
     
@@ -240,12 +318,12 @@ inline void swap(Point& p1, Point& p2) {
     swap(p1.dimension_, p2.dimension_);
 }
 
-#include "lex_point_comparator.h"
-#include "equality_point_comparator.h"
-#include "componentwise_point_comparator.h"
-#include "pareto_point_comparator.h"
+#include "lex_point_comparator"
+#include "equality_point_comparator"
+#include "componentwise_point_comparator"
+#include "pareto_point_comparator"
     
 } // namespace mco
 
 
-#endif /* POINT_H_ */
+#endif /* MCO_POINT_H_ */
