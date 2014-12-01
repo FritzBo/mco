@@ -185,7 +185,6 @@ int main(int argc, char** argv) {
                     auto solution = *solution_it;
                     
                     if(print_frontier) {
-                        cout << "1\t";
                         auto point_it = solution.second.cbegin();
                         while(point_it != solution.second.cend()) {
                             cout << *point_it++ << "\t";
