@@ -318,12 +318,12 @@ inline void swap(Point& p1, Point& p2) {
     swap(p1.dimension_, p2.dimension_);
 }
 
-#include "lex_point_comparator"
-#include "equality_point_comparator"
-#include "componentwise_point_comparator"
-#include "pareto_point_comparator"
-    
 } // namespace mco
+
+#include "lex_point_comparator.h"
+#include "equality_point_comparator.h"
+#include "componentwise_point_comparator.h"
+#include "pareto_point_comparator.h"
 
 
 #endif /* MCO_POINT_H_ */

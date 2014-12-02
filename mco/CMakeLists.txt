@@ -10,10 +10,10 @@ set(SOURCE_FILES
 
 # Core
 include/mco/basic/point.h
-include/mco/basic/pareto_point_comparator
-include/mco/basic/componentwise_point_comparator
-include/mco/basic/equality_point_comparator
-include/mco/basic/lex_point_comparator
+include/mco/basic/pareto_point_comparator.h
+include/mco/basic/componentwise_point_comparator.h
+include/mco/basic/equality_point_comparator.h
+include/mco/basic/lex_point_comparator.h
 include/mco/basic/abstract_solver.h
 include/mco/basic/abstract_graph_instance.h
 include/mco/basic/weight_function_adaptors.h
