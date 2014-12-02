@@ -8,6 +8,8 @@
 #ifndef mco_equality_point_comparator_h
 #define mco_equality_point_comparator_h
 
+namespace mco {
+
 // Class Definition
 
 /*!
@@ -74,6 +76,8 @@ is_equal(const Point& p1,
     }
     
 	return true;
+}
+
 }
 
 #endif

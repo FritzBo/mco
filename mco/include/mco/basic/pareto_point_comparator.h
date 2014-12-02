@@ -8,6 +8,8 @@
 #ifndef mco_pareto_point_comparator_h
 #define mco_pareto_point_comparator_h
 
+namespace mco {
+
 /*!
  \brief A functor to compare two Point objects using the Pareto-dominace relation.
  \date 2014-03-31
@@ -79,5 +81,6 @@ dominates(const Point &p1,
     return !equal;
 }
 
+}
 
 #endif

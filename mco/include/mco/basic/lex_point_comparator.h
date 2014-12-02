@@ -9,6 +9,8 @@
 #ifndef mco_lex_point_comparator_h
 #define mco_lex_point_comparator_h
 
+namespace mco {
+
 // Class definitions
 
 /*!
@@ -162,6 +164,8 @@ operator()(const Point* p1,
            const Point* p2) const noexcept {
     
     return operator()(*p1, *p2);
+}
+
 }
 
 #endif

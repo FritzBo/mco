@@ -8,6 +8,8 @@
 #ifndef mco_componentwise_point_comparator_h
 #define mco_componentwise_point_comparator_h
 
+namespace mco {
+
 // Class Definition
 
 /*!
@@ -103,6 +105,8 @@ is_leq(const Point &p1,
     }
     
     return true;
+}
+
 }
 
 #endif
