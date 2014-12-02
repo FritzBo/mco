@@ -156,6 +156,9 @@ src/molp/basic/molp_model.cpp
 src/molp/benson/benson_exact.cpp
 src/molp/benson/benson.cpp
 src/molp/weightset/weightset_solver.cpp
+
+# Doxygen
+Doxyfile.in
 )
 
 add_definitions(-DGMPRATIONAL)
