@@ -26,6 +26,7 @@ def read_ext(file_name, sep):
     print rows - cols + 1, "points."
 
     for line in input_file:
+        line.strip();
         elements = line.split(sep)
 
         if elements[0] == "1":
