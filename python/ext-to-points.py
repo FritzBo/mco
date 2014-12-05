@@ -19,6 +19,7 @@ def read_ext(file_name, sep):
         return
 
     descriptor = input_file.readline()
+    descriptor = descriptor.strip()
     descriptor = descriptor.split(sep)
     rows = int(descriptor[0])
     cols = int(descriptor[1])
@@ -26,14 +27,14 @@ def read_ext(file_name, sep):
     print rows - cols + 1, "points."
 
     for line in input_file:
-        line.strip();
+        line = line.strip();
         elements = line.split(sep)
 
         if elements[0] == "1":
             str = elements[1]
             for i in xrange(2, len(elements)):
                 str += sep + elements[i]
-            print str,
+            print str
 
 
 if __name__ == '__main__':
