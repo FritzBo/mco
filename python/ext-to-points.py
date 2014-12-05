@@ -24,7 +24,7 @@ def read_ext(file_name, sep):
     rows = int(descriptor[0])
     cols = int(descriptor[1])
 
-    print rows - cols + 1, "points."
+    print rows - cols + 1, "points"
 
     for line in input_file:
         line = line.strip();
