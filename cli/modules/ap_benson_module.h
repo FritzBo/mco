@@ -31,4 +31,4 @@ private:
     
 };
 
-#endif /* defined(__mco__ap_ok10_module__) */
+#endif /* defined(__mco__ap_benson_module__) */
