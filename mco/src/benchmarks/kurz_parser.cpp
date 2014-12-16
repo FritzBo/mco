@@ -25,9 +25,7 @@ using ogdf::edge;
 
 namespace mco {
 
-} /* namespace mco */
-
-unsigned int mco::KurzParser::get_graph(ogdf::Graph& graph,
+unsigned int KurzParser::get_graph(ogdf::Graph& graph,
 		ogdf::NodeArray<Point *>& node_weights,
 		ogdf::EdgeArray<Point *>& edge_weights) {
 
@@ -37,7 +35,7 @@ unsigned int mco::KurzParser::get_graph(ogdf::Graph& graph,
 	return 0;
 }
 
-unsigned int mco::KurzParser::get_graph(ogdf::Graph& graph,
+unsigned int KurzParser::get_graph(ogdf::Graph& graph,
 		ogdf::EdgeArray<Point *>& edge_weights) {
 
 	if(edge_weights.graphOf() != &graph)
@@ -116,7 +114,7 @@ unsigned int mco::KurzParser::get_graph(ogdf::Graph& graph,
 	return dimension;
 }
 
-unsigned int mco::KurzParser::get_graph(ogdf::Graph& graph,
+unsigned int KurzParser::get_graph(ogdf::Graph& graph,
 		ogdf::NodeArray<Point *>& node_weights) {
 
 	if(node_weights.graphOf() != &graph)
@@ -124,3 +122,5 @@ unsigned int mco::KurzParser::get_graph(ogdf::Graph& graph,
 
 	return 0;
 }
+
+} /* namespace mco */
