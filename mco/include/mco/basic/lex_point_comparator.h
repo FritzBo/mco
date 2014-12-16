@@ -35,10 +35,23 @@ public:
     inline bool operator()(const Point& p1,
                            const Point& p2) const noexcept;
     
-    inline static bool is_lex_le(const Point& p1, const Point& p2, double epsilon) noexcept;
+    inline static bool is_lex_le(const Point& p1,
+                                 const Point& p2,
+                                 double epsilon) noexcept;
+
+    inline static bool is_lex_le(const Point* p1,
+                                 const Point* p2,
+                                 double epsilon) noexcept;
     
-    inline static bool is_lex_leq(const Point& p1, const Point& p2, double epsilon) noexcept;
-    
+    inline static bool is_lex_leq(const Point& p1,
+                                  const Point& p2,
+                                  double epsilon) noexcept;
+
+    inline static bool is_lex_leq(const Point* p1,
+                                  const Point* p2,
+                                  double epsilon) noexcept;
+
+
 private:
     const double epsilon_;
     const bool strict_;
@@ -120,6 +133,13 @@ is_lex_le(const Point &p1,
 }
 
 inline bool LexPointComparator::
+is_lex_le(const Point* p1,
+          const Point* p2,
+          double epsilon) noexcept {
+    return is_lex_le(*p1, *p2, epsilon);
+}
+
+inline bool LexPointComparator::
 is_lex_leq(const Point &p1,
            const Point &p2,
            double epsilon) noexcept {
@@ -137,6 +157,14 @@ is_lex_leq(const Point &p1,
     }
     return true;
 }
+
+inline bool LexPointComparator::
+is_lex_leq(const Point* p1,
+          const Point* p2,
+          double epsilon) noexcept {
+    return is_lex_leq(*p1, *p2, epsilon);
+}
+
 
 inline bool LexWeightedPointComparator::
 operator()(const Point& p1,
