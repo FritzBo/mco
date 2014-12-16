@@ -41,7 +41,7 @@ void CddFiles::write_v_rep(std::ostream& stream,
 
     stream << "V-representation" << endl;
     stream << "begin" << endl;
-    stream << (size + dimension) << "\t" << (dimension + 1) << "\t" << "rational" << endl;
+    stream << (size + dimension) << "\t" << (dimension + 1) << "\t" << "real" << endl;
 
     // Printing extreme rays (Pareto-Cone)
     for(unsigned i = 0; i < dimension; ++i) {
@@ -86,7 +86,7 @@ void CddFiles::write_h_rep(std::ostream& stream,
 
     stream << "H-representation" << endl;
     stream << "begin" << endl;
-    stream << size << "\t" << dimension << "rational" << endl;
+    stream << size << "\t" << dimension << "real" << endl;
 
     auto it = begin;
     while(it != end) {
