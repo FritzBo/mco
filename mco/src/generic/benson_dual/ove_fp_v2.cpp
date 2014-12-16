@@ -69,7 +69,7 @@ GraphlessOVE(const Point& initial_value, unsigned dimension, double epsilon)
         
     new_inequality[dimension_ - 1] = 0;
     new_inequality[dimension_] = 1;
-    
+
     inequalities_.push_back(std::move(new_inequality));
     
     new_extreme_point = new GraphlessPoint(dimension_ + 1);
