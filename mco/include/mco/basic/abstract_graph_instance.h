@@ -26,8 +26,11 @@ public:
                           unsigned int dimension)
     : graph_(graph), weights_(weights), dimension_(dimension) { }
 
-	AbstractGraphInstance(const AbstractGraphInstance & graph) = delete;
-	void operator=(const AbstractGraphInstance & graph) = delete;
+    AbstractGraphInstance(const AbstractGraphInstance& other)
+    :   graph_(other.graph_),
+        weights_(other.weights_),
+        dimension_(other.dimension_) {
+    }
 
 	unsigned int dimension() const {
         return dimension_;

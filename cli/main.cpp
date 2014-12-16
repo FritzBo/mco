@@ -79,6 +79,8 @@ using mco::CddFiles;
 #include "modules/ep_bs_module.h"
 #include "modules/ep_bs_par_module.h"
 
+#include "modules/est_benson_module.h"
+
 #include "modules/ui_verifier.h"
 
 int main(int argc, char** argv) {
@@ -96,6 +98,8 @@ int main(int argc, char** argv) {
         EpBsParModule bs_par_module;
         EpIdealModule ideal_module;
 
+        EstBensonModule est_benson_module;
+
         UpperImageVerifier ui_verifier;
 
         module_factory.add_module("ap-bf", ap_bf_module);
@@ -108,6 +112,8 @@ int main(int argc, char** argv) {
         module_factory.add_module("ep-bs-par", bs_par_module);
         module_factory.add_module("lc-approx", lc_approx_module);
         module_factory.add_module("ep-ideal-point", ideal_module);
+
+        module_factory.add_module("est-benson", est_benson_module);
 
         module_factory.add_module("ui-verify", ui_verifier);
         
@@ -217,7 +223,10 @@ int main(int argc, char** argv) {
                 
             }
             if(print_cdd_v_rep) {
+
                 unsigned dimension = solutions.begin()->second.dimension();
+                
+                cout << std::setprecision(20);
                 CddFiles::write_v_rep(cout,
                                       solutions.size(),
                                       dimension,

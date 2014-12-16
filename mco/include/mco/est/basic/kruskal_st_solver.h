@@ -6,32 +6,33 @@
  *      Author: fritz
  */
 
-#ifndef PRIM_ST_SOLVER_H_
-#define PRIM_ST_SOLVER_H_
+#ifndef KRUSKAL_ST_SOLVER_H_
+#define KRUSKAL_ST_SOLVER_H_
 
 #include <map>
 #include <vector>
+#include <functional>
 
 #include <ogdf/basic/Graph.h>
 
+#include <mco/basic/point.h>
+
 namespace mco {
 
-class KruskalSTSolver {
+class LexKruskalSTSolver {
 public:
-	KruskalSTSolver(const ogdf::Graph & g, const ogdf::EdgeArray<double> & costs);
-	virtual ~KruskalSTSolver();
+	virtual ~LexKruskalSTSolver();
 
-	void Solve();
+	void Solve(const ogdf::Graph & g,
+               std::function<Point*(ogdf::edge)> costs,
+               unsigned dimension);
 
 	const std::vector<ogdf::edge> & spanning_tree();
-	double min_cost();
+	Point min_cost();
 
 private:
-	const ogdf::Graph &graph_;
-	const ogdf::EdgeArray<double> &costs_;
-
 	std::vector<ogdf::edge> spanning_tree_;
-	double cost_;
+	Point cost_;
 
 	ogdf::NodeArray<ogdf::node> sets_;
 	void make_set(ogdf::node n);

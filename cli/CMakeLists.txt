@@ -15,6 +15,11 @@ basic/modules.cpp
 
 #### Modules
 
+## EST
+modules/est_benson_module.h
+modules/est_benson_module.cpp
+
+
 ## AP
 modules/ap_bf_module.h
 modules/ap_bf_module.cpp
