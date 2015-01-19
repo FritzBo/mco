@@ -193,7 +193,7 @@ int main(int argc, char** argv) {
                     if(print_frontier) {
                         auto point_it = solution.second.cbegin();
                         while(point_it != solution.second.cend()) {
-                            cout << *point_it++ << "\t";
+                            cout << *point_it++ << ", ";
                         }
                     }
                     if(print_solutions) {
