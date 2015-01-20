@@ -9,6 +9,7 @@
 #include <mco/generic/ok10/ok10_scalarizer_projective.h>
 
 #include <iostream>
+#include <algorithm>
 
 using std::cout;
 using std::endl;

@@ -9,6 +9,8 @@
 #include <mco/generic/ok10/ok10_scalarizer.h>
 
 #include <cmath>
+#include <limits>
+#include <algorithm>
 #include <iostream>
 
 using std::max;
