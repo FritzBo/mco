@@ -71,9 +71,13 @@ include/mco/est/basic/abstract_est_solver.h
 include/mco/est/basic/kruskal_st_solver.h
 include/mco/est/2tree/est_solver2_trees.h
 include/mco/est/dual_benson/est_dual_benson_scalarizer.h
+include/mco/est/ok10/est_ok10_solver.h
 
 # Generics
 include/mco/generic/lagrange_bisect.h
+include/mco/generic/ok10/ok10_scalarizer.h
+include/mco/generic/ok10/ok10_scalarizer_projective.h
+
 
 # Benson Dual
 include/mco/generic/benson_dual/abstract_online_vertex_enumerator.h
@@ -84,10 +88,6 @@ include/mco/generic/benson_dual/ove_node_lists.h
 include/mco/generic/benson_dual/ove_edge_lists.h
 include/mco/generic/benson_dual/ove_fp_v2.h
 include/mco/generic/benson_dual/upper_image_container.h
-
-# Generics
-include/mco/generic/ok10/ok10_scalarizer.h
-include/mco/generic/ok10/ok10_scalarizer_projective.h
 
 # Geometry Tools
 include/mco/geometric/projective_geometry_utilities.h

@@ -275,4 +275,4 @@ bool Ok10Scalarizer::calculate_lambda(stage_reference stage,
     return true;
 }
 
-}
+} // namespace mco

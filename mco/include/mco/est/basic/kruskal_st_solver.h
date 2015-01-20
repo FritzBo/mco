@@ -1,6 +1,6 @@
 #pragma once
 /*
- * prim_st_solver.h
+ * kruskal_st_solver.h
  *
  *  Created on: 27.09.2013
  *      Author: fritz
@@ -41,4 +41,4 @@ private:
 };
 
 } /* namespace mco */
-#endif /* PRIM_ST_SOLVER_H_ */
+#endif /* KRUSKAL_ST_SOLVER_H_ */

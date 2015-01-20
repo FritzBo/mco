@@ -18,7 +18,8 @@ basic/modules.cpp
 ## EST
 modules/est_benson_module.h
 modules/est_benson_module.cpp
-
+modules/est_ok10_module.h
+modules/est_ok10_module.cpp
 
 ## AP
 modules/ap_bf_module.h
