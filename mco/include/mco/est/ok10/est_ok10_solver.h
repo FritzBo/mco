@@ -14,7 +14,7 @@
 #include <mco/basic/abstract_solver.h>
 #include <mco/basic/weight_function_adaptors.h>
 #include <mco/est/basic/kruskal_st_solver.h>
-#include <mco/generic/ok10/ok10_scalarizer.h>
+#include <mco/generic/ok10/ok10_scalarizer_projective.h>
 
 namespace mco {
 
@@ -74,7 +74,7 @@ operator()(const Point& weighting,
             LexWeightFunctionAdaptor(graph_,
                                      cost_function_,
                                      weighting),
-                          objectives_);
+                          objectives_ + 1);
 
     Point result = lex_est_solver_.min_cost();
     
@@ -107,9 +107,9 @@ Solve(Graph& graph,
 
     LexKruskalSolverAdaptor solver(graph, weights, objectives);
 
-    Ok10Scalarizer scalarizer(solver,
-                              upper_bounds,
-                              objectives);
+    Ok10ScalarizerProjective scalarizer(solver,
+                                        upper_bounds,
+                                        objectives);
 
     scalarizer.Calculate_solutions(frontier);
 
