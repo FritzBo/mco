@@ -87,6 +87,7 @@ include/mco/generic/benson_dual/upper_image_container.h
 
 # Generics
 include/mco/generic/ok10/ok10_scalarizer.h
+include/mco/generic/ok10/ok10_scalarizer_projective.h
 
 # Geometry Tools
 include/mco/geometric/projective_geometry_utilities.h
@@ -143,6 +144,8 @@ src/est/dual_benson/est_dual_benson_scalarizer.cpp
 
 # Generic
 src/generic/lagrange_bisect.cpp
+src/generic/ok10/ok10_scalarizer.cpp
+src/generic/ok10/ok10_scalarizer_projective.cpp
 
 # Benson Dual
 src/generic/benson_dual/ove_cdd.cpp

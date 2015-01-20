@@ -2,28 +2,28 @@
 //  ok10_scalarizer.h
 //  mco
 //
-//  Created by Fritz Bökler on 14.11.14.
+//  Created by Fritz Bökler on 16.12.14.
 //
 //
 
-#ifndef mco_ok10_scalarizer_h
-#define mco_ok10_scalarizer_h
+#ifndef mco_ok10_scalarizer_projective_h
+#define mco_ok10_scalarizer_projective_h
 
 #include <list>
-#include <set>
 #include <functional>
+#include <set>
 
 #include <setoper.h>
-#include <cdd.h>
+#include <cdd_f.h>
 
 #include <mco/basic/point.h>
 
 namespace mco {
 
 
-class Ok10Scalarizer {
+class Ok10ScalarizerProjective {
 public:
-    Ok10Scalarizer(std::function<double(const Point& weighting, Point& value)> solver,
+    Ok10ScalarizerProjective(std::function<double(const Point& weighting, Point& value)> solver,
                    Point& upper_bounds,
                    unsigned int dimension)
     :   dimension_(dimension),
@@ -82,6 +82,7 @@ private:
 
 };
 
+
 } /* namespace mco */
 
-#endif
+#endif /* namespace mco_ok10_scalarizer_projective_h */

@@ -16,7 +16,7 @@
 #include <mco/ap/basic/abstract_ap_solver.h>
 #include <mco/ap/basic/ap_instance.h>
 #include <mco/ap/basic/lex_hungarian.h>
-#include <mco/generic/ok10/ok10_scalarizer.h>
+#include <mco/generic/ok10/ok10_scalarizer_projective.h>
 
 namespace mco {
 
@@ -95,9 +95,9 @@ Solve(AssignmentInstance & instance) {
 
     LexHungarianSolverAdaptor solver(instance);
 
-    Ok10Scalarizer scalarizer(solver,
-                              upper_bounds,
-                              dimension);
+    Ok10ScalarizerProjective scalarizer(solver,
+                                        upper_bounds,
+                                        dimension);
 
     scalarizer.Calculate_solutions(frontier);
 
