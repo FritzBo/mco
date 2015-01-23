@@ -43,6 +43,24 @@ check_domination(list<Label>& new_labels,
 
                 check_label_it = neighbor_entry.erase(check_label_it);
 
+            } else if(eq(new_label.pos, check_label.pos) &&
+                      new_label.cost[dimension_ - 1] <
+                      check_label.cost[dimension_ - 1]) {
+
+                auto it = find(check_label.pred_label->succ_label.begin(),
+                               check_label.pred_label->succ_label.end(),
+                               &check_label);
+
+                assert(it != check_label.pred_label->succ_label.end());
+
+                check_label.pred_label->succ_label.erase(it);
+
+                recursive_delete(check_label);
+
+                check_label_it = neighbor_entry.erase(check_label_it);
+                
+                changed = true;
+
             } else if(leq(check_label.pos, new_label.pos)) {
 
                 dominated = true;
