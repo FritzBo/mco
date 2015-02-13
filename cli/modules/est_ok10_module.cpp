@@ -61,7 +61,10 @@ void EstOk10Module::perform(int argc, char** argv) {
 
         assert(graph.numberOfEdges() > 0);
 
-        unsigned objectives = edge_array[graph.chooseEdge()]->dimension();
+        objectives = edge_array[graph.chooseEdge()]->dimension();
+
+        nodes_ = graph.numberOfNodes();
+        edges_ = graph.numberOfEdges();
 
         EstOk10Solver solver(epsilon);
 
@@ -82,5 +85,6 @@ const list<pair<const list<edge>, const Point>>& EstOk10Module::solutions() {
 
 string EstOk10Module::statistics() {
     string stats("");
+    stats += to_string(objectives) + ", " + to_string(nodes_) + ", " + to_string(edges_);
     return stats;
 }

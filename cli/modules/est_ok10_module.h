@@ -28,7 +28,10 @@ private:
     
     std::list<std::pair<const std::list<ogdf::edge>, const mco::Point>> solutions_;
 
-    
+    unsigned objectives;
+    unsigned nodes_;
+    unsigned edges_;
+
 };
 
 #endif /* defined(__mco__est_ok10_module__) */

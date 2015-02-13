@@ -46,6 +46,19 @@ public:
     cost_function_(cost_function),
     weighted_costs_(graph, nullptr),
     target_dimension_(weighting.dimension() + 1) { }
+
+    LexWeightFunctionAdaptor(const LexWeightFunctionAdaptor& other)
+    :   weighting_(other.weighting_),
+        cost_function_(other.cost_function_),
+        weighted_costs_(other.weighted_costs_),
+        target_dimension_(other.target_dimension_) {
+
+        for(ogdf::edge e : weighted_costs_.graphOf()->edges) {
+            if(other.weighted_costs_[e] != nullptr) {
+                weighted_costs_[e] = new Point(*other.weighted_costs_[e]);
+            }
+        }
+    }
     
     ~LexWeightFunctionAdaptor();
     

@@ -92,7 +92,9 @@ void EstBensonModule::perform(int argc, char** argv) {
         parser.get_graph(graph,
                          edge_array);
 
-        unsigned dimension = edge_array[graph.chooseEdge()]->dimension();
+        dimension = edge_array[graph.chooseEdge()]->dimension();
+        nodes_ = graph.numberOfNodes();
+        edges_ = graph.numberOfEdges();
 
         AbstractGraphInstance instance(graph, edge_array, dimension);
 
@@ -144,5 +146,6 @@ const list<pair<const list<edge>, const Point>>& EstBensonModule::solutions() {
 
 string EstBensonModule::statistics() {
     string stats("");
+    stats += to_string(dimension) + ", " + to_string(nodes_) + ", " + to_string(edges_);
     return stats;
 }

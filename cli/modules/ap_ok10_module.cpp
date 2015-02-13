@@ -66,6 +66,9 @@ void ApOk10Module::perform(int argc, char** argv) {
                                                           edge_array,
                                                           agents);
 
+        objectives_ = edge_array[graph.chooseEdge()]->dimension();
+        nodes_ = graph.numberOfNodes();
+
         ApOk10Solver solver(epsilon);
 
         solver.Solve(instance);
@@ -85,5 +88,6 @@ const list<pair<const list<edge>, const Point>>& ApOk10Module::solutions() {
 
 string ApOk10Module::statistics() {
     string stats("");
+    stats += to_string(objectives_) + ", " + to_string(nodes_);
     return stats;
 }

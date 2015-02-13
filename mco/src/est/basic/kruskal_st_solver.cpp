@@ -38,7 +38,7 @@ Solve(const ogdf::Graph & g,
 		sorted_edges.push_back(e);
 	}
 
-    auto comparator = [costs] (edge e1, edge e2) {
+    auto comparator = [&costs] (edge e1, edge e2) {
         return LexPointComparator::is_lex_le(costs(e1),
                                              costs(e2),
                                              0.0);
@@ -77,7 +77,7 @@ Point LexKruskalSTSolver::min_cost() {
 }
 
 void LexKruskalSTSolver::make_set(ogdf::node n) {
-	sets_[n] = n;
+    sets_[n] = n;
 }
 
 ogdf::node LexKruskalSTSolver::find_set(ogdf::node n) {

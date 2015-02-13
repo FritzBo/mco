@@ -28,7 +28,11 @@ private:
     
     std::list<std::pair<const std::list<ogdf::edge>, const mco::Point>> solutions_;
 
-    
+    unsigned dimension;
+    unsigned nodes_;
+    unsigned edges_;
+
+
 };
 
 #endif /* defined(__mco__est_benson_module__) */

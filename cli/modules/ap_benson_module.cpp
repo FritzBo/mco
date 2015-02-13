@@ -92,6 +92,9 @@ void ApBensonModule::perform(int argc, char** argv) {
                                                           edge_array,
                                                           agents);
 
+        objectives_ = edge_array[graph.chooseEdge()]->dimension();
+        nodes_ = graph.numberOfNodes();
+
         if((instance.dimension() <= 4 && !use_cdd) || use_gl_ove) {
             APBensonDualSolver<> solver(epsilon);
 
@@ -140,5 +143,6 @@ const list<pair<const list<edge>, const Point>>& ApBensonModule::solutions() {
 
 string ApBensonModule::statistics() {
     string stats("");
+    stats += to_string(objectives_) + ", " + to_string(nodes_);
     return stats;
 }

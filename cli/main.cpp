@@ -149,6 +149,8 @@ int main(int argc, char** argv) {
         
         SwitchArg print_timing_arg("t", "timing", "Prints timing information", false);
 
+        SwitchArg print_summary_arg("s", "summary", "Prints summary of the algorithm", false);
+
         SwitchArg print_cdd_v_rep_arg("", "v-rep", "Print a V-representation output.", false);
         
         cmd.add(print_frontier_arg);
@@ -157,6 +159,7 @@ int main(int argc, char** argv) {
         cmd.add(print_count_arg);
         cmd.add(print_verbose_arg);
         cmd.add(print_timing_arg);
+        cmd.add(print_summary_arg);
         cmd.add(print_cdd_v_rep_arg);
         
         cmd.parse(argument_position, argv);
@@ -167,12 +170,39 @@ int main(int argc, char** argv) {
         bool print_count = print_count_arg.getValue();
         bool print_verbose = print_verbose_arg.getValue();
         bool print_timing = print_timing_arg.getValue();
+        bool print_summary = print_summary_arg.getValue();
         bool print_cdd_v_rep = print_cdd_v_rep_arg.getValue();
-        
+
+        steady_clock::time_point start = steady_clock::now();
+
         choosen_module->perform(argc - argument_position,
                                 argv + argument_position);
-        
-        
+
+        steady_clock::time_point end = steady_clock::now();
+        duration<double> computation_span
+        = duration_cast<duration<double>>(end - start);
+
+        if(print_summary) {
+            auto algo_module = dynamic_cast<AlgorithmModule<list<edge>>*>(choosen_module);
+
+            if(print_verbose) {
+                cout << "Statistics: " << algo_module->statistics() << endl;
+            } else {
+                cout << algo_module->statistics();
+            }
+        }
+
+        if(print_timing) {
+            if(print_verbose) {
+                cout << "Time: " << computation_span.count() << endl;
+            } else {
+                if(print_summary) {
+                    cout << ", ";
+                }
+                cout << computation_span.count();
+            }
+        }
+
         if(print_frontier ||
            print_solutions ||
            print_count ||
@@ -183,7 +213,14 @@ int main(int argc, char** argv) {
             auto solutions = ep_algo_module->solutions();
 
             if(print_count) {
-                cout << solutions.size() << " points" << endl;
+                if(print_verbose) {
+                    cout << solutions.size() << " points" << endl;
+                } else {
+                    if(print_timing || print_summary) {
+                        cout << ", ";
+                    }
+                    cout << solutions.size();
+                }
             }
             
             if(print_frontier || print_solutions) {
@@ -241,9 +278,9 @@ int main(int argc, char** argv) {
 
             }
         }
-        
-        if(print_timing) {
-            cout << "Timining information" << endl;
+
+        if(!print_verbose) {
+            cout << endl;
         }
 
     } catch (exception& e) {

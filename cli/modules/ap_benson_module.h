@@ -28,7 +28,10 @@ private:
     
     std::list<std::pair<const std::list<ogdf::edge>, const mco::Point>> solutions_;
 
-    
+    unsigned objectives_;
+    unsigned nodes_;
+
+
 };
 
 #endif /* defined(__mco__ap_benson_module__) */
