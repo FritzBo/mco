@@ -181,10 +181,12 @@ int main(int argc, char** argv) {
             auto ep_algo_module = dynamic_cast<AlgorithmModule<list<edge>>*>(choosen_module);
             
             auto solutions = ep_algo_module->solutions();
-            
-            if(print_frontier || print_solutions || print_count) {
 
+            if(print_count) {
                 cout << solutions.size() << " points" << endl;
+            }
+            
+            if(print_frontier || print_solutions) {
                 
                 int count = 0;
                 auto solution_it = solutions.cbegin();
