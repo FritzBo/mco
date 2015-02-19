@@ -121,12 +121,15 @@ void OnlineVertexEnumeratorCDD::add_hyperplane(Point &vertex, Point &normal, dou
 
 //	ddf_WriteMatrix(stdout, h_representation_);
 
-	poly = ddf_DDMatrix2Poly2(h_representation_, ddf_MaxCutoff,&err);
+	poly = ddf_DDMatrix2Poly2(h_representation_, ddf_MaxCutoff, &err);
 
 	if(err != ddf_NoError) {
-		ddf_WriteErrorMessages(stdout, err);
-		assert(false);
-        exit(-1);
+        poly = ddf_DDMatrix2Poly2(h_representation_, ddf_LexMin, &err);
+        if(err != ddf_NoError) {
+            ddf_WriteErrorMessages(stdout, err);
+            assert(false);
+            exit(-1);
+        }
 	}
 
 	v_representation = ddf_CopyGenerators(poly);
