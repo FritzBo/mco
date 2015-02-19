@@ -22,7 +22,7 @@ OnlineVertexEnumeratorCDD::OnlineVertexEnumeratorCDD(Point &initial_value, unsig
 
 	ddf_set_global_constants();
 
-	h_representation_ = ddf_CreateMatrix(dimension + 1, dimension + 1);
+	h_representation_ = ddf_CreateMatrix(2 * (dimension + 1), dimension + 1);
 
 	for(unsigned int i = 0; i < dimension_ - 1; ++i) {
 		for(unsigned int j = 0; j < dimension_; ++j)
@@ -53,6 +53,7 @@ OnlineVertexEnumeratorCDD::OnlineVertexEnumeratorCDD(Point &initial_value, unsig
 	ddf_set_d(h_representation_->matrix[dimension_][0], initial_value[dimension_ - 1]);
 
 	h_representation_->representation = ddf_Inequality;
+    new_line_ = dimension + 1;
 
 //	dd_WriteMatrix(stdout, h_representation_);
 //
@@ -93,24 +94,34 @@ void OnlineVertexEnumeratorCDD::add_hyperplane(Point &vertex, Point &normal, dou
 	number_hyperplanes_++;
 
 	ddf_PolyhedraPtr poly;
-	ddf_MatrixPtr v_representation, new_face;
-	ddf_MatrixPtr new_equality;
+	ddf_MatrixPtr v_representation;
 	ddf_ErrorType err;
 
-	new_equality = ddf_CreateMatrix(1, dimension_ + 1);
-	for(unsigned int i = 0; i < dimension_; ++i)
-		ddf_set_d(new_equality->matrix[0][i + 1], normal[i]);
-	ddf_set_d(new_equality->matrix[0][0], -rhs);
+//    if(new_line_ == dimension_ + 1) {
+//        cout << ddf_almostzero << endl;
+//    }
 
-	ddf_MatrixAppendTo(&h_representation_, new_equality);
+    if(new_line_ >= h_representation_->rowsize) {
+        expand_h_representation();
+    }
 
-	new_face = ddf_CopyMatrix(h_representation_);
-	set_addelem(new_face->linset, new_face->rowsize);
-	new_face->representation = ddf_Inequality;
+	for(unsigned int i = 0; i < dimension_; ++i) {
+		ddf_set_d(h_representation_->matrix[new_line_][i + 1], normal[i]);
+    }
+	ddf_set_d(h_representation_->matrix[new_line_][0], -rhs);
 
-//	dd_WriteMatrix(stdout, new_face);
+//	new_face = ddf_CopyMatrix(h_representation_);
+//	set_addelem(new_face->linset, new_face->rowsize);
+//	new_face->representation = ddf_Inequality;
 
-	poly = ddf_DDMatrix2Poly(new_face, &err);
+    set_addelem(h_representation_->linset, new_line_);
+
+    h_representation_->representation = ddf_Inequality;
+    h_representation_->numbtype = ddf_Real;
+
+//	ddf_WriteMatrix(stdout, h_representation_);
+
+	poly = ddf_DDMatrix2Poly2(h_representation_, ddf_MaxCutoff,&err);
 
 	if(err != ddf_NoError) {
 		ddf_WriteErrorMessages(stdout, err);
@@ -120,7 +131,10 @@ void OnlineVertexEnumeratorCDD::add_hyperplane(Point &vertex, Point &normal, dou
 
 	v_representation = ddf_CopyGenerators(poly);
 
-//	dd_WriteMatrix(stdout, v_representation);
+    set_delelem(h_representation_->linset, new_line_);
+
+//	ddf_WriteMatrix(stdout, h_representation_);
+//    ddf_WriteMatrix(stdout, v_representation);
 
 //	std::cout << "removing..." << std::endl;
 
@@ -148,9 +162,9 @@ void OnlineVertexEnumeratorCDD::add_hyperplane(Point &vertex, Point &normal, dou
 //		std::cout << "Added " << p << std::endl;
 	}
 
+    ++new_line_;
+
 	ddf_FreeMatrix(v_representation);
-	ddf_FreeMatrix(new_face);
-	ddf_FreeMatrix(new_equality);
 	ddf_FreePolyhedra(poly);
 
 //	std::cout << "end" << std::endl;
@@ -159,6 +173,20 @@ void OnlineVertexEnumeratorCDD::add_hyperplane(Point &vertex, Point &normal, dou
 
 	cycles_ += clock() - start;
 //	std::cout << cycles_ << std::endl;
+}
+
+void OnlineVertexEnumeratorCDD::expand_h_representation() {
+    ddf_MatrixPtr new_h_representation = ddf_CreateMatrix(2 * new_line_, dimension_ + 1);
+
+    for(unsigned row = 0; row < new_line_; ++row) {
+        for(unsigned col = 0; col < dimension_ + 1; ++col) {
+            ddf_set_d(new_h_representation->matrix[row][col],
+                      ddf_get_d(h_representation_->matrix[row][col]));
+        }
+    }
+
+    ddf_FreeMatrix(h_representation_);
+    h_representation_ = new_h_representation;
 }
 
 } /* namespace mco */

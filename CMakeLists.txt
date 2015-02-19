@@ -66,21 +66,6 @@ find_library(GUROBI2
           /usr/local/
 )
 
-## CDD ##
-find_path(CDD_INCLUDE_PATH
-	NAMES cdd.h
-	PATHS 	/usr/
-		/usr/local/
-		/opt/local/
-)
-
-find_library(CDD
-	NAMES libcddgmp.a
-	PATHS	/usr/
-		/usr/local
-		/opt/local
-)
-
 ## GMP ##
 find_path(GMP_INCLUDE_PATH
     NAMES   gmp.h
@@ -97,6 +82,7 @@ find_library(GMP
 )
 
 add_subdirectory(mco)
+add_subdirectory(cdd)
 add_subdirectory(test)
 add_subdirectory(cli)
 add_subdirectory(cli_lib)

@@ -47,6 +47,10 @@ protected:
 	std::list<Point> unprocessed_vertices_;
 
 	ddf_MatrixPtr h_representation_;
+    unsigned new_line_;
+
+private:
+    void expand_h_representation();
 };
 
 } /* namespace mco */
