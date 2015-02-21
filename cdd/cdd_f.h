@@ -50,7 +50,7 @@ extern ddf_LPSolverType ddf_choiceRedcheckAlgorithm;  /* Redundancy Checking Alg
 extern ddf_boolean ddf_choiceLexicoPivotQ;    /* whether to use the lexicographic pivot */
 
    /* to be used to avoid creating temporary spaces for myfloat */
-#define ddf_almostzero  1.0E-9
+#define ddf_almostzero  1.0E-6
 
 /* ---------- FUNCTIONS MEANT TO BE PUBLIC ---------- */
 
