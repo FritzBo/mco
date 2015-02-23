@@ -36,6 +36,8 @@ using TCLAP::SwitchArg;
 #include <mco/ap/benson_dual/ap_benson_dual_solver.h>
 #include <mco/generic/benson_dual/ove_cdd.h>
 #include <mco/generic/benson_dual/ove_cdd_gmp.h>
+#include <mco/generic/benson_dual/ove_node_lists.h>
+#include <mco/generic/benson_dual/ove_edge_lists.h>
 #include <mco/basic/point.h>
 
 #include <mco/generic/benson_dual/upper_image_container.h>
@@ -64,6 +66,10 @@ void ApBensonModule::perform(int argc, char** argv) {
 
         SwitchArg use_gl_ove_arg("", "gl-ove", "Using the graphless online vertex enumerator", false);
 
+        SwitchArg use_nl_ove_arg("", "nl-ove", "Using the node list adjacency online vertex enumrator", false);
+
+        SwitchArg use_el_ove_arg("", "el-ove", "Using the edge list adjacency online vertex enumrator", false);
+
         ValueArg<string> output_files_arg("o", "output", "Saves a discription of the upper image to .ine and .ext files.", false, "", "filname");
 
 
@@ -72,6 +78,8 @@ void ApBensonModule::perform(int argc, char** argv) {
         cmd.add(use_cdd_arg);
         cmd.add(use_cdd_gmp_arg);
         cmd.add(use_gl_ove_arg);
+        cmd.add(use_nl_ove_arg);
+        cmd.add(use_el_ove_arg);
         cmd.add(output_files_arg);
 
         cmd.parse(argc, argv);
@@ -82,6 +90,8 @@ void ApBensonModule::perform(int argc, char** argv) {
         bool use_cdd = use_cdd_arg.getValue();
         bool use_gmp = use_cdd_gmp_arg.getValue();
         bool use_gl_ove = use_gl_ove_arg.getValue();
+        bool use_nl_ove = use_nl_ove_arg.getValue();
+        bool use_el_ove = use_nl_ove_arg.getValue();
 
         Graph graph;
         EdgeArray<Point *> edge_array(graph);
@@ -95,7 +105,7 @@ void ApBensonModule::perform(int argc, char** argv) {
         objectives_ = edge_array[graph.chooseEdge()]->dimension();
         nodes_ = graph.numberOfNodes();
 
-        if((instance.dimension() <= 4 && !use_cdd) || use_gl_ove) {
+        if((instance.dimension() <= 4 && !use_cdd && !use_nl_ove && !use_el_ove) || use_gl_ove) {
             APBensonDualSolver<> solver(epsilon);
 
             solver.Solve(instance);
@@ -106,7 +116,7 @@ void ApBensonModule::perform(int argc, char** argv) {
 
             auto writer = get_upper_image_writer(&solver);
             writer.write_image(output_file_name, &solver);
-        } else {
+        } else if(instance.dimension() > 4 && !use_nl_ove && !use_el_ove) {
             if(use_gmp) {
                 APBensonDualSolver<mco::OnlineVertexEnumeratorCddGmp> solver(epsilon);
 
@@ -130,6 +140,36 @@ void ApBensonModule::perform(int argc, char** argv) {
                 auto writer = get_upper_image_writer(&solver);
                 writer.write_image(output_file_name, &solver);
             }
+        } else if(use_nl_ove && !use_el_ove) {
+            if(instance.dimension() > 4) {
+                cout << "Output might be wrong when using NodeList Vertex Enumeration on more than four objectives!" << endl;
+            }
+
+            APBensonDualSolver<mco::NodeListVE> solver(epsilon);
+
+            solver.Solve(instance);
+
+            solutions_.insert(solutions_.begin(),
+                              solver.solutions().cbegin(),
+                              solver.solutions().cend());
+
+            auto writer = get_upper_image_writer(&solver);
+            writer.write_image(output_file_name, &solver);
+        } else {
+            if(instance.dimension() > 4) {
+                cout << "Output might be wrong when using NodeList Vertex Enumeration on more than four objectives!" << endl;
+            }
+
+            APBensonDualSolver<mco::EdgeListVE> solver(epsilon);
+
+            solver.Solve(instance);
+
+            solutions_.insert(solutions_.begin(),
+                              solver.solutions().cbegin(),
+                              solver.solutions().cend());
+
+            auto writer = get_upper_image_writer(&solver);
+            writer.write_image(output_file_name, &solver);
         }
 
     } catch(ArgException& e) {
