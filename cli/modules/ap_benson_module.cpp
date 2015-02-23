@@ -107,11 +107,11 @@ void ApBensonModule::perform(int argc, char** argv) {
 
         if((instance.dimension() <= 4 && !use_cdd && !use_gl_ove && !use_nl_ove) || use_el_ove) {
 
+            mode_ = "el";
+
             if(instance.dimension() > 4) {
                 cout << "Output might be wrong when using NodeList Vertex Enumeration on more than four objectives!" << endl;
             }
-
-            cout << "Edge List OVE" << endl;
 
             APBensonDualSolver<mco::EdgeListVE> solver(epsilon);
 
@@ -125,7 +125,7 @@ void ApBensonModule::perform(int argc, char** argv) {
             writer.write_image(output_file_name, &solver);
         } else if((instance.dimension() > 4 && !use_nl_ove && !use_gl_ove) || use_cdd) {
             if(use_gmp) {
-                cout << "CDD & GMP OVE" << endl;
+                mode_ = "cddgmp";
                 APBensonDualSolver<mco::OnlineVertexEnumeratorCddGmp> solver(epsilon);
 
                 solver.Solve(instance);
@@ -137,7 +137,7 @@ void ApBensonModule::perform(int argc, char** argv) {
                 auto writer = get_upper_image_writer(&solver);
                 writer.write_image(output_file_name, &solver);
             } else {
-                cout << "CDD OVE" << endl;
+                mode_ = "cdd";
                 APBensonDualSolver<mco::OnlineVertexEnumeratorCDD> solver(epsilon);
 
                 solver.Solve(instance);
@@ -151,7 +151,8 @@ void ApBensonModule::perform(int argc, char** argv) {
             }
         } else if(use_gl_ove && !use_nl_ove) {
 
-            cout << "Graphless OVE" << endl;
+            mode_ = "gl";
+
             APBensonDualSolver<> solver(epsilon);
 
             solver.Solve(instance);
@@ -163,7 +164,7 @@ void ApBensonModule::perform(int argc, char** argv) {
             auto writer = get_upper_image_writer(&solver);
             writer.write_image(output_file_name, &solver);
         } else {
-            cout << "Node Lists OVE" << endl;
+            mode_ = "nl";
             if(instance.dimension() > 4) {
                 cout << "Output might be wrong when using NodeList Vertex Enumeration on more than four objectives!" << endl;
             }
@@ -191,6 +192,6 @@ const list<pair<const list<edge>, const Point>>& ApBensonModule::solutions() {
 
 string ApBensonModule::statistics() {
     string stats("");
-    stats += to_string(objectives_) + ", " + to_string(nodes_);
+    stats += to_string(objectives_) + ", " + to_string(nodes_) + ", " + mode_;
     return stats;
 }

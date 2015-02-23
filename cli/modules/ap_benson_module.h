@@ -30,6 +30,7 @@ private:
 
     unsigned objectives_;
     unsigned nodes_;
+    string mode_;
 
 
 };
