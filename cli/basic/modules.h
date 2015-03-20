@@ -42,7 +42,7 @@ class ModuleFactory {
 public:
     void add_module(std::string name, BasicModule& module);
     
-    std::list<std::pair<unsigned, BasicModule*>> parse_module_list(int argc, char** argv);
+    std::list<std::pair<int, BasicModule*>> parse_module_list(int argc, char** argv);
     
     ~ModuleFactory();
 

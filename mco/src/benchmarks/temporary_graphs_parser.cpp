@@ -55,7 +55,7 @@ void TemporaryGraphParser::getGraph(string filename,
     edge e;
     map<int, node> nodes_added;
     
-    for( int i = 0; i < num_edges; ++i ) {
+    for(unsigned i = 0; i < num_edges; ++i ) {
         file >> node1_ref >> node2_ref;
         
         if(nodes_added.count(node1_ref) == 0) {
@@ -72,7 +72,7 @@ void TemporaryGraphParser::getGraph(string filename,
         
         // FIXME
         Point new_point(dimension);
-        for(int j = 0; j < dimension; ++j) {
+        for(unsigned j = 0; j < dimension; ++j) {
             if(cut_precision) {
                 double value;
                 file >> value;

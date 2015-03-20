@@ -52,7 +52,7 @@ Solve(const ogdf::Graph & g,
 		make_set(n);
 	}
 
-    unsigned i = 0;
+    int i = 0;
 	for(edge e: sorted_edges) {
 
         if(i > g.numberOfNodes()) {

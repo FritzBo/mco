@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
 
         module_factory.add_module("ui-verify", ui_verifier);
         
-        list<pair<unsigned, BasicModule*>> modules = module_factory.parse_module_list(argc, argv);
+        list<pair<int, BasicModule*>> modules = module_factory.parse_module_list(argc, argv);
         
         if(modules.size() < 1) {
             cout << "Need to specify a module." << endl;

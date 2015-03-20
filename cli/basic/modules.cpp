@@ -20,10 +20,11 @@ void ModuleFactory::add_module(string name, BasicModule& module) {
 ModuleFactory::~ModuleFactory() {
 }
 
-list<pair<unsigned, BasicModule*>> ModuleFactory::parse_module_list(int argc, char** argv) {
-    list<pair<unsigned, BasicModule*>> found_modules;
+list<pair<int, BasicModule*>> ModuleFactory::parse_module_list(int argc, char** argv) {
     
-    for(unsigned i = 0; i < argc; ++i) {
+    list<pair<int, BasicModule*>> found_modules;
+    
+    for(int i = 0; i < argc; ++i) {
         auto module_it = modules_.find(string(argv[i]));
         
         if(module_it != modules_.end()) {

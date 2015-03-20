@@ -287,6 +287,8 @@ Solve(const Graph& graph,
 inline bool check_equality_subgraph(const Point &cost,
                                     const Point &dual1,
                                     const Point &dual2) {
+
+    using std::abs;
     
     for(unsigned i = 0; i < cost.dimension(); ++i) {
         if(abs(cost[i] - (dual1[i] + dual2[i])) > 1E-9) {

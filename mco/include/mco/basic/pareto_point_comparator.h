@@ -8,6 +8,8 @@
 #ifndef mco_pareto_point_comparator_h
 #define mco_pareto_point_comparator_h
 
+#include <cmath>
+
 namespace mco {
 
 /*!
@@ -60,6 +62,8 @@ inline bool ParetoDominationPointComparator::
 dominates(const Point &p1,
           const Point &p2,
           double epsilon) noexcept {
+
+    using std::abs;
     
     assert(p1.dimension() == p2.dimension());
     

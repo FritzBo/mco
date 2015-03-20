@@ -10,7 +10,7 @@ mark_as_advanced(VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
 enable_testing()
 
 set(CMAKE_CXX_FLAGS
---std=c++11)
+"--std=c++11 -pedantic -Wall -Wextra")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DOGDF_DEBUG")
 

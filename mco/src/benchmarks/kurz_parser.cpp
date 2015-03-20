@@ -100,7 +100,7 @@ unsigned int KurzParser::get_graph(ogdf::Graph& graph,
 					return 0;
 
 				p = new Point(dimension);
-				for(int j = 0; j < dimension; ++j) {
+				for(unsigned j = 0; j < dimension; ++j) {
 					p->operator [](j) = values.front();
 					values.pop_front();
 				}
