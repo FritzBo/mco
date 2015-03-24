@@ -81,6 +81,9 @@ find_library(GMP
             /opt/local
 )
 
+## Threads ##
+find_package(Threads)
+
 add_subdirectory(mco)
 add_subdirectory(cdd)
 add_subdirectory(test)

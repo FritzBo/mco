@@ -15,7 +15,7 @@ target_link_libraries(ap_test mco)
 target_link_libraries(ap_test debug ${OGDF-DBG} optimized ${OGDF})
 target_link_libraries(ap_test debug ${COIN-DBG} optimized ${COIN})
 target_link_libraries(ap_test cdd)
-target_link_libraries(ap_test pthread)
+target_link_libraries(ap_test ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(ap_test ${GTEST} ${GTEST_MAIN})
 
 add_test(Assignment ap_test)
