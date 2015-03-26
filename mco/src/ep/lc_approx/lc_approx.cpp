@@ -44,8 +44,7 @@ check_domination(list<Label>& new_labels,
                 check_label_it = neighbor_entry.erase(check_label_it);
 
             } else if(eq(new_label.pos, check_label.pos) &&
-                      new_label.cost[dimension_ - 1] <
-                      check_label.cost[dimension_ - 1]) {
+                      new_label.sum < check_label.sum) {
 
                 auto it = find(check_label.pred_label->succ_label.begin(),
                                check_label.pred_label->succ_label.end(),

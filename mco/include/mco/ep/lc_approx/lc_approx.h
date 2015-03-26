@@ -74,6 +74,7 @@ private:
     struct Label {
         const Point cost;
         const Point pos;
+        double sum;
         const ogdf::node n;
         const ogdf::edge pred_edge;
         Label* pred_label;
@@ -88,16 +89,29 @@ private:
         :   cost(cost),
             pos(app.compute_pos(cost)),
             n(n),
+            sum(0),
             pred_edge(p_edge),
             pred_label(p_label),
-            deleted(false) { }
+            deleted(false) {
+
+
+            auto it = cost.cbegin();
+            while(it != cost.cend()) {
+                sum += *it;
+                ++it;
+            }
+
+
+        }
 
         Label(Label&& other)
         :   cost(std::move(other.cost)),
             pos(std::move(other.pos)),
+            sum(other.sum),
             n(other.n),
             pred_edge(other.pred_edge),
             pred_label(other.pred_label) {
+
         }
     };
     
