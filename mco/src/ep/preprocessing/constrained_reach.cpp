@@ -82,8 +82,10 @@ void ConstrainedReachabilityPreprocessing::preprocess(Graph &graph,
         graph.delNode(n);
         nodes_deleted++;
     }
-    
+
+#ifndef NDEBUG
     std::cout << "Numer of nodes deleted: " << nodes_deleted << std::endl;
+#endif
 }
 
 }
