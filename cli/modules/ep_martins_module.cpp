@@ -113,7 +113,9 @@ void EpMartinsModule::perform(int argc, char** argv) {
         vector<NodeArray<double>> distances(dimension, *graph);
         
         if(use_heuristic) {
+#ifndef NDEBUG
             cout << "computing heuristic..." <<endl;
+#endif
             calculate_ideal_heuristic(*graph,
                                       costs,
                                       dimension,
@@ -156,8 +158,10 @@ void EpMartinsModule::perform(int argc, char** argv) {
         auto cost_function = [&costs] (edge e) { return &costs[e]; };
         
         ConstrainedReachabilityPreprocessing prep;
-        
+
+#ifndef NDEBUG
         cout << "starting preprocessing..." << endl;
+#endif
         prep.preprocess(*graph,
                         cost_function,
                         dimension,
@@ -172,7 +176,9 @@ void EpMartinsModule::perform(int argc, char** argv) {
         
         thread *first_phase_thread = nullptr;
         if(do_first_phase) {
+#ifndef NDEBUG
             cout << "starting first phase..." << endl;
+#endif
             
             auto callback = [&solver, &graph, dimension] (NodeArray<Point *>& distances,
                                                           NodeArray<edge>& predecessors) {
@@ -199,8 +205,10 @@ void EpMartinsModule::perform(int argc, char** argv) {
                                             callback);
             
         }
-        
+
+#ifndef NDEBUG
         cout << "Starting Martins..." << endl;
+#endif
         
         solver.Solve(*graph,
                      cost_function,
@@ -212,8 +220,10 @@ void EpMartinsModule::perform(int argc, char** argv) {
                      ideal_heuristic,
                      bounds,
                      is_directed);
-        
+
+#ifndef NDEBUG
         cout << "Done." << endl;
+#endif
         
         if(first_phase_thread != nullptr) {
             first_phase_thread->join();
