@@ -396,8 +396,10 @@ void EpMartinsModule::first_phase(const Graph* graph,
         weighted_solver.Solve(*graph, cost_function, source, target, callback);
 //    }
     OGDF_ALLOCATOR::flushPool();
-    
+
+#ifndef NDEBUG
     cout << "Finished first phase" << endl;
+#endif
 }
 
 
