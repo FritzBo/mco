@@ -23,8 +23,8 @@ class Point;
 class EpInstance : public AbstractGraphInstance {
 
 public:
-	EpInstance(ogdf::Graph graph,
-               ogdf::EdgeArray<Point *> weights,
+	EpInstance(ogdf::Graph& graph,
+               ogdf::EdgeArray<Point *>& weights,
                unsigned int dimension,
                ogdf::node const source,
                ogdf::node const target)

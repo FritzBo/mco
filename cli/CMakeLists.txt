@@ -40,6 +40,8 @@ modules/ep_martins_module.h
 modules/ep_martins_module.cpp
 modules/ep_lc_approx_module.h
 modules/ep_lc_approx_module.cpp
+modules/ep_tsaggouris_module.h
+modules/ep_tsaggouris_module.cpp
 modules/ep_ideal_point.h
 modules/ep_ideal_point.cpp
 modules/ui_verifier.h

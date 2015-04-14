@@ -111,7 +111,8 @@ void EpSolverTsaggourisApprox::Solve() {
 
 	(*old_Py)[instance().source()][0] = new Label(new Point(dimension), nullptr, nullptr);
 
-	for(int i = 1; i < graph.numberOfNodes(); ++i)
+	for(int i = 1; i < graph.numberOfNodes(); ++i) {
+        cout << i << endl;
 		forall_nodes(n, graph) {
 			auto new_Py = new NodeArray<vector<const Label *>>(*old_Py);
 			forall_adj_edges(e, n) {
@@ -124,6 +125,7 @@ void EpSolverTsaggourisApprox::Solve() {
 			old_Py = new NodeArray<vector<const Label *>>(*new_Py);
 			delete new_Py;
 		}
+    }
 
 	list<pair<csolution_type, const Point>> target_points;
 	for(auto label : (*old_Py)[instance().target()])
