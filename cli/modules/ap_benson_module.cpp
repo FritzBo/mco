@@ -125,6 +125,9 @@ void ApBensonModule::perform(int argc, char** argv) {
                               solver.solutions().cbegin(),
                               solver.solutions().cend());
 
+            oracle_time_ = solver.oracle_time();
+            ve_time_ = solver.ve_time();
+
             auto writer = get_upper_image_writer(&solver);
             writer.write_image(output_file_name, &solver);
         } else if((instance.dimension() > 4 && !use_nl_ove && !use_gl_ove) || use_cdd) {
@@ -138,6 +141,9 @@ void ApBensonModule::perform(int argc, char** argv) {
                                   solver.solutions().cbegin(),
                                   solver.solutions().cend());
 
+                oracle_time_ = solver.oracle_time();
+                ve_time_ = solver.ve_time();
+
                 auto writer = get_upper_image_writer(&solver);
                 writer.write_image(output_file_name, &solver);
             } else {
@@ -149,6 +155,9 @@ void ApBensonModule::perform(int argc, char** argv) {
                 solutions_.insert(solutions_.begin(),
                                   solver.solutions().cbegin(),
                                   solver.solutions().cend());
+
+                oracle_time_ = solver.oracle_time();
+                ve_time_ = solver.ve_time();
 
                 auto writer = get_upper_image_writer(&solver);
                 writer.write_image(output_file_name, &solver);
@@ -164,6 +173,9 @@ void ApBensonModule::perform(int argc, char** argv) {
             solutions_.insert(solutions_.begin(),
                               solver.solutions().cbegin(),
                               solver.solutions().cend());
+
+            oracle_time_ = solver.oracle_time();
+            ve_time_ = solver.ve_time();
 
             auto writer = get_upper_image_writer(&solver);
             writer.write_image(output_file_name, &solver);
@@ -181,6 +193,9 @@ void ApBensonModule::perform(int argc, char** argv) {
                               solver.solutions().cbegin(),
                               solver.solutions().cend());
 
+            oracle_time_ = solver.oracle_time();
+            ve_time_ = solver.ve_time();
+
             auto writer = get_upper_image_writer(&solver);
             writer.write_image(output_file_name, &solver);
         }
@@ -196,6 +211,6 @@ const list<pair<const list<edge>, const Point>>& ApBensonModule::solutions() {
 
 string ApBensonModule::statistics() {
     string stats("");
-    stats += to_string(objectives_) + ", " + to_string(nodes_) + ", " + mode_;
+    stats += to_string(objectives_) + ", " + to_string(nodes_) + ", " + mode_ + ", " + to_string(oracle_time_) + ", " + to_string(ve_time_);
     return stats;
 }

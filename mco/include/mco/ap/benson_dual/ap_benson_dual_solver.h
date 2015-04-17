@@ -10,6 +10,7 @@
 #define AP_BENSON_DUAL_SOLVER_H_
 
 #include <functional>
+#include <chrono>
 
 #include <mco/basic/abstract_solver.h>
 #include <mco/basic/weight_function_adaptors.h>
@@ -29,7 +30,7 @@ public:
                                      bool lexicograhic = true);
     
     inline double operator()(const Point& weighting, Point& value);
-    
+
 private:
     LexHungarianMethod lex_ap_solver_;
     AssignmentInstance& ap_instance_;
@@ -89,6 +90,9 @@ public:
         }
         
 		add_solutions(solutions.begin(), solutions.end());
+
+        oracle_time_ = dual_benson_solver_.oracle_time();
+        ve_time_ = dual_benson_solver_.ve_time();
 	}
 
     std::list<Point*>::const_iterator cbeginExtremePoints() {
@@ -110,11 +114,22 @@ public:
         return inequalities_.size();
     }
 
+    double oracle_time() {
+        return oracle_time_;
+    }
+
+    double ve_time() {
+        return ve_time_;
+    }
+
 private:
     double epsilon_;
 
     std::list<Point*> extreme_points_;
     std::list<Point*> inequalities_;
+
+    double oracle_time_;
+    double ve_time_;
 };
     
         

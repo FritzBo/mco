@@ -31,7 +31,8 @@ private:
     unsigned objectives_;
     unsigned nodes_;
     string mode_;
-
+    double oracle_time_;
+    double ve_time_;
 
 };
 

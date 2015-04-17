@@ -11,6 +11,7 @@
 
 #include <list>
 #include <functional>
+#include <chrono>
 
 #include <mco/basic/point.h>
 
@@ -37,7 +38,8 @@ public:
 		solver_(solver),
 		vertex_container(nullptr),
 		vertices_(0),
-		facets_(0) {
+		facets_(0),
+        oracle_time_(0) {
 	}
 
 	void Calculate_solutions(std::list<Point *>& solutions);
@@ -46,6 +48,8 @@ public:
 
 	int number_vertices() { return vertices_; }
 	int number_facets() { return facets_; }
+    double oracle_time() { return oracle_time_; }
+    double ve_time() { return ve_time_; }
 
     std::list<Point> & facets_list() {
         return permanent_facets_;
@@ -64,11 +68,22 @@ private:
 
 	int vertices_;
 	int facets_;
+
+    double oracle_time_;
+    double ve_time_;
 };
     
 template<typename OnlineVertexEnumerator>
 void DualBensonScalarizer<OnlineVertexEnumerator>::
 Calculate_solutions(std::list<Point *>& solutions) {
+
+
+    using std::chrono::steady_clock;
+    using std::chrono::duration;
+    using std::chrono::duration_cast;
+
+    oracle_time_ = 0;
+    ve_time_ = 0;
 
     permanent_facets_.clear();
 
@@ -84,8 +99,15 @@ Calculate_solutions(std::list<Point *>& solutions) {
     }
     v[0] = 1;
 
+    steady_clock::time_point start = steady_clock::now();
     v[dimension_ - 1] = solver_(v, value);
-    
+    duration<double> span =
+    duration_cast<duration<double>>(
+                                    steady_clock::now() - start
+                                    );
+
+    oracle_time_ += span.count();
+
     permanent_facets_.push_back(v);
 
     solutions.push_back(new Point(value));
@@ -123,8 +145,14 @@ Calculate_solutions(std::list<Point *>& solutions) {
 #ifndef NDEBUG
         std::cout << "weighting: " << weighting << std::endl;
 #endif
-        
+
+        steady_clock::time_point start = steady_clock::now();
         scalar_value = solver_(weighting, value);
+        duration<double> span =
+        duration_cast<duration<double>>(
+                                        steady_clock::now() - start
+                                        );
+        oracle_time_ += span.count();
         
 #ifndef NDEBUG
         std::cout << "scalar value: " << scalar_value << std::endl;
@@ -144,8 +172,15 @@ Calculate_solutions(std::list<Point *>& solutions) {
             for(unsigned int i = 0; i < dimension_ - 1; ++i)
                 inequality[i] = value[i] - value[dimension_ - 1];
             inequality[dimension_ - 1] = -1;
-            
+
+            steady_clock::time_point start = steady_clock::now();
             vertex_container->add_hyperplane(*candidate, inequality, -value[dimension_ - 1]);
+            duration<double> span =
+            duration_cast<duration<double>>(
+                                            steady_clock::now() - start
+                                            );
+            ve_time_ += span.count();
+
             nondominated_values++;
             
             solutions.push_back(new Point(value));
