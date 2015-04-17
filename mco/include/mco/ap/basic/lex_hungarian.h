@@ -39,10 +39,14 @@ public:
     Point value() {
         return value_;
     }
+
+    std::list<ogdf::edge> solution() {
+        return solution_;
+    }
     
 private:
     Point value_;
-    
+    std::list<ogdf::edge> solution_;
 };
     
 template<typename ConstIterator>

@@ -276,6 +276,16 @@ Solve(const Graph& graph,
     for(auto n : graph.nodes) {
         value_ += dual_variables_[n];
     }
+
+    solution_.clear();
+    for(auto n : agents) {
+        for(auto adj : n->adjEdges) {
+            auto e = adj->theEdge();
+            if(e->opposite(n) == mate_[n] ) {
+                solution_.push_back(e);
+            }
+        }
+    }
     
 #ifndef NDEBUG
 //    std::cout << value_ << std::endl;

@@ -70,6 +70,8 @@ void ApBensonModule::perform(int argc, char** argv) {
 
         SwitchArg use_el_ove_arg("", "el-ove", "Using the edge list adjacency online vertex enumrator", false);
 
+        SwitchArg not_use_lex_oracle("", "no-lex", "Do not use a lexicographic oracle", false);
+
         ValueArg<string> output_files_arg("o", "output", "Saves a discription of the upper image to .ine and .ext files.", false, "", "filname");
 
 
@@ -81,6 +83,7 @@ void ApBensonModule::perform(int argc, char** argv) {
         cmd.add(use_nl_ove_arg);
         cmd.add(use_el_ove_arg);
         cmd.add(output_files_arg);
+        cmd.add(not_use_lex_oracle);
 
         cmd.parse(argc, argv);
         
@@ -92,6 +95,7 @@ void ApBensonModule::perform(int argc, char** argv) {
         bool use_gl_ove = use_gl_ove_arg.getValue();
         bool use_nl_ove = use_nl_ove_arg.getValue();
         bool use_el_ove = use_el_ove_arg.getValue();
+        bool no_lexicograhic_oracle = not_use_lex_oracle.getValue();
 
         Graph graph;
         EdgeArray<Point *> edge_array(graph);
@@ -115,7 +119,7 @@ void ApBensonModule::perform(int argc, char** argv) {
 
             APBensonDualSolver<mco::EdgeListVE> solver(epsilon);
 
-            solver.Solve(instance);
+            solver.Solve(instance, !no_lexicograhic_oracle);
 
             solutions_.insert(solutions_.begin(),
                               solver.solutions().cbegin(),
@@ -128,7 +132,7 @@ void ApBensonModule::perform(int argc, char** argv) {
                 mode_ = "cddgmp";
                 APBensonDualSolver<mco::OnlineVertexEnumeratorCddGmp> solver(epsilon);
 
-                solver.Solve(instance);
+                solver.Solve(instance, !no_lexicograhic_oracle);
 
                 solutions_.insert(solutions_.begin(),
                                   solver.solutions().cbegin(),
@@ -140,7 +144,7 @@ void ApBensonModule::perform(int argc, char** argv) {
                 mode_ = "cdd";
                 APBensonDualSolver<mco::OnlineVertexEnumeratorCDD> solver(epsilon);
 
-                solver.Solve(instance);
+                solver.Solve(instance, !no_lexicograhic_oracle);
 
                 solutions_.insert(solutions_.begin(),
                                   solver.solutions().cbegin(),
@@ -155,7 +159,7 @@ void ApBensonModule::perform(int argc, char** argv) {
 
             APBensonDualSolver<> solver(epsilon);
 
-            solver.Solve(instance);
+            solver.Solve(instance, !no_lexicograhic_oracle);
 
             solutions_.insert(solutions_.begin(),
                               solver.solutions().cbegin(),
@@ -171,7 +175,7 @@ void ApBensonModule::perform(int argc, char** argv) {
 
             APBensonDualSolver<mco::NodeListVE> solver(epsilon);
 
-            solver.Solve(instance);
+            solver.Solve(instance, !no_lexicograhic_oracle);
 
             solutions_.insert(solutions_.begin(),
                               solver.solutions().cbegin(),

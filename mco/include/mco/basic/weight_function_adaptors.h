@@ -19,19 +19,37 @@ namespace mco {
     
 class WeightFunctionAdaptor {
 public:
-    WeightFunctionAdaptor(std::function<const Point *(const ogdf::edge)> cost_function,
+    WeightFunctionAdaptor(const ogdf::Graph& g,
+                          std::function<const Point *(const ogdf::edge)> cost_function,
                           const Point& weighting)
     :   weighting_(weighting),
-    cost_function_(cost_function) { }
+        cost_function_(cost_function),
+        weighted_costs_(g, nullptr) { }
     
-    double operator()(ogdf::edge e) {
-        return *cost_function_(e) * weighting_;
+    inline ~WeightFunctionAdaptor() {
+        for(auto point : weighted_costs_) {
+            delete point;
+        }
+    }
+
+    inline Point* operator()(const ogdf::edge e) {
+
+        if(weighted_costs_[e] != nullptr) {
+            return weighted_costs_(e);
+        }
+
+        const Point& cost = *cost_function_(e);
+        auto new_point = new Point(weighting_ * cost, 1);
+
+        weighted_costs_(e) = new_point;
+        
+        return new_point;
     }
     
 private:
     const Point& weighting_;
     std::function<const Point*(const ogdf::edge)> cost_function_;
-    
+    ogdf::EdgeArray<Point *> weighted_costs_;
 };
     
     

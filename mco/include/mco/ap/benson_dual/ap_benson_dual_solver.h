@@ -25,19 +25,21 @@ namespace mco {
 
 class LexHungarianSolverAdaptor {
 public:
-    inline LexHungarianSolverAdaptor(AssignmentInstance& ap_instance);
+    inline LexHungarianSolverAdaptor(AssignmentInstance& ap_instance,
+                                     bool lexicograhic = true);
     
     inline double operator()(const Point& weighting, Point& value);
     
 private:
     LexHungarianMethod lex_ap_solver_;
     AssignmentInstance& ap_instance_;
+    bool lexicographic_;
 };
 
     
 template<typename OnlineVertexEnumerator = GraphlessOVE>
 class APBensonDualSolver
-: public AbstractSolver<std::list<ogdf::edge>>,
+:   public AbstractSolver<std::list<ogdf::edge>>,
     public AbstractUpperImageContainer<std::list<Point*>::const_iterator> {
         
 public:
@@ -53,7 +55,8 @@ public:
         }
     }
 
-	void Solve(AssignmentInstance & instance) {
+	void Solve(AssignmentInstance & instance,
+               bool lexicographic = true) {
 
         for(auto point : inequalities_) {
             delete point;
@@ -67,7 +70,8 @@ public:
 		std::list<Point *> frontier;
         
         DualBensonScalarizer<OnlineVertexEnumerator>
-        dual_benson_solver_(LexHungarianSolverAdaptor(instance),
+        dual_benson_solver_(LexHungarianSolverAdaptor(instance,
+                                                      lexicographic),
                             instance.dimension(),
                             epsilon_);
         
@@ -116,27 +120,52 @@ private:
         
     
 inline LexHungarianSolverAdaptor::
-LexHungarianSolverAdaptor(AssignmentInstance& ap_instance)
-:   ap_instance_(ap_instance) {
+LexHungarianSolverAdaptor(AssignmentInstance& ap_instance,
+                          bool lexicograhic)
+:   ap_instance_(ap_instance),
+    lexicographic_(lexicograhic) {
 }
 
 
 inline double LexHungarianSolverAdaptor::
 operator()(const Point& weighting, Point& value) {
-    
-    Point result = lex_ap_solver_.Solve(ap_instance_.graph(),
-                                        LexWeightFunctionAdaptor(ap_instance_.graph(),
-                                                                 ap_instance_.weights(),
-                                                                 weighting),
-                                        ap_instance_.dimension() + 1,
-                                        ap_instance_.agents());
 
+    auto cost_function = [&] (ogdf::edge e) {
+        return ap_instance_.weights()[e];
+    };
 
-    
-    for(unsigned i = 0; i < ap_instance_.dimension(); ++i) {
-        value[i] = result[i + 1];
+    Point result;
+    if(lexicographic_) {
+
+        result =
+            lex_ap_solver_.Solve(ap_instance_.graph(),
+                                 LexWeightFunctionAdaptor(ap_instance_.graph(),
+                                                          cost_function,
+                                                          weighting),
+                                 ap_instance_.dimension() + 1,
+                                 ap_instance_.agents());
+
+        for(unsigned i = 0; i < ap_instance_.dimension(); ++i) {
+            value[i] = result[i + 1];
+        }
+    } else {
+        result = lex_ap_solver_.Solve(ap_instance_.graph(),
+                                      WeightFunctionAdaptor(ap_instance_.graph(),
+                                                            cost_function,
+                                                            weighting),
+                                      1,
+                                      ap_instance_.agents());
+
+        for(unsigned i = 0; i < ap_instance_.dimension(); ++i) {
+            value[i] = 0;
+        }
+        for(auto e : lex_ap_solver_.solution()) {
+            value += *cost_function(e);
+        }
     }
-    
+
+
+
     return result[0];
 }
 
