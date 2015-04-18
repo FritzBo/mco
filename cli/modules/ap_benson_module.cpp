@@ -127,6 +127,7 @@ void ApBensonModule::perform(int argc, char** argv) {
 
             oracle_time_ = solver.oracle_time();
             ve_time_ = solver.ve_time();
+            no_facets_ = solver.number_facets();
 
             auto writer = get_upper_image_writer(&solver);
             writer.write_image(output_file_name, &solver);
@@ -143,6 +144,7 @@ void ApBensonModule::perform(int argc, char** argv) {
 
                 oracle_time_ = solver.oracle_time();
                 ve_time_ = solver.ve_time();
+                no_facets_ = solver.number_facets();
 
                 auto writer = get_upper_image_writer(&solver);
                 writer.write_image(output_file_name, &solver);
@@ -158,6 +160,7 @@ void ApBensonModule::perform(int argc, char** argv) {
 
                 oracle_time_ = solver.oracle_time();
                 ve_time_ = solver.ve_time();
+                no_facets_ = solver.number_facets();
 
                 auto writer = get_upper_image_writer(&solver);
                 writer.write_image(output_file_name, &solver);
@@ -176,6 +179,7 @@ void ApBensonModule::perform(int argc, char** argv) {
 
             oracle_time_ = solver.oracle_time();
             ve_time_ = solver.ve_time();
+            no_facets_ = solver.number_facets();
 
             auto writer = get_upper_image_writer(&solver);
             writer.write_image(output_file_name, &solver);
@@ -195,6 +199,7 @@ void ApBensonModule::perform(int argc, char** argv) {
 
             oracle_time_ = solver.oracle_time();
             ve_time_ = solver.ve_time();
+            no_facets_ = solver.number_facets();
 
             auto writer = get_upper_image_writer(&solver);
             writer.write_image(output_file_name, &solver);
@@ -211,6 +216,6 @@ const list<pair<const list<edge>, const Point>>& ApBensonModule::solutions() {
 
 string ApBensonModule::statistics() {
     string stats("");
-    stats += to_string(objectives_) + ", " + to_string(nodes_) + ", " + mode_ + ", " + to_string(oracle_time_) + ", " + to_string(ve_time_);
+    stats += to_string(objectives_) + ", " + to_string(nodes_) + ", " + mode_ + ", " + to_string(oracle_time_) + ", " + to_string(ve_time_) + ", " + to_string(no_facets_);
     return stats;
 }

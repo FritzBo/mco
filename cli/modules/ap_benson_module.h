@@ -33,6 +33,7 @@ private:
     string mode_;
     double oracle_time_;
     double ve_time_;
+    int no_facets_;
 
 };
 

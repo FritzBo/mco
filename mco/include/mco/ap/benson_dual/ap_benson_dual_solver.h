@@ -110,7 +110,7 @@ public:
         return inequalities_.cend();
     }
 
-    unsigned number_facets() {
+    int number_facets() {
         return inequalities_.size();
     }
 
