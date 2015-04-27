@@ -67,6 +67,8 @@ void EpLCApproxModule::perform(int argc, char** argv) {
 
         MultiArg<string> absolute_bounds_arg("i", "absolute-bound", "Bounds the given objective function by the given value.", false, "objective:value");
 
+        MultiArg<string> disjunctive_bound_arg("D", "disjunctive", "Bounds the given objective function by the given value in an OR fashion.", false, "objective:value");
+
         cmd.add(epsilon_argument);
         cmd.add(epsilon_all_argument);
         cmd.add(file_name_argument);
@@ -74,6 +76,7 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         cmd.add(ideal_bounds_arg);
         cmd.add(absolute_bounds_arg);
         cmd.add(exact_argument);
+        cmd.add(disjunctive_bound_arg);
         
         cmd.parse(argc, argv);
         
@@ -124,6 +127,11 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         parse_absolute_bounds(absolute_bounds_arg,
                               dimension,
                               bounds);
+
+        std::list<const Point> disjuncitve_bounds;
+        parse_disjunctive_bounds(disjunctive_bound_arg,
+                                 dimension,
+                                 disjuncitve_bounds);
         
         auto cost_function = [&costs] (edge e) -> Point& {
             return costs[e];
@@ -160,6 +168,9 @@ void EpLCApproxModule::perform(int argc, char** argv) {
 
 
         solver.set_bound(bounds);
+
+        solver.add_disjunctive_bounds(disjuncitve_bounds.begin(),
+                                      disjuncitve_bounds.end());
 
         solver.set_heuristic(ideal_heuristic);
         
@@ -251,6 +262,45 @@ void EpLCApproxModule::parse_absolute_bounds(const MultiArg<string>& argument,
 
 
 }
+
+void EpLCApproxModule::parse_disjunctive_bounds(const MultiArg<string>& argument,
+                                                unsigned dimension,
+                                                list<const Point>& bounds) {
+
+    auto bounds_it = argument.begin();
+    while(bounds_it != argument.end()) {
+        vector<string> tokens;
+        mco::tokenize(*bounds_it, tokens, ":");
+
+        if(tokens.size() != 2) {
+            cout << "Error" << endl;
+            return;
+        }
+
+        unsigned objective_function = stoul(tokens[0]);
+        double value = stod(tokens[1]);
+
+        if(objective_function > dimension) {
+            cout << "Error" << endl;
+            return;
+        }
+
+        if(objective_function == 0) {
+            cout << "Error" << endl;
+            return;
+        }
+
+        Point new_bound(numeric_limits<double>::infinity(), dimension);
+        new_bound[objective_function - 1] = value;
+
+        bounds.push_back(std::move(new_bound));
+        
+        bounds_it++;
+    }
+    
+    
+}
+
 
 void EpLCApproxModule::parse_epsilon(const MultiArg<string>& epsilon_argument,
                                      unsigned dimension,

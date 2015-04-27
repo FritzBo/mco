@@ -42,7 +42,16 @@ public:
         disj_bounds_.push_back(std::move(bounds));
         use_bounds_ = true;
     }
-    
+
+    template<typename InputIterator>
+    void add_disjunctive_bounds(InputIterator begin,
+                                InputIterator end) {
+
+        disj_bounds_.insert(disj_bounds_.end(),
+                            begin, end);
+        use_bounds_ = true;
+    }
+
 private:
     
     Point min_e_;
