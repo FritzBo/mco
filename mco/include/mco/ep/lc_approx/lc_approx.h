@@ -32,9 +32,14 @@ public:
         heuristic_ = heuristic;
         use_heuristic_ = true;
     }
+
+    void set_bound(Point bound) {
+        bound_ = std::move(bound);
+        use_bounds_ = true;
+    }
     
-    void set_bounds(Point bounds) {
-        bounds_ = std::move(bounds);
+    void add_disjunctive_bound(Point bounds) {
+        disj_bounds_.push_back(std::move(bounds));
         use_bounds_ = true;
     }
     
@@ -47,7 +52,8 @@ private:
     bool use_heuristic_ = false;
     heuristic_type heuristic_;
     bool use_bounds_ = false;
-    Point bounds_;
+    std::list<const Point> disj_bounds_;
+    Point bound_;
     
     void compute_pos(const Point& cost, Point& pos) const {
         for(unsigned i = 0; i < dimension_; ++i) {
@@ -178,7 +184,8 @@ private:
                           NodeEntry& neighbor_entry);
     
     bool check_heuristic_prunable(const Label& label,
-                                  const Point& bounds);
+                                  const Point bound,
+                                  const std::list<const Point>& bounds);
 
     void recursive_delete(Label& label);
     

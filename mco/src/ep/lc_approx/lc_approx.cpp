@@ -100,7 +100,8 @@ check_domination(list<Label>& new_labels,
 }
     
 bool LCApprox::check_heuristic_prunable(const Label& label,
-                                        const Point& bounds) {
+                                        const Point bound,
+                                        const list<const Point>& bounds) {
     
     Point heuristic_cost(dimension_);
     for(unsigned i = 0; i < dimension_; ++i) {
@@ -108,8 +109,20 @@ bool LCApprox::check_heuristic_prunable(const Label& label,
     }
     
     compute_pos(heuristic_cost, heuristic_cost);
+
+    ComponentwisePointComparator leq(0, false);
+
+    if(!leq(heuristic_cost, bound)) {
+        return true;
+    }
+
+    for(auto& bound : bounds) {
+        if(leq(heuristic_cost, bound)) {
+            return false;
+        }
+    }
     
-    return !ComponentwisePointComparator(0, false)(heuristic_cost, bounds);
+    return bounds.size() > 0;
 }
 
 void LCApprox::
@@ -149,11 +162,19 @@ Solve(const Graph& graph,
             min_e_[i] = min(min_e_[i], cost_function(e)[i]);
         }
     }
-    
-    Point scaled_bounds(dimension_);
-    
+
+    list<const Point> scaled_disj_bounds;
+    Point scaled_bound(dimension_);
+
     if(use_bounds_) {
-        compute_pos(bounds_, scaled_bounds);
+        compute_pos(bound_, scaled_bound);
+
+        for(auto& bound : disj_bounds_) {
+            Point scaled_disj_bound(dimension_);
+            compute_pos(bound, scaled_disj_bound);
+            cout << scaled_disj_bound << endl;
+            scaled_disj_bounds.push_back(std::move(scaled_disj_bound));
+        }
     }
     
     NodeArray<NodeEntry> node_entries(graph);
@@ -216,7 +237,9 @@ Solve(const Graph& graph,
                                         *this);
                         
                         if(!use_bounds_ || !use_heuristic_ ||
-                           !check_heuristic_prunable(new_label, scaled_bounds)) {
+                           !check_heuristic_prunable(new_label,
+                                                     scaled_bound,
+                                                     scaled_disj_bounds)) {
                             
                             new_labels.push_back(std::move(new_label));
                         }

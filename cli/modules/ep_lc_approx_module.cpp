@@ -157,8 +157,10 @@ void EpLCApproxModule::perform(int argc, char** argv) {
                       epsilon);
         
         LCApprox solver;
-        
-        solver.set_bounds(bounds);
+
+
+        solver.set_bound(bounds);
+
         solver.set_heuristic(ideal_heuristic);
         
         solver.Solve(graph,
