@@ -172,7 +172,9 @@ Solve(const Graph& graph,
         for(auto& bound : disj_bounds_) {
             Point scaled_disj_bound(dimension_);
             compute_pos(bound, scaled_disj_bound);
+#ifndef NDEBUG
             cout << scaled_disj_bound << endl;
+#endif
             scaled_disj_bounds.push_back(std::move(scaled_disj_bound));
         }
     }
