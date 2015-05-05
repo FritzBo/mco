@@ -53,12 +53,13 @@ public:
 
         // Initialization: populate priority queue
         mco::BinaryHeap2<T, ogdf::node> queue(graph.numberOfNodes());
-        ogdf::NodeArray<int> qpos(graph);
-        for(auto v : graph.nodes) {
-            queue.insert(v, distance[v], &qpos[v]);
-        }
+        ogdf::NodeArray<int> qpos(graph, -1);
+//        for(auto v : graph.nodes) {
+//            queue.insert(v, distance[v], &qpos[v]);
+//        }
+        queue.insert(source, distance[source], &qpos[source]);
         distance[source] = 0;
-        queue.decreaseKey(qpos[source], distance[source]);
+//        queue.decreaseKey(qpos[source], distance[source]);
 
         // Dijkstra: empty queue, update distances accordingly
         while(!queue.empty()) {
@@ -69,6 +70,9 @@ public:
                 auto w = e->opposite(v);
                 T newDist = distance[v] + weight(e);
                 if(distance[w] > newDist) {
+                    if(qpos[w] == -1) {
+                        queue.insert(w, distance[w], &qpos[w]);
+                    }
                     queue.decreaseKey(qpos[w], (distance[w] = newDist));
                     predecessor[w] = e;
                 }
