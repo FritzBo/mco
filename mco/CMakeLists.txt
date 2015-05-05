@@ -100,6 +100,10 @@ include/mco/molp/benson/benson_exact.h
 include/mco/molp/benson/benson.h
 include/mco/molp/weightset/weightset_solver.h
 
+# AE
+include/mco/ae/ae_timer.h
+include/mco/ae/ae_logger.h
+
 
 #### Sources ####
 
@@ -160,6 +164,10 @@ src/molp/basic/molp_model.cpp
 src/molp/benson/benson_exact.cpp
 src/molp/benson/benson.cpp
 src/molp/weightset/weightset_solver.cpp
+
+# AE
+src/ae/ae_logger.cpp
+src/ae/ae_timer.cpp
 
 # Doxygen
 Doxyfile.in
