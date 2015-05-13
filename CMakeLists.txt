@@ -66,19 +66,42 @@ find_library(GUROBI2
           /usr/local/
 )
 
-## GMP ##
-find_path(GMP_INCLUDE_PATH
-    NAMES   gmp.h
+## PPL ##
+
+find_path(PPL_INCLUDE_PATH
+    NAMES   ppl.hh
     PATHS 	/usr/
             /usr/local/
             /opt/local/
 )
 
-find_library(GMP
-    NAMES   libgmp.a
+find_library(PPL
+    NAMES   libppl.a
     PATHS   /usr/
             /usr/local
             /opt/local
+)
+
+## GMP ##
+find_path(GMP_INCLUDE_PATH
+    NAMES   gmpxx.h
+    PATHS 	/usr/
+            /usr/local/
+            /opt/local/
+)
+
+find_library(GMPXX
+    NAMES   libgmpxx.a
+    PATHS   /usr/
+            /usr/local
+            /opt/local
+)
+
+find_library(GMP
+NAMES   libgmp.a
+PATHS   /usr/
+/usr/local
+/opt/local
 )
 
 ## Threads ##

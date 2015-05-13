@@ -4,6 +4,7 @@ include_directories(${GUROBI_INCLUDE_PATH})
 include_directories(${COIN_INCLUDE_PATH})
 include_directories(${OGDF_INCLUDE_PATH})
 include_directories(${GMP_INCLUDE_PATH})
+include_directories(${PPL_INCLUDE_PATH})
 
 set(SOURCE_FILES
 
@@ -83,6 +84,7 @@ include/mco/generic/ok10/ok10_scalarizer_projective.h
 # Benson Dual
 include/mco/generic/benson_dual/abstract_online_vertex_enumerator.h
 include/mco/generic/benson_dual/dual_benson_scalarizer.h
+include/mco/generic/benson_dual/ove_ppl.h
 include/mco/generic/benson_dual/ove_cdd.h
 include/mco/generic/benson_dual/ove_cdd_gmp.h
 include/mco/generic/benson_dual/ove_node_lists.h
@@ -153,6 +155,7 @@ src/generic/ok10/ok10_scalarizer.cpp
 src/generic/ok10/ok10_scalarizer_projective.cpp
 
 # Benson Dual
+src/generic/benson_dual/ove_ppl.cpp
 src/generic/benson_dual/ove_cdd.cpp
 src/generic/benson_dual/ove_cdd_gmp.cpp
 src/generic/benson_dual/ove_node_lists.cpp

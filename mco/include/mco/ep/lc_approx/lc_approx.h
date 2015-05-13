@@ -68,9 +68,9 @@ private:
         for(unsigned i = 0; i < dimension_; ++i) {
             if(epsilon_[i] != 0.0) {
                 if(min_e_[i] != 0 && cost[i] != 0) {
-                    pos[i] = floor(log(cost[i] / min_e_[i]) / log(epsilon_[i]));
+                    pos[i] = ceil(log(cost[i] / min_e_[i]) / log(epsilon_[i]));
                 } else if(cost[i] != 0){
-                    pos[i] = floor(log(cost[i]) / log(epsilon_[i]));
+                    pos[i] = ceil(log(cost[i]) / log(epsilon_[i]));
                 } else {
                     pos[i] = 0;
                 }

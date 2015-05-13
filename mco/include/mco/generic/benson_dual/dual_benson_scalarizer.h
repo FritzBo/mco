@@ -133,6 +133,7 @@ Calculate_solutions(std::list<Point *>& solutions) {
         
         double sum = 0;
         for(unsigned int i = 0; i < dimension_ - 1; ++i) {
+            assert((*candidate)[i] >= 0);
             weighting[i] = (*candidate)[i];
             sum += (*candidate)[i];
         }

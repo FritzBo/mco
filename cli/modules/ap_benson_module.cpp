@@ -38,6 +38,7 @@ using TCLAP::SwitchArg;
 #include <mco/generic/benson_dual/ove_cdd_gmp.h>
 #include <mco/generic/benson_dual/ove_node_lists.h>
 #include <mco/generic/benson_dual/ove_edge_lists.h>
+#include <mco/generic/benson_dual/ove_ppl.h>
 #include <mco/basic/point.h>
 
 #include <mco/generic/benson_dual/upper_image_container.h>
@@ -46,6 +47,7 @@ using mco::Point;
 using mco::MCAPParser;
 using mco::AssignmentInstance;
 using mco::APBensonDualSolver;
+using mco::OnlineVertexEnumeratorPPL;
 using mco::OnlineVertexEnumeratorCDD;
 using mco::OnlineVertexEnumeratorCddGmp;
 
@@ -62,6 +64,8 @@ void ApBensonModule::perform(int argc, char** argv) {
 
         SwitchArg use_cdd_arg("", "cdd", "Using CDD Library for the vertex enumeration", false);
 
+        SwitchArg use_ppl_arg("", "ppl", "Using PPL Library for the vertex enumeration", false);
+
         SwitchArg use_cdd_gmp_arg("", "gmp", "Using CDD Library in GMP mode", false);
 
         SwitchArg use_gl_ove_arg("", "gl-ove", "Using the graphless online vertex enumerator", false);
@@ -77,6 +81,7 @@ void ApBensonModule::perform(int argc, char** argv) {
 
         cmd.add(epsilon_argument);
         cmd.add(file_name_argument);
+        cmd.add(use_ppl_arg);
         cmd.add(use_cdd_arg);
         cmd.add(use_cdd_gmp_arg);
         cmd.add(use_gl_ove_arg);
@@ -90,6 +95,7 @@ void ApBensonModule::perform(int argc, char** argv) {
         string file_name = file_name_argument.getValue();
         string output_file_name = output_files_arg.getValue();
         double epsilon = epsilon_argument.getValue();
+        bool use_ppl = use_ppl_arg.getValue();
         bool use_cdd = use_cdd_arg.getValue();
         bool use_gmp = use_cdd_gmp_arg.getValue();
         bool use_gl_ove = use_gl_ove_arg.getValue();
@@ -109,7 +115,7 @@ void ApBensonModule::perform(int argc, char** argv) {
         objectives_ = edge_array[graph.chooseEdge()]->dimension();
         nodes_ = graph.numberOfNodes();
 
-        if((instance.dimension() <= 4 && !use_cdd && !use_gl_ove && !use_nl_ove) || use_el_ove) {
+        if((instance.dimension() <= 4 && !use_ppl && !use_cdd && !use_gl_ove && !use_nl_ove) || use_el_ove) {
 
             mode_ = "el";
 
@@ -131,7 +137,7 @@ void ApBensonModule::perform(int argc, char** argv) {
 
             auto writer = get_upper_image_writer(&solver);
             writer.write_image(output_file_name, &solver);
-        } else if((instance.dimension() > 4 && !use_nl_ove && !use_gl_ove) || use_cdd) {
+        } else if((instance.dimension() > 4 && !use_ppl && !use_nl_ove && !use_gl_ove) || use_cdd) {
             if(use_gmp) {
                 mode_ = "cddgmp";
                 APBensonDualSolver<mco::OnlineVertexEnumeratorCddGmp> solver(epsilon);
@@ -165,6 +171,25 @@ void ApBensonModule::perform(int argc, char** argv) {
                 auto writer = get_upper_image_writer(&solver);
                 writer.write_image(output_file_name, &solver);
             }
+        } else if(use_ppl & !use_gl_ove && !use_nl_ove) {
+
+            mode_ = "ppl";
+
+            APBensonDualSolver<mco::OnlineVertexEnumeratorPPL> solver(epsilon);
+
+            solver.Solve(instance, !no_lexicograhic_oracle);
+
+            solutions_.insert(solutions_.begin(),
+                              solver.solutions().cbegin(),
+                              solver.solutions().cend());
+
+            oracle_time_ = solver.oracle_time();
+            ve_time_ = solver.ve_time();
+            no_facets_ = solver.number_facets();
+
+            auto writer = get_upper_image_writer(&solver);
+            writer.write_image(output_file_name, &solver);
+
         } else if(use_gl_ove && !use_nl_ove) {
 
             mode_ = "gl";
