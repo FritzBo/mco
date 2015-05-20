@@ -55,6 +55,8 @@ private:
         Label* pred_label;
         bool deleted = false;
 
+        std::list<Label*> successors;
+
         Label(const Point cost,
               const ogdf::node n,
               const ogdf::edge p_edge,
@@ -134,6 +136,8 @@ private:
 
     bool check_domination(std::list<Label>& new_labels,
                           NodeEntry& neighbor_entry);
+
+    void recursive_delete(Label& label);
 
     bool check_heuristic_prunable(const Label& label);
 

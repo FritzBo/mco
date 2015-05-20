@@ -80,11 +80,32 @@ check_domination(list<Label>& new_labels,
         if(!dominated) {
             neighbor_entry.push_back(std::move(new_label));
             changed = true;
+            auto pred = new_label.pred_label;
+            pred->successors.push_back(&neighbor_entry.labels().back());
         }
         
     }
     
     return changed;
+}
+
+void EpSolverBS::
+recursive_delete(Label& label)
+{
+    list<Label*> queue;
+    queue.push_back(&label);
+
+    while(!queue.empty()) {
+        Label* curr = queue.front();
+        queue.pop_front();
+
+        curr->deleted = true;
+
+        for(auto succ : curr->successors) {
+            queue.push_back(succ);
+        }
+    }
+    
 }
 
 bool EpSolverBS::check_heuristic_prunable(const Label& label) {
