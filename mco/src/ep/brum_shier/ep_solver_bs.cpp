@@ -68,6 +68,16 @@ check_domination(list<Label>& new_labels,
 
             } else if(leq(new_label.cost, check_label.cost)) {
 
+                auto it = find(check_label.pred_label->successors.begin(),
+                               check_label.pred_label->successors.end(),
+                               &check_label);
+
+                assert(it != check_label.pred_label->successors.end());
+
+                check_label.pred_label->successors.erase(it);
+
+                recursive_delete(check_label);
+
                 check_label_it = neighbor_entry.erase(check_label_it);
 
                 changed = true;
@@ -105,7 +115,6 @@ recursive_delete(Label& label)
             queue.push_back(succ);
         }
     }
-    
 }
 
 bool EpSolverBS::check_heuristic_prunable(const Label& label) {
