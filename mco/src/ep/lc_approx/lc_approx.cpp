@@ -101,7 +101,7 @@ check_domination(list<Label>& new_labels,
     
 bool LCApprox::check_heuristic_prunable(const Label& label,
                                         const Point bound,
-                                        const list<const Point>& bounds) {
+                                        const list<Point>& bounds) {
     
     Point heuristic_cost(dimension_);
     for(unsigned i = 0; i < dimension_; ++i) {
@@ -163,7 +163,7 @@ Solve(const Graph& graph,
         }
     }
 
-    list<const Point> scaled_disj_bounds;
+    list<Point> scaled_disj_bounds;
     Point scaled_bound(dimension_);
 
     if(use_bounds_) {

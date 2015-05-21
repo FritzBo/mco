@@ -61,7 +61,7 @@ private:
     bool use_heuristic_ = false;
     heuristic_type heuristic_;
     bool use_bounds_ = false;
-    std::list<const Point> disj_bounds_;
+    std::list<Point> disj_bounds_;
     Point bound_;
     
     void compute_pos(const Point& cost, Point& pos) const {
@@ -194,7 +194,7 @@ private:
     
     bool check_heuristic_prunable(const Label& label,
                                   const Point bound,
-                                  const std::list<const Point>& bounds);
+                                  const std::list<Point>& bounds);
 
     void recursive_delete(Label& label);
     
