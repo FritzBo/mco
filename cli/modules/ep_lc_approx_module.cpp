@@ -128,7 +128,7 @@ void EpLCApproxModule::perform(int argc, char** argv) {
                               dimension,
                               bounds);
 
-        std::list<const Point> disjuncitve_bounds;
+        std::list<Point> disjuncitve_bounds;
         parse_disjunctive_bounds(disjunctive_bound_arg,
                                  dimension,
                                  disjuncitve_bounds);
@@ -265,7 +265,7 @@ void EpLCApproxModule::parse_absolute_bounds(const MultiArg<string>& argument,
 
 void EpLCApproxModule::parse_disjunctive_bounds(const MultiArg<string>& argument,
                                                 unsigned dimension,
-                                                list<const Point>& bounds) {
+                                                list<Point>& bounds) {
 
     auto bounds_it = argument.begin();
     while(bounds_it != argument.end()) {

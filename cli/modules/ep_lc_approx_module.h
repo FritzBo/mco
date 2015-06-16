@@ -38,7 +38,7 @@ private:
 
     void parse_disjunctive_bounds(const TCLAP::MultiArg<std::string>& argument,
                                   unsigned dimension,
-                                  std::list<const mco::Point>& bounds);
+                                  std::list<mco::Point>& bounds);
     
     void parse_epsilon(const TCLAP::MultiArg<string>& epsilon_argument,
                        unsigned dimension,
