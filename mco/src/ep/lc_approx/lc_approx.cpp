@@ -10,6 +10,7 @@
 
 using std::pair;
 using std::list;
+using std::vector;
 
 using ogdf::node;
 using ogdf::edge;
@@ -19,81 +20,157 @@ using ogdf::NodeArray;
 namespace mco {
 
 bool LCApprox::
-check_domination(list<Label>& new_labels,
+check_domination(vector<Label*>& new_labels,
+                 unsigned new_labels_end,
                  NodeEntry& neighbor_entry) {
     
     EqualityPointComparator eq;
     ComponentwisePointComparator leq(0, false);
-    
+
+    auto& neighbor_labels = neighbor_entry.labels();
+    auto neighbor_labels_end = neighbor_entry.labels_end();
+
+    auto& neighbor_new_labels = neighbor_entry.new_labels();
+    auto neighbor_new_labels_end = neighbor_entry.new_labels_end();
+
     bool changed = false;
-    
-    list<Label>& neighbor_labels = neighbor_entry.labels();
-    
+
     bool dominated;
-    
-    for(auto& new_label : new_labels) {
+
+    unsigned new_label_it = 0;
+    while(new_label_it < new_labels_end) {
+
+        auto new_label = new_labels[new_label_it];
+
         dominated = false;
-        
-        auto check_label_it = neighbor_labels.begin();
-        while(check_label_it != neighbor_labels.end()) {
-            
-            Label& check_label = *check_label_it;
 
-            if(check_label.deleted) {
+        unsigned check_label_it = 0;
+        while(check_label_it < neighbor_labels_end) {
 
-                check_label_it = neighbor_entry.erase(check_label_it);
+            auto check_label = neighbor_labels[check_label_it];
 
-            } else if(eq(new_label.pos, check_label.pos) &&
-                      new_label.sum < check_label.sum) {
+            if(check_label->deleted) {
 
-                auto it = find(check_label.pred_label->succ_label.begin(),
-                               check_label.pred_label->succ_label.end(),
-                               &check_label);
+                neighbor_entry.erase(neighbor_labels,
+                                     check_label_it);
 
-                assert(it != check_label.pred_label->succ_label.end());
+                --neighbor_labels_end;
 
-                check_label.pred_label->succ_label.erase(it);
+            } else if(eq(new_label->pos, check_label->pos) &&
+                      new_label->sum < check_label->sum) {
 
-                recursive_delete(check_label);
+                auto it = find(check_label->pred_label->succ_label.begin(),
+                               check_label->pred_label->succ_label.end(),
+                               check_label);
 
-                check_label_it = neighbor_entry.erase(check_label_it);
+                assert(it != check_label->pred_label->succ_label.end());
+
+                check_label->pred_label->succ_label.erase(it);
+
+                recursive_delete(*check_label);
+
+                neighbor_entry.erase(neighbor_labels,
+                                     check_label_it);
+
+                --neighbor_labels_end;
                 
-                changed = true;
-
-            } else if(leq(check_label.pos, new_label.pos)) {
+            } else if(leq(check_label->pos, new_label->pos)) {
 
                 dominated = true;
                 break;
 
-            } else if(leq(new_label.pos, check_label.pos)) {
+            } else if(leq(new_label->pos, check_label->pos)) {
 
-                auto it = find(check_label.pred_label->succ_label.begin(),
-                               check_label.pred_label->succ_label.end(),
-                               &check_label);
+                auto it = find(check_label->pred_label->succ_label.begin(),
+                               check_label->pred_label->succ_label.end(),
+                               check_label);
 
-                assert(it != check_label.pred_label->succ_label.end());
+                assert(it != check_label->pred_label->succ_label.end());
 
-                check_label.pred_label->succ_label.erase(it);
+                check_label->pred_label->succ_label.erase(it);
 
-                recursive_delete(check_label);
+                recursive_delete(*check_label);
 
-                check_label_it = neighbor_entry.erase(check_label_it);
+                neighbor_entry.erase(neighbor_labels,
+                                     check_label_it);
 
-                changed = true;
+                --neighbor_labels_end;
 
             } else {
                 ++check_label_it;
             }
         }
-        
+
         if(!dominated) {
-            Label* pred = new_label.pred_label;
-            neighbor_entry.push_back(std::move(new_label));
-            pred->succ_label.push_back(&neighbor_entry.labels().back());
-            
+
+            check_label_it = 0;
+            while(check_label_it < neighbor_new_labels_end) {
+
+                auto check_label = neighbor_new_labels[check_label_it];
+
+                if(check_label->deleted) {
+
+                    neighbor_entry.erase(neighbor_new_labels,
+                                         check_label_it);
+
+                    --neighbor_new_labels_end;
+
+                } else if(eq(new_label->pos, check_label->pos) &&
+                          new_label->sum < check_label->sum) {
+
+                    auto it = find(check_label->pred_label->succ_label.begin(),
+                                   check_label->pred_label->succ_label.end(),
+                                   check_label);
+
+                    assert(it != check_label->pred_label->succ_label.end());
+
+                    check_label->pred_label->succ_label.erase(it);
+
+                    recursive_delete(*check_label);
+
+                    neighbor_entry.erase(neighbor_new_labels,
+                                         check_label_it);
+
+                    --neighbor_new_labels_end;
+
+                } else if(leq(check_label->pos, new_label->pos)) {
+
+                    dominated = true;
+                    break;
+
+                } else if(leq(new_label->pos, check_label->pos)) {
+
+                    auto it = find(check_label->pred_label->succ_label.begin(),
+                                   check_label->pred_label->succ_label.end(),
+                                   check_label);
+
+                    assert(it != check_label->pred_label->succ_label.end());
+                    
+                    check_label->pred_label->succ_label.erase(it);
+                    
+                    recursive_delete(*check_label);
+                    
+                    neighbor_entry.erase(neighbor_new_labels,
+                                         check_label_it);
+
+                    --neighbor_new_labels_end;
+
+                } else {
+                    ++check_label_it;
+                }
+            }
+        }
+
+        if(!dominated) {
+            Label* pred = new_label->pred_label;
+            neighbor_entry.push_back(new_label);
+            ++neighbor_new_labels_end;
+            pred->succ_label.push_back(new_label);
+
             changed = true;
         }
-        
+
+        ++new_label_it;
     }
     
     return changed;
@@ -184,13 +261,13 @@ Solve(const Graph& graph,
     list<node> queue;
     
     {
-        Label initial_label(Point(0.0, dimension),
-                            source,
-                            nullptr,
-                            nullptr,
-                            *this);
+        auto initial_label = new Label(Point(0.0, dimension),
+                                       source,
+                                       nullptr,
+                                       nullptr,
+                                       *this);
         
-        node_entries[source].push_back(std::move(initial_label));
+        node_entries[source].push_back(initial_label);
     }
     
     queue.push_back(source);
@@ -204,6 +281,8 @@ Solve(const Graph& graph,
         current_node_entry.in_queue = false;
         
         if(current_node_entry.has_new_labels()) {
+
+            auto& current_new_labels = current_node_entry.new_labels();
             
             for(auto adj : current_node->adjEdges) {
                 edge current_edge = adj->theEdge();
@@ -219,41 +298,46 @@ Solve(const Graph& graph,
                 auto neighbor = current_edge->opposite(current_node);
                 
                 auto& neighbor_entry = node_entries[neighbor];
-                
-                list<Label> new_labels;
-                
-                for(auto current_label_it = current_node_entry.labels_it();
-                    current_label_it != current_node_entry.labels().end();
-                    ++current_label_it) {
 
-                    Label& label = *current_label_it;
+                vector<Label*> new_labels(current_node_entry.new_labels_end(), nullptr);
 
-                    assert(label.n == current_node);
+                unsigned size = 0;
 
-                    if(!label.deleted) {
+                unsigned current_label_it = 0;
+                while(current_label_it < current_node_entry.new_labels_end()) {
 
-                        Label new_label(label.cost + cost_function(current_edge),
-                                        neighbor,
-                                        current_edge,
-                                        &label,
-                                        *this);
+                    auto label = current_new_labels[current_label_it];
+
+                    assert(label != nullptr);
+                    assert(label->n == current_node);
+
+                    if(!label->deleted) {
+
+                        auto new_label = new Label(label->cost + cost_function(current_edge),
+                                                   neighbor,
+                                                   current_edge,
+                                                   label,
+                                                   *this);
                         
                         if(!use_bounds_ || !use_heuristic_ ||
-                           !check_heuristic_prunable(new_label,
+                           !check_heuristic_prunable(*new_label,
                                                      scaled_bound,
                                                      scaled_disj_bounds)) {
                             
-                            new_labels.push_back(std::move(new_label));
+                            new_labels[size] = new_label;
+                            ++size;
                         }
                     }
+
+                    ++current_label_it;
                 }
                 
-                if(!new_labels.empty()) {
-                
+                if(size != 0) {
                 
                     bool changed = check_domination(new_labels,
+                                                    size,
                                                     neighbor_entry);
-                    
+
                     if(!node_entries[neighbor].in_queue &&
                        changed &&
                        neighbor != target &&
@@ -272,10 +356,12 @@ Solve(const Graph& graph,
         }
         
     }
-    
-	for(auto& label : node_entries[target].labels()) {
+
+    for(unsigned i = 0; i < node_entries[target].new_labels_end(); ++i) {
+        auto label = node_entries[target].new_labels()[i];
+
         list<edge> path;
-        const Label* curr = &label;
+        const Label* curr = label;
         if(!curr->deleted) {
             while(curr->n != source) {
 
@@ -291,7 +377,7 @@ Solve(const Graph& graph,
             
             path.reverse();
             
-            add_solution(path, label.cost);
+            add_solution(path, label->cost);
         }
     }
     

@@ -138,58 +138,111 @@ private:
         NodeEntry()
         :   in_queue(false),
             labels_(),
-            labels_it_(labels_.begin()) { }
+            labels_end_(0),
+            new_labels_(),
+            new_labels_end_(0)
+            { }
 
         NodeEntry(const NodeEntry& other)
         :   in_queue(false),
             labels_(),
-            labels_it_(labels_.begin()) {
-        }
+            labels_end_(0),
+            new_labels_(),
+            new_labels_end_(0)
+            { }
 
         NodeEntry(NodeEntry&& other)
         :   in_queue(false),
             labels_(),
-            labels_it_(labels_.begin()) {
+            labels_end_(0),
+            new_labels_(),
+            new_labels_end_(0)
+        { }
 
+        void push_back(Label* label) {
+            add_label(new_labels_, new_labels_end_, label);
         }
         
-        void push_back(Label&& label) {
-            if(labels_it_ == labels_.end()) {
-                labels_it_ = labels_.insert(labels_it_, std::move(label));
+        void erase(std::vector<Label*>& arr,
+                   unsigned index) {
+
+            assert(&arr == &labels_ ||
+                   &arr == &new_labels_);
+
+            delete arr[index];
+
+            if(&arr == &labels_) {
+                arr[index] = arr[labels_end_ - 1];
+#ifndef NDEBUG
+                arr[labels_end_ - 1] = nullptr;
+#endif
+                --labels_end_;
             } else {
-                labels_.push_back(std::move(label));
+                arr[index] = arr[new_labels_end_ - 1];
+#ifndef NDEBUG
+                arr[new_labels_end_ - 1] = nullptr;
+#endif
+                --new_labels_end_;
+
             }
-        }
-        
-        std::list<Label>::iterator erase(std::list<Label>::iterator it) {
-            if(it != labels_it_) {
-                return labels_.erase(it);
-            } else {
-                return labels_it_ = labels_.erase(it);
-            }
-        }
-        
-        const std::list<Label>::iterator labels_it() {
-            return labels_it_;
         }
         
         void proceed_labels_it() {
-            labels_it_ = labels_.end();
+            for(unsigned i = 0; i < new_labels_end_; ++i) {
+                add_label(labels_, labels_end_, new_labels_[i]);
+#ifndef NDEBUG
+                new_labels_[i] = nullptr;
+#endif
+            }
+            new_labels_end_ = 0;
         }
         
         bool has_new_labels() {
-            return labels_it_ != labels_.end();
+            return new_labels_end_ > 0;
         }
         
-        std::list<Label>& labels() {
+        std::vector<Label*>& labels() {
             return labels_;
         }
+
+        std::vector<Label*>& new_labels() {
+            return new_labels_;
+        }
+
+        unsigned labels_end() {
+            return labels_end_;
+        }
+
+        unsigned new_labels_end() {
+            return new_labels_end_;
+        }
+
     private:
-        std::list<Label> labels_;
-        std::list<Label>::iterator labels_it_;
+        std::vector<Label*> labels_;
+        unsigned labels_end_;
+
+        std::vector<Label*> new_labels_;
+        unsigned new_labels_end_;
+
+        void add_label(std::vector<Label*>& arr,
+                       unsigned& end_pointer,
+                       Label* label) {
+
+//            cout << arr.size() << endl;
+            if(arr.size() > end_pointer) {
+//                cout << "set" << endl;
+                arr[end_pointer] = label;
+            } else {
+                arr.push_back(label);
+//                cout << "push" << endl;
+            }
+            ++end_pointer;
+
+        }
     };
     
-    bool check_domination(std::list<Label>& new_labels,
+    bool check_domination(std::vector<Label*>& new_labels,
+                          unsigned new_labels_end,
                           NodeEntry& neighbor_entry);
     
     bool check_heuristic_prunable(const Label& label,
