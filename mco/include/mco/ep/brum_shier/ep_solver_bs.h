@@ -66,13 +66,6 @@ private:
             pred_edge(p_edge),
             pred_label(p_label),
             deleted(false) { }
-
-        Label(Label&& other)
-        :   cost(std::move(other.cost)),
-            n(other.n),
-            pred_edge(other.pred_edge),
-            pred_label(other.pred_label) {
-        }
     };
 
     struct NodeEntry {
@@ -81,20 +74,6 @@ private:
         bool in_queue;
 
         NodeEntry()
-        :   in_queue(false),
-            labels_(),
-            labels_end_(0),
-            new_labels_(),
-            new_labels_end_(0) { }
-
-        NodeEntry(const NodeEntry& other)
-        :   in_queue(false),
-            labels_(),
-            labels_end_(0),
-            new_labels_(),
-            new_labels_end_(0) { }
-
-        NodeEntry(NodeEntry&& other)
         :   in_queue(false),
             labels_(),
             labels_end_(0),

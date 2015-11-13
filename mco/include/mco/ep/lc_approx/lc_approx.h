@@ -118,16 +118,6 @@ private:
 
 
         }
-
-        Label(Label&& other)
-        :   cost(std::move(other.cost)),
-            pos(std::move(other.pos)),
-            sum(other.sum),
-            n(other.n),
-            pred_edge(other.pred_edge),
-            pred_label(other.pred_label) {
-
-        }
     };
     
     struct NodeEntry {
@@ -142,22 +132,6 @@ private:
             new_labels_(),
             new_labels_end_(0)
             { }
-
-        NodeEntry(const NodeEntry& other)
-        :   in_queue(false),
-            labels_(),
-            labels_end_(0),
-            new_labels_(),
-            new_labels_end_(0)
-            { }
-
-        NodeEntry(NodeEntry&& other)
-        :   in_queue(false),
-            labels_(),
-            labels_end_(0),
-            new_labels_(),
-            new_labels_end_(0)
-        { }
 
         void push_back(Label* label) {
             add_label(new_labels_, new_labels_end_, label);
@@ -228,13 +202,10 @@ private:
                        unsigned& end_pointer,
                        Label* label) {
 
-//            cout << arr.size() << endl;
             if(arr.size() > end_pointer) {
-//                cout << "set" << endl;
                 arr[end_pointer] = label;
             } else {
                 arr.push_back(label);
-//                cout << "push" << endl;
             }
             ++end_pointer;
 
