@@ -44,6 +44,8 @@ modules/ep_tsaggouris_module.h
 modules/ep_tsaggouris_module.cpp
 modules/ep_ideal_point.h
 modules/ep_ideal_point.cpp
+modules/ep_lex_dijkstra.h
+modules/ep_lex_dijkstra.cpp
 modules/ui_verifier.h
 modules/ui_verifier.cpp
 )
