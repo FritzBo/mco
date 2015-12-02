@@ -11,9 +11,11 @@
 
 #include <mco/basic/abstract_solver.h>
 
-namespace mco {
+namespace mco
+{
 
-class EpSolverBS : public AbstractSolver<std::list<ogdf::edge>> {
+class EpSolverBS : public AbstractSolver<std::list<ogdf::edge>>
+{
 
     using heuristic_type = std::function<double(ogdf::node, unsigned)>;
     
@@ -28,12 +30,14 @@ public:
                        const ogdf::node target,
                        bool directed = true);
 
-    void set_heuristic(heuristic_type heuristic) {
+    void set_heuristic(heuristic_type heuristic)
+    {
         heuristic_ = heuristic;
         use_heuristic_ = true;
     }
 
-    void set_bounds(Point bounds) {
+    void set_bounds(Point bounds)
+    {
         bounds_ = std::move(bounds);
         use_bounds_ = true;
     }
@@ -48,7 +52,8 @@ private:
     bool use_bounds_ = false;
     Point bounds_;
 
-    struct Label {
+    struct Label
+    {
         const Point cost;
         const ogdf::node n;
         const ogdf::edge pred_edge;
@@ -66,39 +71,82 @@ private:
             pred_edge(p_edge),
             pred_label(p_label),
             deleted(false) { }
+
+//        void erase_successor(const Label* label)
+//        {
+//#ifndef NDEBUG
+//            bool found = false;
+//#endif
+//            for(unsigned i = 0; i < successors_.size(); ++i)
+//            {
+//                if(successors_[i] == label)
+//                {
+//                    successors_[i] = successors_[successors_.size() - 1];
+//#ifndef NDEBUG
+//                    successors_[successors_.size() - 1] = nullptr;
+//                    found = true;
+//#endif
+//                    successors_.pop_back();
+//
+//                    break;
+//                }
+//            }
+//            assert(found);
+//        }
+//
+//        void push_successor(Label* label)
+//        {
+//            successors_.push_back(label);
+//        }
+//
+//        const std::vector<Label*>& successors()
+//        {
+//            return successors_;
+//        }
+//
+//    private:
+//        std::vector<Label*> successors_;
     };
 
-    struct NodeEntry {
+    struct NodeEntry
+    {
         using value_type = Label;
 
         bool in_queue;
 
-        NodeEntry()
+        inline NodeEntry()
         :   in_queue(false),
             labels_(),
             labels_end_(0),
             new_labels_(),
-            new_labels_end_(0) { }
+            new_labels_end_(0)
+        {
+        }
 
-        void push_back(Label* label) {
+        inline void push_back(Label* label)
+        {
             add_label(new_labels_, new_labels_end_, label);
         }
 
-        void erase(std::vector<Label*>& arr,
-                   unsigned index) {
+        inline void erase(std::vector<Label*>& arr,
+                   unsigned index)
+        {
 
             assert(&arr == &labels_ ||
                    &arr == &new_labels_);
 
             delete arr[index];
 
-            if(&arr == &labels_) {
+            if(&arr == &labels_)
+            {
                 arr[index] = arr[labels_end_ - 1];
 #ifndef NDEBUG
                 arr[labels_end_ - 1] = nullptr;
 #endif
                 --labels_end_;
-            } else {
+            }
+            else
+            {
                 arr[index] = arr[new_labels_end_ - 1];
 #ifndef NDEBUG
                 arr[new_labels_end_ - 1] = nullptr;
@@ -108,8 +156,10 @@ private:
             }
         }
 
-        void proceed_labels_it() {
-            for(unsigned i = 0; i < new_labels_end_; ++i) {
+        inline void proceed_labels_it()
+        {
+            for(unsigned i = 0; i < new_labels_end_; ++i)
+            {
                 add_label(labels_, labels_end_, new_labels_[i]);
 #ifndef NDEBUG
                 new_labels_[i] = nullptr;
@@ -118,25 +168,46 @@ private:
             new_labels_end_ = 0;
         }
 
-        bool has_new_labels() {
+        inline bool has_new_labels()
+        {
             return new_labels_end_ > 0;
         }
 
-        std::vector<Label*>& labels() {
+        inline std::vector<Label*>& labels()
+        {
             return labels_;
         }
 
-        std::vector<Label*>& new_labels() {
+        inline std::vector<Label*>& new_labels()
+        {
             return new_labels_;
         }
 
-        unsigned labels_end() {
+        inline unsigned labels_end()
+        {
             return labels_end_;
         }
 
-        unsigned new_labels_end() {
+        inline unsigned new_labels_end()
+        {
             return new_labels_end_;
         }
+
+        ~NodeEntry()
+        {
+            for(unsigned i = 0; i < labels_end_; ++i)
+            {
+                delete labels_[i];
+                labels_[i] = nullptr;
+            }
+
+            for(unsigned i = 0; i < new_labels_end_; ++i)
+            {
+                delete new_labels_[i];
+                new_labels_[i] = nullptr;
+            }
+        }
+
     private:
         std::vector<Label*> labels_;
         unsigned labels_end_;
@@ -144,13 +215,17 @@ private:
         std::vector<Label*> new_labels_;
         unsigned new_labels_end_;
 
-        void add_label(std::vector<Label*>& arr,
+        inline void add_label(std::vector<Label*>& arr,
                        unsigned& end_pointer,
-                       Label* label) {
+                       Label* label)
+        {
 
-            if(arr.size() > end_pointer) {
+            if(arr.size() > end_pointer)
+            {
                 arr[end_pointer] = label;
-            } else {
+            }
+            else
+            {
                 arr.push_back(label);
             }
             ++end_pointer;

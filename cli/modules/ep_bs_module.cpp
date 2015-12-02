@@ -40,12 +40,14 @@ using TCLAP::MultiArg;
 #include <mco/ep/basic/dijkstra.h>
 #include <mco/ep/preprocessing/constrained_reach.h>
 #include <mco/ep/brum_shier/ep_solver_bs.h>
+#include <mco/ep/ep_lc_ls.h>
 #include <mco/ep/dual_benson/ep_dual_benson.h>
 #include <mco/benchmarks/temporary_graphs_parser.h>
 #include <mco/basic/point.h>
 #include <mco/cli/parse_util.h>
 
 using mco::EpSolverBS;
+using mco::EpLcLs;
 using mco::TemporaryGraphParser;
 using mco::Point;
 using mco::Dijkstra;
@@ -69,17 +71,21 @@ void EpBsModule::perform(int argc, char** argv) {
 
         SwitchArg do_first_phase_argument("f", "first-phase", "Using dual benson in a first phase", false);
 
+        SwitchArg label_select_arg("l", "label-select", "Using a label-selection strategy instead of node selection", false);
+
         cmd.add(file_name_argument);
         cmd.add(is_directed_arg);
         cmd.add(ideal_bounds_arg);
         cmd.add(absolute_bounds_arg);
         cmd.add(do_first_phase_argument);
+        cmd.add(label_select_arg);
 
         cmd.parse(argc, argv);
         
         string file_name = file_name_argument.getValue();
         bool directed = is_directed_arg.getValue();
         bool do_first_phase = do_first_phase_argument.getValue();
+        bool label_select = label_select_arg.getValue();
 
         Graph graph;
         EdgeArray<Point> raw_costs(graph);
@@ -146,9 +152,6 @@ void EpBsModule::perform(int argc, char** argv) {
                           bounds_list);
 
 
-        EpSolverBS solver;
-
-        EdgeArray<Point>* scaled_costs = nullptr;
 //        thread *first_phase_thread = nullptr;
 
 //        if(do_first_phase) {
@@ -196,20 +199,48 @@ void EpBsModule::perform(int argc, char** argv) {
 //
 //        }
 
-        
-        solver.set_bounds(bounds);
-        solver.set_heuristic(ideal_heuristic);
-        
-        solver.Solve(graph,
-                     cost_function,
-                     dimension,
-                     source,
-                     target,
-                     directed);
-        
-        solutions_.insert(solutions_.begin(),
-                          solver.solutions().cbegin(),
-                          solver.solutions().cend());
+        EdgeArray<Point>* scaled_costs = nullptr;
+
+
+        if(!label_select)
+        {
+
+            EpSolverBS solver;
+
+            
+            solver.set_bounds(bounds);
+            solver.set_heuristic(ideal_heuristic);
+            
+            solver.Solve(graph,
+                         cost_function,
+                         dimension,
+                         source,
+                         target,
+                         directed);
+            
+            solutions_.insert(solutions_.begin(),
+                              solver.solutions().cbegin(),
+                              solver.solutions().cend());
+        }
+        else
+        {
+            EpLcLs solver;
+
+
+            solver.set_bounds(bounds);
+            solver.set_heuristic(ideal_heuristic);
+
+            solver.Solve(graph,
+                         cost_function,
+                         dimension,
+                         source,
+                         target,
+                         directed);
+
+            solutions_.insert(solutions_.begin(),
+                              solver.solutions().cbegin(),
+                              solver.solutions().cend());
+        }
 
         delete scaled_costs;
         

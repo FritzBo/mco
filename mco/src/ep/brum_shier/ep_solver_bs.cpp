@@ -8,6 +8,7 @@
 #include <mco/ep/brum_shier/ep_solver_bs.h>
 
 #include <list>
+#include <deque>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -77,6 +78,8 @@ check_domination(vector<Label*>& new_labels,
 
             } else if(eq(new_label->cost, check_label->cost)) {
 
+//                check_label->pred_label->erase_successor(check_label);
+
                 auto it = find(check_label->pred_label->successors.begin(),
                                check_label->pred_label->successors.end(),
                                check_label);
@@ -99,6 +102,8 @@ check_domination(vector<Label*>& new_labels,
 
             } else if(leq(new_label->cost, check_label->cost)) {
 
+//                check_label->pred_label->erase_successor(check_label);
+
                 auto it = find(check_label->pred_label->successors.begin(),
                                check_label->pred_label->successors.end(),
                                check_label);
@@ -106,6 +111,7 @@ check_domination(vector<Label*>& new_labels,
                 assert(it != check_label->pred_label->successors.end());
 
                 check_label->pred_label->successors.erase(it);
+
 
                 recursive_delete(*check_label);
 
@@ -135,6 +141,8 @@ check_domination(vector<Label*>& new_labels,
 
                 } else if(eq(new_label->cost, check_label->cost)) {
 
+//                    check_label->pred_label->erase_successor(check_label);
+
                     auto it = find(check_label->pred_label->successors.begin(),
                                    check_label->pred_label->successors.end(),
                                    check_label);
@@ -157,13 +165,16 @@ check_domination(vector<Label*>& new_labels,
 
                 } else if(leq(new_label->cost, check_label->cost)) {
                     
+//                    check_label->pred_label->erase_successor(check_label);
+
                     auto it = find(check_label->pred_label->successors.begin(),
                                    check_label->pred_label->successors.end(),
                                    check_label);
-                    
+
                     assert(it != check_label->pred_label->successors.end());
-                    
+
                     check_label->pred_label->successors.erase(it);
+
                     
                     recursive_delete(*check_label);
                     
@@ -183,8 +194,12 @@ check_domination(vector<Label*>& new_labels,
             neighbor_entry.push_back(new_label);
             ++neighbor_new_labels_end;
             pred->successors.push_back(new_label);
-            
+//            pred->push_successor(new_label);
+
             changed = true;
+        }
+        else {
+            delete new_label;
         }
         
         ++new_label_it;
@@ -196,7 +211,7 @@ check_domination(vector<Label*>& new_labels,
 void EpSolverBS::
 recursive_delete(Label& label)
 {
-    list<Label*> queue;
+    std::deque<Label*> queue;
     queue.push_back(&label);
 
     while(!queue.empty()) {
@@ -213,12 +228,15 @@ recursive_delete(Label& label)
 
 bool EpSolverBS::check_heuristic_prunable(const Label& label) {
 
-    Point heuristic_cost(dimension_);
-    for(unsigned i = 0; i < dimension_; ++i) {
-        heuristic_cost[i] = label.cost[i] + heuristic_(label.n, i);
+    for(unsigned i = 0; i < dimension_; ++i)
+    {
+        if(label.cost[i] + heuristic_(label.n, i) > bounds_[i])
+        {
+            return true;
+        }
     }
 
-    return !ComponentwisePointComparator(0, false)(heuristic_cost, bounds_);
+    return false;
 }
 
 

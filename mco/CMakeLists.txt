@@ -51,6 +51,7 @@ include/mco/ep/basic/ep_lagrange_bisect.h
 include/mco/ep/brum_shier/ep_solver_bs.h
 include/mco/ep/brum_shier/ep_solver_bs_par.h
 include/mco/ep/brum_shier/ep_weighted_bs.h
+include/mco/ep/ep_lc_ls.h
 include/mco/ep/martins/label.h
 include/mco/ep/martins/martins_smart.h
 include/mco/ep/martins/martins.h
@@ -133,6 +134,7 @@ src/ep/basic/ep_lagrange_bisect.cpp
 src/ep/brum_shier/ep_solver_bs.cpp
 src/ep/brum_shier/ep_solver_bs_par.cpp
 src/ep/brum_shier/ep_weighted_bs.cpp
+src/ep/ep_lc_ls.cpp
 src/ep/martins/label.cpp
 src/ep/martins/martins_smart.cpp
 src/ep/martins/martins.cpp
