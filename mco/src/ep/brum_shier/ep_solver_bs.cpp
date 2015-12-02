@@ -249,7 +249,7 @@ void EpSolverBS::Solve(const Graph& graph,
 
     dimension_ = dimension;
     
-	list<node> queue;
+    ring_buffer<node> queue(graph.numberOfNodes() + 1);
 	NodeArray<NodeEntry> node_entries(graph);
 
     {
@@ -348,8 +348,10 @@ void EpSolverBS::Solve(const Graph& graph,
         }
 
     }
-    
-    for(auto label : node_entries[target].new_labels()) {
+
+    auto& target_entry = node_entries[target];
+    for(unsigned i = 0; i < target_entry.new_labels_end(); ++i) {
+        auto label = target_entry.new_labels()[i];
         list<edge> path;
         auto curr = label;
         if(!curr->deleted) {
