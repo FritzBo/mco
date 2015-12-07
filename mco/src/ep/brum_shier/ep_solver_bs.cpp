@@ -78,17 +78,7 @@ check_domination(vector<Label*>& new_labels,
 
             } else if(eq(new_label->cost, check_label->cost)) {
 
-//                check_label->pred_label->erase_successor(check_label);
-
-                auto it = find(check_label->pred_label->successors.begin(),
-                               check_label->pred_label->successors.end(),
-                               check_label);
-
-                assert(it != check_label->pred_label->successors.end());
-
-                check_label->pred_label->successors.erase(it);
-
-                recursive_delete(*check_label);
+                remove_label(check_label);
 
                 neighbor_entry.erase(neighbor_labels,
                                      check_label_it);
@@ -102,18 +92,7 @@ check_domination(vector<Label*>& new_labels,
 
             } else if(leq(new_label->cost, check_label->cost)) {
 
-//                check_label->pred_label->erase_successor(check_label);
-
-                auto it = find(check_label->pred_label->successors.begin(),
-                               check_label->pred_label->successors.end(),
-                               check_label);
-
-                assert(it != check_label->pred_label->successors.end());
-
-                check_label->pred_label->successors.erase(it);
-
-
-                recursive_delete(*check_label);
+                remove_label(check_label);
 
                 neighbor_entry.erase(neighbor_labels,
                                      check_label_it);
@@ -141,17 +120,7 @@ check_domination(vector<Label*>& new_labels,
 
                 } else if(eq(new_label->cost, check_label->cost)) {
 
-//                    check_label->pred_label->erase_successor(check_label);
-
-                    auto it = find(check_label->pred_label->successors.begin(),
-                                   check_label->pred_label->successors.end(),
-                                   check_label);
-
-                    assert(it != check_label->pred_label->successors.end());
-
-                    check_label->pred_label->successors.erase(it);
-
-                    recursive_delete(*check_label);
+                    remove_label(check_label);
 
                     neighbor_entry.erase(neighbor_new_labels,
                                          check_label_it);
@@ -164,19 +133,8 @@ check_domination(vector<Label*>& new_labels,
                     break;
 
                 } else if(leq(new_label->cost, check_label->cost)) {
-                    
-//                    check_label->pred_label->erase_successor(check_label);
 
-                    auto it = find(check_label->pred_label->successors.begin(),
-                                   check_label->pred_label->successors.end(),
-                                   check_label);
-
-                    assert(it != check_label->pred_label->successors.end());
-
-                    check_label->pred_label->successors.erase(it);
-
-                    
-                    recursive_delete(*check_label);
+                    remove_label(check_label);
                     
                     neighbor_entry.erase(neighbor_new_labels,
                                          check_label_it);
@@ -193,8 +151,9 @@ check_domination(vector<Label*>& new_labels,
             Label* pred = new_label->pred_label;
             neighbor_entry.push_back(new_label);
             ++neighbor_new_labels_end;
+#if defined USE_TREE_DELETION || defined STATS
             pred->successors.push_back(new_label);
-//            pred->push_successor(new_label);
+#endif
 
             changed = true;
         }
@@ -208,9 +167,14 @@ check_domination(vector<Label*>& new_labels,
     return changed;
 }
 
+#if defined USE_TREE_DELETION || defined STATS
 void EpSolverBS::
 recursive_delete(Label& label)
 {
+#if defined USE_TREE_DELETIONS && defined STATS
+    ++recursive_deletions_;
+#endif
+
     std::deque<Label*> queue;
     queue.push_back(&label);
 
@@ -218,13 +182,22 @@ recursive_delete(Label& label)
         Label* curr = queue.front();
         queue.pop_front();
 
+#ifdef USE_TREE_DELETION
         curr->deleted = true;
+#else
+        curr->mark_recursive_deleted = true;
+#endif
+
+#if defined TREE_DELETION && defined STATS
+        ++deleted_tree_labels_;
+#endif
 
         for(auto succ : curr->successors) {
             queue.push_back(succ);
         }
     }
 }
+#endif
 
 bool EpSolverBS::check_heuristic_prunable(const Label& label) {
 
@@ -302,6 +275,13 @@ void EpSolverBS::Solve(const Graph& graph,
                 while(current_label_it < current_node_entry. new_labels_end()) {
 
                     auto label = current_new_labels[current_label_it];
+
+#ifdef STATS
+                    if(label->mark_recursive_deleted)
+                    {
+                        ++touched_recursively_deleted_label;
+                    }
+#endif
 
                     assert(label != nullptr);
                     assert(label->n == current_node);

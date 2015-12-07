@@ -137,9 +137,9 @@ private:
 
         ~NodeEntry()
         {
-            for(auto label : labels_)
+            for(unsigned i = 0; i < labels_end_; ++i)
             {
-                delete label;
+                delete labels_[i];
             }
         }
 

@@ -142,6 +142,20 @@ void EpLDModule::perform(int argc, char** argv) {
 
         cout << *distances[target] << endl;
 
+        list<node> path;
+        auto n = target;
+        path.push_front(n);
+
+        while(n != source) {
+
+            n = predecessors[n]->opposite(n);
+            path.push_front(n);
+        }
+
+        for(auto n : path) {
+            cout << n << ", ";
+        }
+
         for(auto n : graph.nodes) {
             delete distances[n];
         }

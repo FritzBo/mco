@@ -9,6 +9,9 @@
 #ifndef BSSSA_H_
 #define BSSSA_H_
 
+#define USE_TREE_DELETION
+#define STATS
+
 #include <mco/basic/abstract_solver.h>
 
 namespace mco
@@ -42,6 +45,17 @@ public:
         use_bounds_ = true;
     }
 
+    ~EpSolverBS()
+    {
+#if defined USE_TREE_DELETION && defined STATS
+        cout << "Tree-deleted labels: " << deleted_tree_labels_ << endl;
+        cout << "Recursive deletions: " << recursive_deletions_ << endl;
+#endif
+#ifdef STATS
+        cout << "Processed recursively deleted labels: " << touched_recursively_deleted_label << endl;
+#endif
+    }
+
 
 private:
     const double epsilon_;
@@ -52,6 +66,15 @@ private:
     bool use_bounds_ = false;
     Point bounds_;
 
+#if defined USE_TREE_DELETION && defined STATS
+    unsigned deleted_tree_labels_ = 0;
+    unsigned recursive_deletions_ = 0;
+#endif
+
+#ifdef STATS
+    unsigned touched_recursively_deleted_label = 0;
+#endif
+
     struct Label
     {
         const Point cost;
@@ -60,7 +83,15 @@ private:
         Label* pred_label;
         bool deleted = false;
 
+#ifdef STATS
+        bool mark_recursive_deleted = false;
+#endif
+
+#if defined USE_TREE_DELETION || defined STATS
+        /* Lists are more efficient here, because most of the time
+         the collection of successors is actually empty. */
         std::list<Label*> successors;
+#endif
 
         Label(const Point cost,
               const ogdf::node n,
@@ -72,40 +103,6 @@ private:
             pred_label(p_label),
             deleted(false) { }
 
-//        void erase_successor(const Label* label)
-//        {
-//#ifndef NDEBUG
-//            bool found = false;
-//#endif
-//            for(unsigned i = 0; i < successors_.size(); ++i)
-//            {
-//                if(successors_[i] == label)
-//                {
-//                    successors_[i] = successors_[successors_.size() - 1];
-//#ifndef NDEBUG
-//                    successors_[successors_.size() - 1] = nullptr;
-//                    found = true;
-//#endif
-//                    successors_.pop_back();
-//
-//                    break;
-//                }
-//            }
-//            assert(found);
-//        }
-//
-//        void push_successor(Label* label)
-//        {
-//            successors_.push_back(label);
-//        }
-//
-//        const std::vector<Label*>& successors()
-//        {
-//            return successors_;
-//        }
-//
-//    private:
-//        std::vector<Label*> successors_;
     };
 
     struct NodeEntry
@@ -237,12 +234,53 @@ private:
                           unsigned new_labels_end,
                           NodeEntry& neighbor_entry);
 
+#if defined USE_TREE_DELETION || defined STATS
     void recursive_delete(Label& label);
+#endif
 
     bool check_heuristic_prunable(const Label& label);
 
+    inline void remove_label(Label* label);
+
 
 };
+
+inline void EpSolverBS::remove_label(Label* label)
+{
+#if defined USE_TREE_DELETION || defined STATS
+#if defined STATS && !defined USE_TREE_DELETION
+    if(check_label->pred_label != nullptr)
+    {
+#endif
+
+        auto it = find(label->pred_label->successors.begin(),
+                       label->pred_label->successors.end(),
+                       label);
+
+        assert(it != label->pred_label->successors.end());
+
+        label->pred_label->successors.erase(it);
+
+#if defined STATS && !defined USE_TREE_DELETION
+    }
+
+    for(auto label : check_label->successors)
+    {
+        label->pred_label = nullptr;
+    }
+#endif
+
+
+    if(label->successors.empty())
+    {
+        label->deleted = true;
+    }
+    else
+    {
+        recursive_delete(*label);
+    }
+#endif
+}
 
 template<typename T>
 class ring_buffer : private std::vector<T>
