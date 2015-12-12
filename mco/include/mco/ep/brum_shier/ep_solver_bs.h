@@ -12,6 +12,8 @@
 #define USE_TREE_DELETION
 #define STATS
 
+#include <iostream>
+
 #include <mco/basic/abstract_solver.h>
 
 namespace mco
@@ -48,11 +50,11 @@ public:
     ~EpSolverBS()
     {
 #if defined USE_TREE_DELETION && defined STATS
-        cout << "Tree-deleted labels: " << deleted_tree_labels_ << endl;
-        cout << "Recursive deletions: " << recursive_deletions_ << endl;
+        std::cout << "Tree-deleted labels: " << deleted_tree_labels_ << std::endl;
+        std::cout << "Recursive deletions: " << recursive_deletions_ << std::endl;
 #endif
 #ifdef STATS
-        cout << "Processed recursively deleted labels: " << touched_recursively_deleted_label << endl;
+        std::cout << "Processed recursively deleted labels: " << touched_recursively_deleted_label << std::endl;
 #endif
     }
 

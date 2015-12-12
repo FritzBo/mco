@@ -40,7 +40,7 @@ private:
                                   unsigned dimension,
                                   std::list<mco::Point>& bounds);
     
-    void parse_epsilon(const TCLAP::MultiArg<string>& epsilon_argument,
+    void parse_epsilon(const TCLAP::MultiArg<std::string>& epsilon_argument,
                        unsigned dimension,
                        mco::Point& epsilon);
     

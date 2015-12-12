@@ -225,7 +225,7 @@ void EpSolverBSPar::push_labels(node current_node) {
     if(current_node_entry.has_new_labels()) {
 
 
-        for(auto adj : current_node->adjEdges) {
+        for(auto adj : current_node->adjEntries) {
 
             edge current_edge = adj->theEdge();
 
@@ -301,7 +301,7 @@ bool EpSolverBSPar::lock_neighborhood(node n) {
         return false;
     }
 
-    for(auto adj : n->adjEdges) {
+    for(auto adj : n->adjEntries) {
         auto edge = adj->theEdge();
         auto neighbor = edge->opposite(n);
 
@@ -314,7 +314,7 @@ bool EpSolverBSPar::lock_neighborhood(node n) {
 
     neighborhood_locks[n] = true;
 
-    for(auto adj : n->adjEdges) {
+    for(auto adj : n->adjEntries) {
         auto edge = adj->theEdge();
         auto neighbor = edge->opposite(n);
 
@@ -333,7 +333,7 @@ void EpSolverBSPar::unlock_neighborhood(node n) {
 
     neighborhood_locks[n] = false;
 
-    for(auto adj : n->adjEdges) {
+    for(auto adj : n->adjEntries) {
         auto edge = adj->theEdge();
         auto neighbor = edge->opposite(n);
 

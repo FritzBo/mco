@@ -10,6 +10,7 @@
 #define __mco__output_formatter__
 
 #include <iterator>
+#include <iostream>
 
 #include <tclap/CmdLine.h>
 
@@ -27,7 +28,7 @@ public:
     inline bool initialize_cmd_line();
     
     template<typename InputIterator>
-    inline bool print_output(ostream& ostream,
+    inline bool print_output(std::ostream& ostream,
                              InputIterator begin,
                              InputIterator end);
     
@@ -108,7 +109,7 @@ initialize_cmd_line() {
 template<typename S>
 template<typename ConstInputIterator>
 inline bool CliOutputFormatter<S>::
-print_output(ostream& ostream,
+print_output(std::ostream& ostream,
              ConstInputIterator begin,
              ConstInputIterator end) {
     
@@ -123,7 +124,7 @@ print_output(ostream& ostream,
         
         unsigned frontier_size = std::distance(begin, end);
         
-        ostream << frontier_size << endl;
+        ostream << frontier_size << std::endl;
         
         if(print_frontier || print_solutions) {
             
@@ -144,7 +145,7 @@ print_output(ostream& ostream,
                     }
                     ostream << (*solution.first.rbegin())->target() << ", ";
                 }
-                cout << endl;
+                std::cout << std::endl;
                 solution_it++;
                 count++;
             }
@@ -153,11 +154,11 @@ print_output(ostream& ostream,
     }
     
     if(print_statistics) {
-        cout << "Some statistics information" << endl;
+        std::cout << "Some statistics information" << std::endl;
     }
     
     if(print_timing) {
-        cout << "Some timining information" << endl;
+        std::cout << "Some timining information" << std::endl;
     }
 
     

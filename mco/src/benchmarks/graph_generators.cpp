@@ -35,10 +35,13 @@ void KTreeGenerator(Graph & graph, unsigned int number_of_nodes, unsigned int k)
 
 	vector<vector<node>> candidate_cliques;
 
-	node n;
 	vector<node> initial_clique(k);
-	forall_nodes(n, graph)
+
+    for(auto n : graph.nodes)
+    {
 		initial_clique.push_back(n);
+    }
+
 	candidate_cliques.push_back(initial_clique);
 
 	vector<vector<node>>::iterator iter;

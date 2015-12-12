@@ -225,14 +225,12 @@ void EpSolverBS::Solve(const Graph& graph,
     ring_buffer<node> queue(graph.numberOfNodes() + 1);
 	NodeArray<NodeEntry> node_entries(graph);
 
-    {
-        auto initial_label = new Label(Point(0.0, dimension),
-                                       source,
-                                       nullptr,
-                                       nullptr);
+    auto initial_label = new Label(Point(0.0, dimension),
+                                   source,
+                                   nullptr,
+                                   nullptr);
 
-        node_entries[source].push_back(initial_label);
-    }
+    node_entries[source].push_back(initial_label);
 
 	queue.push_back(source);
     node_entries[source].in_queue = true;
@@ -250,7 +248,7 @@ void EpSolverBS::Solve(const Graph& graph,
 
             auto& current_new_labels = current_node_entry.new_labels();
 
-            for(auto adj : current_node->adjEdges) {
+            for(auto adj : current_node->adjEntries) {
                 
                 edge current_edge = adj->theEdge();
                 

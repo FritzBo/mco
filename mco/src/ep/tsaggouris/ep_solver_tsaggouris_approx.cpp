@@ -78,8 +78,7 @@ void EpSolverTsaggourisApprox::Solve() {
 		c_min_[i] = numeric_limits<double>::infinity();
 	}
 
-	edge e;
-	forall_edges(e, graph) {
+    for(auto e : graph.edges) {
 		if(e->isSelfLoop())
 			continue;
 
@@ -104,18 +103,18 @@ void EpSolverTsaggourisApprox::Solve() {
 
 	NodeArray<vector<const Label *>> * old_Py = new NodeArray<vector<const Label *>>(graph);
 
-	node n;
-	forall_nodes(n, graph) {
+    for(auto n : graph.nodes) {
 		(*old_Py)[n].resize(size, nullptr);
 	}
 
 	(*old_Py)[instance().source()][0] = new Label(new Point(dimension), nullptr, nullptr);
 
 	for(int i = 1; i < graph.numberOfNodes(); ++i) {
-        cout << i << endl;
-		forall_nodes(n, graph) {
+        std::cout << i << std::endl;
+        for(auto n : graph.nodes) {
 			auto new_Py = new NodeArray<vector<const Label *>>(*old_Py);
-			forall_adj_edges(e, n) {
+            for(auto adj : n->adjEntries) {
+                auto e = adj->theEdge();
 				if(e->target() != n)
 					continue;
 

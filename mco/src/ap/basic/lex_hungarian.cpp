@@ -17,6 +17,7 @@ using std::function;
 using std::list;
 using std::set;
 using std::deque;
+using std::numeric_limits;
 
 #include <ogdf/basic/Graph.h>
 
@@ -79,16 +80,15 @@ Solve(const Graph& graph,
     deque<node>             queue_;
     
     list<node> non_agents;
-    
-    edge e;
-    node n;
-    
-    forall_nodes(n, graph) {
+
+    for(auto n : graph.nodes) {
         mate_[n] = n;
         if(agents.count(n) == 0) {
             non_agents.push_back(n);
             edge minimum = n->firstAdj()->theEdge();
-            forall_adj_edges(e, n) {
+
+            for(auto adj : n->adjEntries) {
+                auto e = adj->theEdge();
                 if(lex_le(edge_costs(e), edge_costs(minimum))) {
                     minimum = e;
                 }
@@ -117,7 +117,7 @@ Solve(const Graph& graph,
         }
         
         // Initialize equality subgraph
-        forall_edges(e, graph)
+        for(auto e : graph.edges)
         if(check_equality_subgraph(*edge_costs(e),
                                    dual_variables_[e->source()],
                                    dual_variables_[e->target()])) {
@@ -140,7 +140,8 @@ Solve(const Graph& graph,
             }
             queue_.push_back(agent);
             label_[agent] = agent;
-            forall_adj_edges(e, agent) {
+            for(auto adj : agent->adjEntries) {
+                auto e = adj->theEdge();
                 if(slack_at_least_zero(*edge_costs(e),
                                        dual_variables_[e->source()],
                                        dual_variables_[e->target()]) &&
@@ -179,8 +180,9 @@ Solve(const Graph& graph,
                     }
                     
                     queue_.push_back(next_agent);
-                    
-                    forall_adj_edges(e, next_agent) {
+
+                    for(auto adj : next_agent->adjEntries) {
+                        auto e = adj->theEdge();
                         if( slack_at_least_zero(*edge_costs(e),
                                                 dual_variables_[e->source()],
                                                 dual_variables_[e->target()]) &&
@@ -279,7 +281,7 @@ Solve(const Graph& graph,
 
     solution_.clear();
     for(auto n : agents) {
-        for(auto adj : n->adjEdges) {
+        for(auto adj : n->adjEntries) {
             auto e = adj->theEdge();
             if(e->opposite(n) == mate_[n] ) {
                 solution_.push_back(e);

@@ -9,10 +9,14 @@
 
 #include <set>
 #include <list>
+#include <iostream>
 
 using std::make_shared;
 using std::set;
 using std::list;
+using std::ifstream;
+using std::cerr;
+using std::endl;
 
 #include <ogdf/basic/Graph.h>
 
@@ -52,11 +56,13 @@ AssignmentInstance * PGE10Parser3AP::get_instance() {
 	}
 
 	double value;
-	edge e;
+
 	for(unsigned int i = 0; i < dim; ++i)
 		for(auto agent : *agents)
-			forall_adj_edges(e, agent){
-				if(i == 0) {
+            for(auto adj : agent->adjEntries) {
+                auto e = adj->theEdge();
+
+                if(i == 0) {
 					edge_cost->operator [](e) = new Point(0.0, dim);
 				}
 				file >> value;

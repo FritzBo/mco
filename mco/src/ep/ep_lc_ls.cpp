@@ -204,7 +204,7 @@ void EpLcLs::Solve(const Graph& graph,
                 continue;
             }
 
-            for(auto adj : current_node->adjEdges)
+            for(auto adj : current_node->adjEntries)
             {
 
                 edge current_edge = adj->theEdge();

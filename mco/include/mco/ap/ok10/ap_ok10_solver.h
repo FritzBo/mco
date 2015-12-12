@@ -84,7 +84,7 @@ Solve(AssignmentInstance & instance) {
 
     for(auto e : instance.graph().edges) {
         for(unsigned i = 0; i < dimension; ++i) {
-            upper_bounds[i] = max(upper_bounds[i],
+            upper_bounds[i] = std::max(upper_bounds[i],
                                   instance.weights()(e)->operator[](i));
         }
     }

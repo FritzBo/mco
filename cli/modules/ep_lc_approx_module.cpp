@@ -14,6 +14,9 @@ using std::list;
 using std::vector;
 using std::pair;
 using std::function;
+using std::numeric_limits;
+using std::cout;
+using std::endl;
 
 #include <ogdf/basic/Graph.h>
 
@@ -349,7 +352,7 @@ void EpLCApproxModule::calculate_ideal_heuristic(const Graph& graph,
                                                  bool directed,
                                                  vector<NodeArray<double>>& distances) {
 
-    Dijkstra<double> sssp_solver;
+    Dijkstra<double, mco::PairComparator<double, std::less<double>>> sssp_solver;
 
     NodeArray<edge> predecessor(graph);
 

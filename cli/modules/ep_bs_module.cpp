@@ -18,6 +18,9 @@ using std::pair;
 using std::function;
 using std::thread;
 using std::make_pair;
+using std::numeric_limits;
+using std::cout;
+using std::endl;
 
 #include <ogdf/basic/Graph.h>
 
@@ -52,6 +55,7 @@ using mco::TemporaryGraphParser;
 using mco::Point;
 using mco::Dijkstra;
 using mco::DijkstraModes;
+using mco::PairComparator;
 using mco::ConstrainedReachabilityPreprocessing;
 using mco::InstanceScalarizer;
 using mco::EPDualBensonSolver;
@@ -242,6 +246,8 @@ void EpBsModule::perform(int argc, char** argv) {
                               solver.solutions().cend());
         }
 
+        label_select_ = label_select;
+
         delete scaled_costs;
         
     } catch(ArgException& e) {
@@ -329,7 +335,7 @@ void EpBsModule::calculate_ideal_heuristic(const Graph& graph,
                                                  bool directed,
                                                  vector<NodeArray<double>>& distances) {
 
-    Dijkstra<double> sssp_solver;
+    Dijkstra<double, PairComparator<double, std::less<double>>> sssp_solver;
 
     NodeArray<edge> predecessor(graph);
 
@@ -373,6 +379,5 @@ solutions() {
 }
 
 string EpBsModule::statistics() {
-    string stats("");
-    return stats;
+    return label_select_ ? string("ls") : string("ns");
 }

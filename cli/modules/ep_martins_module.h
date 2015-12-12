@@ -10,6 +10,7 @@
 #define __mco__martins_module__
 
 #include <list>
+#include <string>
 
 #include <ogdf/basic/Graph.h>
 
@@ -34,17 +35,17 @@ private:
                                    bool directed,
                                    std::vector<ogdf::NodeArray<double>>& distances);
     
-    void parse_ideal_bounds(const TCLAP::MultiArg<string>& argument,
+    void parse_ideal_bounds(const TCLAP::MultiArg<std::string>& argument,
                             unsigned dimension,
                             std::function<double(ogdf::node, unsigned)> heuristic,
                             const ogdf::node source,
                             std::list<mco::Point> & bounds);
     
-    void parse_fractional_bounds(const TCLAP::MultiArg<string>& argument,
+    void parse_fractional_bounds(const TCLAP::MultiArg<std::string>& argument,
                                  unsigned dimension,
                                  mco::Point& bounds);
     
-    void parse_bundling_bound(TCLAP::ValueArg<string>& bundling_arg,
+    void parse_bundling_bound(TCLAP::ValueArg<std::string>& bundling_arg,
                               unsigned dimension,
                               std::function<double(ogdf::node, unsigned)> ideal_heuristic,
                               const mco::Point& ideal_bound,

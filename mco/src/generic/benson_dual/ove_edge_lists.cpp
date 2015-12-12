@@ -69,7 +69,7 @@ EdgeListVE::EdgeListVE(Point &initial_value, unsigned int dimension, double epsi
 
 		list_of_inequalities_.push_back(p);
 
-		forall_nodes(v, vertex_graph_) {
+        for(auto v : vertex_graph_.nodes) {
 			if(v != n) {
 				edge e1 = vertex_graph_.newEdge(v, n);
 				edge_inequality_indices_[e1] = new list<int>();
@@ -114,7 +114,7 @@ EdgeListVE::EdgeListVE(Point &initial_value, unsigned int dimension, double epsi
 	node_points_[n] = p;
 	unprocessed_projective_points_.push(p);
 
-	forall_nodes(v, vertex_graph_) {
+    for(auto v : vertex_graph_.nodes) {
 		if(v != n) {
 			edge e1 = vertex_graph_.newEdge(v, n);
 			edge_inequality_indices_[e1] = new list<int>();
@@ -155,7 +155,7 @@ EdgeListVE::EdgeListVE(Point &initial_value, unsigned int dimension, double epsi
 	point_nodes_.insert(make_pair(p, n));
 	node_points_[n] = p;
 
-	forall_nodes(v, vertex_graph_) {
+    for(auto v : vertex_graph_.nodes) {
 		if(v != n) {
 			edge e1 = vertex_graph_.newEdge(v, n);
 			edge_inequality_indices_[e1] = new list<int>();
@@ -342,8 +342,7 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 
 		NodeArray<bool> neighbor_checked(vertex_graph_, false);
 
-		AdjElement *adj;
-		forall_adj(adj, active_node) {
+        for(auto adj : active_node->adjEntries) {
 
 			node neighbor = adj->theEdge()->target();
 
@@ -490,9 +489,10 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 //		cout << "Deleting node: " << active_node << endl;
 		delete node_inequality_indices_[active_node];
 
-		edge e;
-		forall_adj_edges(e, active_node)
+        for(auto adj : active_node->adjEntries) {
+            auto e = adj->theEdge();
 			delete edge_inequality_indices_[e];
+        }
 
 		vertex_graph_.delNode(active_node);
 		point_nodes_.erase(projective_vertex);
@@ -595,7 +595,7 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 			assert((n1->indeg() >= 2 && n1->outdeg() >= 2) || abs((*node_points_[n1])[dimension_]) < epsilon_);
 		else
 			if(((unsigned int) n1->indeg() < dimension_ || (unsigned int) n1->outdeg() < dimension_) && abs((*node_points_[n1])[dimension_]) > epsilon_) {
-				cout << "node " << n1 << " with point " << *node_points_[n1] << " has indegree " << n1->indeg() << " and outdegree " << n1->outdeg() << endl;
+				std::cout << "node " << n1 << " with point " << *node_points_[n1] << " has indegree " << n1->indeg() << " and outdegree " << n1->outdeg() << std::endl;
 				assert(false);
 			}
 #endif
@@ -633,7 +633,7 @@ bool EdgeListVE::inside_face(node n1, node n2, bool nondegenerate) {
 							node_inequality_indices_[n2]->end(),
 							back_inserter(tight_inequalities));
 
-		unsigned int k = max(birth_index_[n1], birth_index_[n2]);
+		unsigned int k = std::max(birth_index_[n1], birth_index_[n2]);
 		bool nc2 = false;
 
 		for(auto index: tight_inequalities)
@@ -658,8 +658,7 @@ bool EdgeListVE::inside_face(node n1, node n2, bool nondegenerate) {
 
 //			cout << "inequality: " << *inequality << endl;
 
-			node n;
-			forall_nodes(n, vertex_graph_) {
+            for(auto n : vertex_graph_.nodes) {
 //					cout << "checking node " << n << " with point " << *node_points_[n] << ": " << (*inequality) * (*node_points_[n]) << endl;
 				if(abs((*inequality) * (*node_points_[n])) < epsilon_)
 					new_vertices.insert(node_points_[n]);

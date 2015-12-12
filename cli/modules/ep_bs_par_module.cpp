@@ -18,6 +18,9 @@ using std::pair;
 using std::function;
 using std::thread;
 using std::make_pair;
+using std::numeric_limits;
+using std::cout;
+using std::endl;
 
 #include <ogdf/basic/Graph.h>
 
@@ -303,7 +306,7 @@ void EpBsParModule::calculate_ideal_heuristic(const Graph& graph,
                                                  bool directed,
                                                  vector<NodeArray<double>>& distances) {
 
-    Dijkstra<double> sssp_solver;
+    Dijkstra<double, mco::PairComparator<double, std::less<double>>> sssp_solver;
 
     NodeArray<edge> predecessor(graph);
 

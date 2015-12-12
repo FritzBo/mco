@@ -25,6 +25,8 @@ public:
 private:
     
     std::list<std::pair<const std::list<ogdf::edge>, const mco::Point>> solutions_;
+
+    bool label_select_;
     
     void parse_ideal_bounds(const TCLAP::MultiArg<std::string>& argument,
                             unsigned dimension,

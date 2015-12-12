@@ -19,7 +19,7 @@ namespace mco {
     
 class TemporaryGraphParser {
 public:
-    void getGraph(string filename,
+    void getGraph(std::string filename,
                   ogdf::Graph &graph,
                   ogdf::EdgeArray<mco::Point> &weights,
                   unsigned& dimension,

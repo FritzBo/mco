@@ -14,6 +14,10 @@ using std::make_shared;
 using std::set;
 using std::list;
 using std::shared_ptr;
+using std::ifstream;
+using std::cerr;
+using std::endl;
+using std::string;
 
 #include <ogdf/basic/Graph.h>
 
@@ -59,7 +63,7 @@ get_instance(ogdf::Graph& graph,
 	double value;
     for(unsigned int i = 0; i < dim; ++i) {
         for(node agent : agents) {
-            for(auto adj : agent->adjEdges) {
+            for(auto adj : agent->adjEntries) {
                 edge e = adj->theEdge();
                 
 				if(i == 0) {

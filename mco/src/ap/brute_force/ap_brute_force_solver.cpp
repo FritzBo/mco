@@ -52,7 +52,7 @@ void APBruteForceSolver::recursive_find(unsigned int agent_index,
     
     ParetoDominationPointComparator pareto_dominates(0.0);
     
-    for(auto adj : agent_list[agent_index]->adjEdges) {
+    for(auto adj : agent_list[agent_index]->adjEntries) {
 
         auto e = adj->theEdge();
 

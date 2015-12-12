@@ -104,7 +104,7 @@ void PrimalBensonMolpSolver<OnlineVertexEnumerator>::Solve() {
 		std::cout << "******************************************************************************************" << std::endl;
 		std::cout << "******************************************************************************************" << std::endl;
 
-		cout << "Iteration: " << iterations << endl;
+		std::cout << "Iteration: " << iterations << std::endl;
 
 		std::cout << "s is: " << *s << std::endl;
 
@@ -140,7 +140,7 @@ void PrimalBensonMolpSolver<OnlineVertexEnumerator>::Solve() {
 				perturbation[i] = randomDouble(0.8, 3);
 
 			p_hat_ = new Point((*y) + perturbation * p2_->model()->get(GRB_DoubleAttr_ObjVal) * 0.5);
-			cout << "p_hat: " << *p_hat_ << endl;
+			std::cout << "p_hat: " << *p_hat_ << std::endl;
 			p2_->set_p_hat(p_hat_);
 
 		} else {
@@ -225,8 +225,8 @@ void PrimalBensonMolpSolver<OnlineVertexEnumerator>::Solve() {
 //		for(unsigned int i = 0; i < dimension; ++i)
 //			(*l)[i] /= sum;
 
-		cout << "l is: " << *l << endl;
-		cout << "u is: " << *u << endl;
+		std::cout << "l is: " << *l << std::endl;
+		std::cout << "u is: " << *u << std::endl;
 
 		vertex_container.add_hyperplane(*s, *l, b * (*u));
 
@@ -237,8 +237,8 @@ void PrimalBensonMolpSolver<OnlineVertexEnumerator>::Solve() {
 		delete u;
 	}
 
-	cout << "Iteration count: " << iterations << endl;
-	cout << "Number of inequalities: " << vertex_container.number_of_hyperplanes() << endl;
+	std::cout << "Iteration count: " << iterations << std::endl;
+	std::cout << "Number of inequalities: " << vertex_container.number_of_hyperplanes() << std::endl;
 }
 
 P1::P1(GRBEnv *grb_env, const MolpModel &model) :
@@ -367,7 +367,7 @@ bool P2::is_outsider() {
 }
 
 P2::~P2() {
-	cout << "p2 destruct" << endl;
+	std::cout << "p2 destruct" << std::endl;
 	delete p_hat_;
 }
 

@@ -88,6 +88,6 @@ const list<pair<const list<edge>, const Point>>& ApOk10Module::solutions() {
 
 string ApOk10Module::statistics() {
     string stats("");
-    stats += to_string(objectives_) + ", " + to_string(nodes_);
+    stats += std::to_string(objectives_) + ", " + std::to_string(nodes_);
     return stats;
 }

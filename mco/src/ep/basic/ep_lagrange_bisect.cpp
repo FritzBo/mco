@@ -46,7 +46,7 @@ operator()(const Point& weighting,
     ogdf::NodeArray<double> distance(graph_);
     ogdf::NodeArray<ogdf::edge> predecessor(graph_);
     
-    Dijkstra<double> sssp_solver;
+    Dijkstra<double, PairComparator<double, std::less<double>>> sssp_solver;
     
     auto weight = [&weighting, this] (edge e) {
         return this->costs_(e) * weighting;

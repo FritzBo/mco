@@ -13,6 +13,8 @@ using std::string;
 using std::list;
 using std::pair;
 using std::function;
+using std::numeric_limits;
+using std::min;
 
 #include <ogdf/basic/Graph.h>
 

@@ -30,8 +30,6 @@ APGRBBensonDualSolver<OnlineVertexEnumerator>::APGRBBensonDualSolver(AssignmentI
 
 	grb_env_ = new GRBEnv();
 	lp_model_ = new GRBModel(*grb_env_);
-	edge e;
-	node n;
 
 	variables_ = lp_model_->addVars(instance.graph().numberOfEdges());
 
@@ -42,10 +40,10 @@ APGRBBensonDualSolver<OnlineVertexEnumerator>::APGRBBensonDualSolver(AssignmentI
 		variables_[i].set(GRB_DoubleAttr_LB, 0);
 	}
 
-	forall_nodes(n, instance.graph()) {
+    for(auto n : instance.graph().nodes) {
 		GRBLinExpr c = 0;
 		unsigned int i = 0;
-		forall_edges(e, instance.graph()) {
+        for(auto e : instance.graph().edges) {
 			if(e->isIncident(n))
 				c += variables_[i];
 			++i;
@@ -75,7 +73,7 @@ double APGRBBensonDualSolver<OnlineVertexEnumerator>::Solve_scalarization(Point&
 	list<GRBConstr> constraints;
 
 	unsigned int i = 0;
-	forall_edges(e, *instance().graph()) {
+    for(auto e : instance().graph()->edges) {
 		obj += variables_[i] * (*(*instance().weights())[e] * weights);
 		++i;
 	}
@@ -89,7 +87,7 @@ double APGRBBensonDualSolver<OnlineVertexEnumerator>::Solve_scalarization(Point&
 	for(unsigned int j = 0; j < instance().dimension(); ++j) {
 		obj = 0;
 		i = 0;
-		forall_edges(e, *instance().graph()) {
+        for(auto e : instance().graph()->edges) {
 			obj += variables_[i] * (*(*instance().weights())[e])[j];
 			++i;
 		}
@@ -107,7 +105,7 @@ double APGRBBensonDualSolver<OnlineVertexEnumerator>::Solve_scalarization(Point&
 		try {
 			lp_model_->remove(constr);
 		} catch(GRBException &e) {
-			cout << e.getMessage() << endl;
+			std::cout << e.getMessage() << std::endl;
 		}
 	}
 

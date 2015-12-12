@@ -75,8 +75,8 @@ TEST_P(BoundedParetoInstanceTestFixture, CountMatch) {
     
     
 #ifndef NDEBUG
-    cout << "Approximate Lagrange Multiplier: " << lambda << endl;
-    cout << "Value: " << value << endl;
+    std::cout << "Approximate Lagrange Multiplier: " << lambda << std::endl;
+    std::cout << "Value: " << value << std::endl;
 #endif
     
 }

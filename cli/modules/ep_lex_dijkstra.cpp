@@ -19,6 +19,8 @@ using std::pair;
 using std::make_pair;
 using std::function;
 using std::vector;
+using std::cout;
+using std::endl;
 
 #include <ogdf/basic/Graph.h>
 #include <ogdf/basic/Thread.h>

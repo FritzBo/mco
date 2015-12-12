@@ -15,6 +15,7 @@ using std::string;
 using std::list;
 using std::pair;
 using std::function;
+using std::to_string;
 
 #include <ogdf/basic/Graph.h>
 

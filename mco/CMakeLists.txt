@@ -60,7 +60,7 @@ include/mco/ep/tsaggouris/ep_solver_tsaggouris_approx.h
 include/mco/ep/warburton/ep_solver_warburton_approx.h
 include/mco/ep/warburton/product.h
 include/mco/ep/lc_approx/lc_approx.h
-include/mco/ep/basic/binary_heap.h
+#include/mco/ep/basic/binary_heap.h
 include/mco/ep/basic/dijkstra.h
 include/mco/ep/dual_benson/ep_dual_benson.h
 include/mco/ep/dual_benson/constrained_ep_dual_benson.h

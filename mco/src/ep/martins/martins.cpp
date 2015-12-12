@@ -142,8 +142,7 @@ Solve(Graph& graph,
 
 //		cout << endl << n << ", " << *label->point << ": ";
 
-		AdjElement *adj;
-		forall_adj(adj, n) {
+        for(auto adj : n->adjEntries) {
 			edge e = adj->theEdge();
 
 			if(e->isSelfLoop())
@@ -291,7 +290,7 @@ Solve(Graph& graph,
             list<edge> path;
             const Label* curr = label;
             while(curr->n != source) {
-                for(auto adj: curr->n->adjEdges) {
+                for(auto adj: curr->n->adjEntries) {
                     edge e = adj->theEdge();
                     if(directed ? e->source() == curr->pred->n && e->target() == curr->n :
                        (e->source() == curr->pred->n && e->target() == curr->n) ||
@@ -328,13 +327,12 @@ Solve(Graph& graph,
 //	}
 
 #ifndef NDEBUG
-    cout << "Length bound deletions: " << bound_deletion << endl;
-    cout << "Heuristic bound deletions: " << heuristic_deletion << endl;
-    cout << "First phase bound deletions: " << first_phase_deletion << endl;
+    std::cout << "Length bound deletions: " << bound_deletion << std::endl;
+    std::cout << "Heuristic bound deletions: " << heuristic_deletion << std::endl;
+    std::cout << "First phase bound deletions: " << first_phase_deletion << std::endl;
 #endif
     
-	node n;
-	forall_nodes(n, graph) {
+	for(auto n : graph.nodes) {
 		for(auto &label : labels[n])
 			delete label;
 	}

@@ -215,8 +215,7 @@ Solve(Graph& graph,
 
 //		cout << endl << n << ", " << *label->point << ": ";
 
-		AdjElement *adj;
-		forall_adj(adj, n) {
+        for(auto adj : n->adjEntries) {
 			edge e = adj->theEdge();
 
 			if(e->isSelfLoop())
@@ -260,7 +259,7 @@ Solve(Graph& graph,
             list<edge> path;
             const Label* curr = label;
             while(curr->n != source) {
-                for(auto adj: curr->n->adjEdges) {
+                for(auto adj: curr->n->adjEntries) {
                     edge e = adj->theEdge();
                     if(e->source() == curr->pred->n && e->target() == curr->n) {
                         path.push_back(e);
@@ -289,8 +288,7 @@ Solve(Graph& graph,
 //		cout << current_label->n << ")" << endl;
 //	}
 
-	node n;
-	forall_nodes(n, graph) {
+    for(auto n : graph.nodes) {
 		for(auto &label : node_entry[n].label_set)
 			delete label;
 	}

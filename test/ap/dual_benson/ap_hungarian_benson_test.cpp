@@ -81,11 +81,11 @@ TEST_P(ParetoInstanceTestFixture, CountMatch) {
     
     solver.Solve(instance);
 
-    cout << solver.number_facets() << endl;
+    std::cout << solver.number_facets() << std::endl;
     
     EXPECT_EQ(expected_number_of_minimizers_, solver.solutions().size());
 
-    cout << endl;
+    std::cout << std::endl;
 
     for(auto s : solver.solutions()) {
         bool found = false;
@@ -98,7 +98,7 @@ TEST_P(ParetoInstanceTestFixture, CountMatch) {
         if(found) {
             break;
         } else {
-            cout << "Not found: " << s.second << endl;
+            std::cout << "Not found: " << s.second << std::endl;
             ASSERT_TRUE(false);
         }
         // (26, 90, 75, 100, 99, 78)

@@ -11,6 +11,7 @@
 using std::pair;
 using std::list;
 using std::vector;
+using std::numeric_limits;
 
 using ogdf::node;
 using ogdf::edge;
@@ -236,7 +237,7 @@ Solve(const Graph& graph,
     
     for(auto e : graph.edges) {
         for(unsigned i = 0; i < dimension_; ++i) {
-            min_e_[i] = min(min_e_[i], cost_function(e)[i]);
+            min_e_[i] = std::min(min_e_[i], cost_function(e)[i]);
         }
     }
 
@@ -250,7 +251,7 @@ Solve(const Graph& graph,
             Point scaled_disj_bound(dimension_);
             compute_pos(bound, scaled_disj_bound);
 #ifndef NDEBUG
-            cout << scaled_disj_bound << endl;
+            std::cout << scaled_disj_bound << std::endl;
 #endif
             scaled_disj_bounds.push_back(std::move(scaled_disj_bound));
         }
@@ -284,7 +285,7 @@ Solve(const Graph& graph,
 
             auto& current_new_labels = current_node_entry.new_labels();
             
-            for(auto adj : current_node->adjEdges) {
+            for(auto adj : current_node->adjEntries) {
                 edge current_edge = adj->theEdge();
 
                 if(current_edge->isSelfLoop()) {

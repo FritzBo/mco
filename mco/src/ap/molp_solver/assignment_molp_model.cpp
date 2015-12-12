@@ -55,8 +55,7 @@ AssignmentMolpModel::AssignmentMolpModel(shared_ptr<AssignmentInstance> instance
 		A_[i] = 0;
 
 
-	edge e;
-	forall_edges(e, graph) {
+	for(auto e : graph.edges) {
 		if(agents.count(e->source()) > 0) {
 			A_[e->index() / 2 + number_of_variables * e->source()->index()] = 1;
 			A_[start_index_agent_negative + e->index() / 2 + number_of_variables * e->source()->index()] = -1;

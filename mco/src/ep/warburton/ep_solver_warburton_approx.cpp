@@ -10,6 +10,7 @@
 #include <cmath>
 #include <functional>
 #include <list>
+#include <iostream>
 
 using std::vector;
 using std::min;
@@ -22,6 +23,8 @@ using std::numeric_limits;
 using std::function;
 using std::list;
 using std::pair;
+using std::cout;
+using std::endl;
 
 #include <ogdf/basic/Graph.h>
 
@@ -111,7 +114,7 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
     
     list<Point> nondominated_cells;
     
-    Dijkstra<double> sssp_solver;
+    Dijkstra<double, PairComparator<double, std::less<double>>> sssp_solver;
     NodeArray<double> distances(graph);
 	NodeArray<edge> predecessor(graph);
     
@@ -417,7 +420,7 @@ computeBounds(const Graph& graph,
     
     const unsigned int number_nodes = graph.numberOfNodes();
     
-    Dijkstra<double> sssp_solver;
+    Dijkstra<double, PairComparator<double, std::less<double>>> sssp_solver;
     NodeArray<double> distances(graph);
 	NodeArray<edge> predecessor(graph);
 

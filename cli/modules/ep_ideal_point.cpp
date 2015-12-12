@@ -19,6 +19,8 @@ using std::pair;
 using std::make_pair;
 using std::function;
 using std::vector;
+using std::cout;
+using std::endl;
 
 #include <ogdf/basic/Graph.h>
 #include <ogdf/basic/Thread.h>
@@ -86,7 +88,7 @@ void EpIdealModule::perform(int argc, char** argv) {
         ogdf::NodeArray<edge> predecessors(graph);
 
         for(unsigned i = 0; i < dimension; ++i) {
-            mco::Dijkstra<double> sssp;
+            mco::Dijkstra<double, mco::PairComparator<double, std::less<double>>> sssp;
 
             auto cost_function = [&costs, i] (edge e) {
                 return costs[e][i];

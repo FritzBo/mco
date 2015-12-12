@@ -17,6 +17,8 @@ using std::getline;
 using std::exception;
 using std::vector;
 using std::list;
+using std::string;
+using std::ifstream;
 
 #include <ogdf/basic/Graph.h>
 

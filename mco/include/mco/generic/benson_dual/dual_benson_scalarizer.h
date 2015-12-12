@@ -12,6 +12,7 @@
 #include <list>
 #include <functional>
 #include <chrono>
+#include <algorithm>
 
 #include <mco/basic/point.h>
 
@@ -137,7 +138,7 @@ Calculate_solutions(std::list<Point *>& solutions) {
             weighting[i] = (*candidate)[i];
             sum += (*candidate)[i];
         }
-        weighting[dimension_ - 1] = max(0.0, 1 - sum);
+        weighting[dimension_ - 1] = std::max(0.0, 1 - sum);
         
         for(unsigned int i = 0; i < dimension_; ++i) {
             value[i] = 0;

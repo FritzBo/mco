@@ -9,6 +9,8 @@
 #ifndef __mco__ep_tsaggouris_module__
 #define __mco__ep_tsaggouris_module__
 
+#include <string>
+
 #include <ogdf/basic/Graph.h>
 
 #include "../basic/modules.h"
@@ -36,7 +38,7 @@ private:
                             unsigned dimension,
                             mco::Point& bounds);
     
-    void parse_epsilon(const TCLAP::MultiArg<string>& epsilon_argument,
+    void parse_epsilon(const TCLAP::MultiArg<std::string>& epsilon_argument,
                        unsigned dimension,
                        mco::Point& epsilon);
     

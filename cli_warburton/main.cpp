@@ -8,10 +8,16 @@
 
 #include <list>
 #include <vector>
+#include <string>
+#include <iostream>
 
 using std::list;
 using std::pair;
 using std::vector;
+using std::string;
+using std::numeric_limits;
+using std::cout;
+using std::endl;
 
 #include <tclap/CmdLine.h>
 
@@ -141,7 +147,7 @@ int main(int argc, char** argv) {
         NodeArray<edge> predecessor(graph);
         
         for(unsigned i = 0; i < dimension; ++i) {
-            Dijkstra<double> sssp_solver;
+            Dijkstra<double, PairComparator<double, std::less<double>>> sssp_solver;
             
             auto mono_cost = [&costs, i] (edge e) {
                 return costs[e][i];

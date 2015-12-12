@@ -34,7 +34,7 @@ void ConstrainedReachabilityPreprocessing::preprocess(Graph &graph,
     
     list<node> candidates;
     
-    Dijkstra<double> sssp_solver;
+    Dijkstra<double, PairComparator<double, std::less<double>>> sssp_solver;
     
     NodeArray<edge> predecessor(graph);
     vector<NodeArray<double>> source_distances(dimension, graph);

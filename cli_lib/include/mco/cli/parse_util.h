@@ -10,6 +10,7 @@
 #define mco_parse_util_h
 
 #include <functional>
+#include <string>
 
 #include <tclap/CmdLine.h>
 
@@ -51,7 +52,7 @@ void tokenize(const std::string& str, ContainerT& tokens,
 };
 
 inline
-bool parse_ideal_bounds(const TCLAP::MultiArg<string>& argument,
+bool parse_ideal_bounds(const TCLAP::MultiArg<std::string>& argument,
                         unsigned dimension,
                         std::function<double(ogdf::node, unsigned)> heuristic,
                         const ogdf::node source,
@@ -59,7 +60,7 @@ bool parse_ideal_bounds(const TCLAP::MultiArg<string>& argument,
     
     auto bounds_it = argument.begin();
     while(bounds_it != argument.end()) {
-        vector<string> tokens;
+        vector<std::string> tokens;
         tokenize(*bounds_it, tokens, ":");
         
         if(tokens.size() != 2) {

@@ -22,7 +22,7 @@ class GraphParser {
 	std::string filename_;
 
 public:
-	GraphParser(string filename) :
+	GraphParser(std::string filename) :
 		filename_(filename) { }
 
 	void getGraph(ogdf::Graph &graph, ogdf::EdgeArray<mco::Point *> &weights);

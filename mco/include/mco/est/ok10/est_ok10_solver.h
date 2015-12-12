@@ -96,7 +96,7 @@ Solve(Graph& graph,
 
     for(auto e : graph.edges) {
         for(unsigned i = 0; i < objectives; ++i) {
-            upper_bounds[i] = max(upper_bounds[i],
+            upper_bounds[i] = std::max(upper_bounds[i],
                                   weights(e)->operator[](i));
         }
     }

@@ -11,6 +11,10 @@
 
 using std::map;
 using std::pair;
+using std::ifstream;
+using std::cerr;
+using std::endl;
+using std::string;
 
 #include <ogdf/basic/Graph.h>
 

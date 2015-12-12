@@ -9,6 +9,7 @@
 #ifndef __mco__ld_module__
 #define __mco__ld_module__
 
+#include <string>
 #include <list>
 
 #include <ogdf/basic/Graph.h>
@@ -27,7 +28,7 @@ public:
 private:
     std::list<std::pair<const std::list<ogdf::edge>, const mco::Point>> solutions_;
 
-    mco::Point parse_weight(TCLAP::ValueArg<string>& argument,
+    mco::Point parse_weight(TCLAP::ValueArg<std::string>& argument,
                             unsigned dimension);
 
 };
