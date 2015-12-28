@@ -9,7 +9,7 @@
 #ifndef ONLINE_VERTEX_ENUMERATOR_CDD_H_
 #define ONLINE_VERTEX_ENUMERATOR_CDD_H_
 
-#include <list>
+#include <vector>
 #include <iostream>
 
 #include <setoper.h>
@@ -44,7 +44,7 @@ public:
 protected:
 	int number_hyperplanes_;
 
-	std::list<Point> unprocessed_vertices_;
+	std::vector<Point> unprocessed_vertices_;
 
 	ddf_MatrixPtr h_representation_;
     unsigned new_line_;

@@ -76,8 +76,8 @@ Point * OnlineVertexEnumeratorCDD::next_vertex() {
 	if(unprocessed_vertices_.empty())
 		return nullptr;
 
-	Point * p = new Point(unprocessed_vertices_.front());
-	unprocessed_vertices_.pop_front();
+	Point * p = new Point(unprocessed_vertices_.back());
+	unprocessed_vertices_.pop_back();
 
 	return p;
 }
