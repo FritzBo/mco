@@ -84,11 +84,20 @@ check_domination(Label* new_label,
 
             --neighbor_labels_end;
 
+#ifdef STATS
+            label_compares_ += 1;
+#endif
+
         }
         else if(leq(check_label->cost, new_label->cost))
         {
 
             dominated = true;
+
+#ifdef STATS
+            label_compares_ += 2;
+#endif
+
             break;
 
         }
@@ -109,10 +118,20 @@ check_domination(Label* new_label,
 
             --neighbor_labels_end;
 
+#ifdef STATS
+            label_compares_ += 3;
+#endif
+
+
         }
         else
         {
             ++check_label_it;
+
+#ifdef STATS
+            label_compares_ += 3;
+#endif
+
         }
     }
 

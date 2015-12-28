@@ -85,9 +85,18 @@ check_domination(vector<Label*>& new_labels,
 
                 --neighbor_labels_end;
 
+#ifdef STATS
+                label_compares_ += 1;
+#endif
+
             } else if(leq(check_label->cost, new_label->cost)) {
 
                 dominated = true;
+
+#ifdef STATS
+                label_compares_ += 2;
+#endif
+
                 break;
 
             } else if(leq(new_label->cost, check_label->cost)) {
@@ -99,8 +108,16 @@ check_domination(vector<Label*>& new_labels,
 
                 --neighbor_labels_end;
 
+#ifdef STATS
+                label_compares_ += 3;
+#endif
+
             } else {
                 ++check_label_it;
+
+#ifdef STATS
+                label_compares_ += 3;
+#endif
             }
         }
 
@@ -127,7 +144,15 @@ check_domination(vector<Label*>& new_labels,
 
                     --neighbor_new_labels_end;
 
+#ifdef STATS
+                    label_compares_ += 1;
+#endif
+
                 } else if(leq(check_label->cost, new_label->cost)) {
+
+#ifdef STATS
+                    label_compares_ += 2;
+#endif
 
                     dominated = true;
                     break;
@@ -140,9 +165,18 @@ check_domination(vector<Label*>& new_labels,
                                          check_label_it);
                     
                     --neighbor_new_labels_end;
-                    
+
+#ifdef STATS
+                    label_compares_ += 3;
+#endif
+
                 } else {
                     ++check_label_it;
+
+#ifdef STATS
+                    label_compares_ += 3;
+#endif
+
                 }
             }
         }
@@ -252,13 +286,17 @@ void EpSolverBS::Solve(const Graph& graph,
                 
                 edge current_edge = adj->theEdge();
                 
-                if(current_edge->isSelfLoop()) {
+                if(current_edge->isSelfLoop())
+                {
                     continue;
                 }
 
-                if(directed && current_edge->target() == current_node) {
+                if(directed && current_edge->target() == current_node)
+                {
                     continue;
                 }
+
+                arc_pushes_ += 1;
 
                 node neighbor = current_edge->opposite(current_node);
                 auto& neighbor_entry = node_entries[neighbor];

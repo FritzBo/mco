@@ -9,7 +9,7 @@
 #ifndef BSSSA_H_
 #define BSSSA_H_
 
-#define USE_TREE_DELETION
+//#define USE_TREE_DELETION
 #define STATS
 
 #include <iostream>
@@ -26,7 +26,11 @@ class EpSolverBS : public AbstractSolver<std::list<ogdf::edge>>
     
 public:
 	EpSolverBS(double epsilon = 0)
-    : epsilon_(epsilon) { }
+    : epsilon_(epsilon) {
+#ifdef USE_TREE_DELETION
+        std::cout << "Using tree deletion" << std::endl;
+#endif
+    }
     
 	virtual void Solve(const ogdf::Graph& graph,
                        std::function<const Point*(const ogdf::edge)> costs,
@@ -55,6 +59,8 @@ public:
 #endif
 #ifdef STATS
         std::cout << "Processed recursively deleted labels: " << touched_recursively_deleted_label << std::endl;
+        std::cout << "Number of compared labels: "  << label_compares_ / 1000 << "k" << std::endl;
+        std::cout << "Numer of arc pushes: " << arc_pushes_ << std::endl;
 #endif
     }
 
@@ -75,6 +81,8 @@ private:
 
 #ifdef STATS
     unsigned touched_recursively_deleted_label = 0;
+    unsigned long label_compares_ = 0;
+    unsigned arc_pushes_ = 0;
 #endif
 
     struct Label
@@ -82,7 +90,7 @@ private:
         const Point cost;
         const ogdf::node n;
         const ogdf::edge pred_edge;
-        Label* pred_label;
+        Label * pred_label;
         bool deleted = false;
 
 #ifdef STATS
@@ -91,7 +99,7 @@ private:
 
 #if defined USE_TREE_DELETION || defined STATS
         /* Lists are more efficient here, because most of the time
-         the collection of successors is actually empty. */
+         the collection of successors is actually empty or very small. */
         std::list<Label*> successors;
 #endif
 
@@ -104,7 +112,6 @@ private:
             pred_edge(p_edge),
             pred_label(p_label),
             deleted(false) { }
-
     };
 
     struct NodeEntry
@@ -251,7 +258,7 @@ inline void EpSolverBS::remove_label(Label* label)
 {
 #if defined USE_TREE_DELETION || defined STATS
 #if defined STATS && !defined USE_TREE_DELETION
-    if(check_label->pred_label != nullptr)
+    if(label->pred_label != nullptr)
     {
 #endif
 
@@ -266,7 +273,7 @@ inline void EpSolverBS::remove_label(Label* label)
 #if defined STATS && !defined USE_TREE_DELETION
     }
 
-    for(auto label : check_label->successors)
+    for(auto label : label->successors)
     {
         label->pred_label = nullptr;
     }

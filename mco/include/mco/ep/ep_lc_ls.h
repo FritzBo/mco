@@ -9,6 +9,9 @@
 #ifndef __mco__ep_lc_ls_
 #define __mco__ep_lc_ls_
 
+//#define USE_TREE_DELETION
+#define STATS
+
 #include <mco/basic/abstract_solver.h>
 
 namespace mco
@@ -42,6 +45,13 @@ public:
         use_bounds_ = true;
     }
 
+    ~EpLcLs()
+    {
+#ifdef STATS
+        std::cout << "Number of compared labels: " << label_compares_ / 1000 << "k" << std::endl;
+#endif
+    }
+
 
 private:
     const double epsilon_;
@@ -52,9 +62,13 @@ private:
     bool use_bounds_ = false;
     Point bounds_;
 
+#ifdef STATS
+    unsigned long label_compares_ = 0;
+#endif
+
     struct Label
     {
-        const Point cost;
+        Point cost;
         const ogdf::node n;
         const ogdf::edge pred_edge;
         Label* pred_label;
@@ -148,7 +162,7 @@ private:
         unsigned labels_end_;
     };
 
-    bool check_domination(Label* label,
+    bool check_domination(Label* new_label,
                           NodeEntry& neighbor_entry);
 
     void recursive_delete(Label& label);
