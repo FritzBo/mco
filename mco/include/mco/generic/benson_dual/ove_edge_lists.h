@@ -48,9 +48,9 @@ protected:
 	std::priority_queue<Point *, std::vector<Point *>, LexPointComparator> unprocessed_projective_points_;
 
 	std::vector<Point *> list_of_inequalities_;
-	ogdf::NodeArray<std::list<int> *> node_inequality_indices_;
+	ogdf::NodeArray<std::vector<int> *> node_inequality_indices_;
 	ogdf::NodeArray<unsigned int> birth_index_;
-	ogdf::EdgeArray<std::list<int> *> edge_inequality_indices_;
+	ogdf::EdgeArray<std::vector<int> *> edge_inequality_indices_;
 
 	ogdf::node get_node(Point &non_projective_point);
 	Point * to_projective(Point &non_projective_point);
