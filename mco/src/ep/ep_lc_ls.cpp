@@ -70,6 +70,7 @@ check_domination(Label* new_label,
         else if(eq(new_label->cost, check_label->cost))
         {
 
+#ifdef USE_TREE_DELETION
             auto it = find(check_label->pred_label->successors.begin(),
                            check_label->pred_label->successors.end(),
                            check_label);
@@ -79,6 +80,7 @@ check_domination(Label* new_label,
             check_label->pred_label->successors.erase(it);
 
             recursive_delete(*check_label);
+#endif
 
             neighbor_entry.erase(check_label_it);
 
@@ -104,6 +106,7 @@ check_domination(Label* new_label,
         else if(leq(new_label->cost, check_label->cost))
         {
 
+#ifdef USE_TREE_DELETION
             auto it = find(check_label->pred_label->successors.begin(),
                            check_label->pred_label->successors.end(),
                            check_label);
@@ -113,6 +116,7 @@ check_domination(Label* new_label,
             check_label->pred_label->successors.erase(it);
 
             recursive_delete(*check_label);
+#endif
 
             neighbor_entry.erase(check_label_it);
 
@@ -139,7 +143,9 @@ check_domination(Label* new_label,
     {
         Label* pred = new_label->pred_label;
         neighbor_entry.push_back(new_label);
+#ifdef USE_TREE_DELETION
         pred->successors.push_back(new_label);
+#endif
 
         new_label->in_node_list = true;
         
@@ -149,6 +155,7 @@ check_domination(Label* new_label,
     return changed;
 }
 
+#ifdef USE_TREE_DELETION
 void EpLcLs::recursive_delete(Label& label)
 {
     // deque superior
@@ -168,6 +175,7 @@ void EpLcLs::recursive_delete(Label& label)
         }
     }
 }
+#endif
 
 bool EpLcLs::check_heuristic_prunable(const Label& label)
 {

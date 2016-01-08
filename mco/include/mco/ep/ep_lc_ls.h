@@ -1,6 +1,6 @@
 #pragma once
 /*
- * bsssa.h
+ * ep_lc_ls.h
  *
  *  Created on: 1.12.2015
  *      Author: fritz
@@ -76,7 +76,9 @@ private:
         bool in_queue = false;
         bool in_node_list = false;
 
+#ifdef USE_TREE_DELETION
         std::list<Label*> successors;
+#endif
 
         Label(const Point cost,
               const ogdf::node n,
@@ -165,7 +167,9 @@ private:
     bool check_domination(Label* new_label,
                           NodeEntry& neighbor_entry);
 
+#ifdef USE_TREE_DELETION
     void recursive_delete(Label& label);
+#endif
 
     bool check_heuristic_prunable(const Label& label);
 
