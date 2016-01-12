@@ -9,6 +9,7 @@
 #include "ep_bs_module.h"
 
 #include <thread>
+#include <sstream>
 
 using std::map;
 using std::string;
@@ -225,6 +226,13 @@ void EpBsModule::perform(int argc, char** argv) {
             solutions_.insert(solutions_.begin(),
                               solver.solutions().cbegin(),
                               solver.solutions().cend());
+
+            label_compares_ = solver.label_compares();
+            deleted_tree_labels_ = solver.deleted_tree_labels();
+            recursive_deletions_ = solver.recursive_deletions();
+            arc_pushes_ = solver.arc_pushes();
+            touched_recursively_deleted_label_ = solver.touched_recursively_deleted_label();
+            deleted_labels_ = solver.deleted_labels();
         }
         else
         {
@@ -244,6 +252,13 @@ void EpBsModule::perform(int argc, char** argv) {
             solutions_.insert(solutions_.begin(),
                               solver.solutions().cbegin(),
                               solver.solutions().cend());
+
+            label_compares_ = solver.label_compares();
+            deleted_tree_labels_ = solver.deleted_tree_labels();
+            recursive_deletions_ = solver.recursive_deletions();
+            arc_pushes_ = solver.arc_pushes();
+            touched_recursively_deleted_label_ = solver.touched_recursively_deleted_label();
+            deleted_labels_ = solver.deleted_labels();
         }
 
         label_select_ = label_select;
@@ -379,5 +394,20 @@ solutions() {
 }
 
 string EpBsModule::statistics() {
-    return label_select_ ? string("ls") : string("ns");
+    std::stringstream sstream;
+    sstream << (label_select_ ? string("ls") : string("ns"));
+    sstream << ", ";
+    sstream << label_compares_;
+    sstream << ", ";
+    sstream << deleted_labels_;
+    sstream << ", ";
+    sstream << arc_pushes_;
+    sstream << ", ";
+    sstream << deleted_tree_labels_;
+    sstream << ", ";
+    sstream << recursive_deletions_;
+    sstream << ", ";
+    sstream << touched_recursively_deleted_label_;
+
+    return sstream.str();
 }

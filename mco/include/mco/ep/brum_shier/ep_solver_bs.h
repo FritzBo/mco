@@ -10,7 +10,7 @@
 #define BSSSA_H_
 
 //#define USE_TREE_DELETION
-#define STATS
+//#define STATS
 
 #include <iostream>
 
@@ -26,10 +26,8 @@ class EpSolverBS : public AbstractSolver<std::list<ogdf::edge>>
     
 public:
 	EpSolverBS(double epsilon = 0)
-    : epsilon_(epsilon) {
-#ifdef USE_TREE_DELETION
-        std::cout << "Using tree deletion" << std::endl;
-#endif
+    : epsilon_(epsilon)
+    {
     }
     
 	virtual void Solve(const ogdf::Graph& graph,
@@ -53,17 +51,46 @@ public:
 
     ~EpSolverBS()
     {
-#if defined USE_TREE_DELETION && defined STATS
+#if defined USE_TREE_DELETION && defined STATS && !defined NDEBUG
         std::cout << "Tree-deleted labels: " << deleted_tree_labels_ << std::endl;
         std::cout << "Recursive deletions: " << recursive_deletions_ << std::endl;
 #endif
-#ifdef STATS
-        std::cout << "Processed recursively deleted labels: " << touched_recursively_deleted_label << std::endl;
+#if defined STATS && !defined NDEBUG
+        std::cout << "Processed recursively deleted labels: " << touched_recursively_deleted_label_ << std::endl;
         std::cout << "Number of compared labels: "  << label_compares_ / 1000 << "k" << std::endl;
         std::cout << "Numer of arc pushes: " << arc_pushes_ << std::endl;
 #endif
     }
 
+    unsigned deleted_tree_labels()
+    {
+        return deleted_tree_labels_;
+    }
+
+    unsigned recursive_deletions()
+    {
+        return recursive_deletions_;
+    }
+
+    unsigned touched_recursively_deleted_label()
+    {
+        return touched_recursively_deleted_label_;
+    }
+
+    unsigned long label_compares()
+    {
+        return label_compares_;
+    }
+
+    unsigned arc_pushes()
+    {
+        return arc_pushes_;
+    }
+
+    unsigned long deleted_labels()
+    {
+        return deleted_labels_;
+    }
 
 private:
     const double epsilon_;
@@ -74,16 +101,13 @@ private:
     bool use_bounds_ = false;
     Point bounds_;
 
-#if defined USE_TREE_DELETION && defined STATS
     unsigned deleted_tree_labels_ = 0;
     unsigned recursive_deletions_ = 0;
-#endif
 
-#ifdef STATS
-    unsigned touched_recursively_deleted_label = 0;
+    unsigned touched_recursively_deleted_label_ = 0;
     unsigned long label_compares_ = 0;
     unsigned arc_pushes_ = 0;
-#endif
+    unsigned long deleted_labels_ = 0;
 
     struct Label
     {

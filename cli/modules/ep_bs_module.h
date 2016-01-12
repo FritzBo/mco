@@ -23,6 +23,14 @@ public:
     virtual std::string statistics();
     
 private:
+
+    // stats:
+    unsigned long   label_compares_                     = 0;
+    unsigned        deleted_tree_labels_                = 0;
+    unsigned        recursive_deletions_                = 0;
+    unsigned        arc_pushes_                         = 0;
+    unsigned        touched_recursively_deleted_label_  = 0;
+    unsigned long   deleted_labels_                     = 0;
     
     std::list<std::pair<const std::list<ogdf::edge>, const mco::Point>> solutions_;
 

@@ -64,13 +64,21 @@ check_domination(Label* new_label,
 
             neighbor_entry.erase(check_label_it);
 
+#ifdef STATS
+            ++deleted_labels_;
+#endif
+
             --neighbor_labels_end;
 
         }
         else if(eq(new_label->cost, check_label->cost))
         {
 
-#ifdef USE_TREE_DELETION
+#if defined USE_TREE_DELETION || defined STATS
+#if defined STATS && !defined USE_TREE_DELETION
+            if(check_label->pred_label != nullptr)
+            {
+#endif
             auto it = find(check_label->pred_label->successors.begin(),
                            check_label->pred_label->successors.end(),
                            check_label);
@@ -79,10 +87,23 @@ check_domination(Label* new_label,
 
             check_label->pred_label->successors.erase(it);
 
+#if defined STATS && !defined USE_TREE_DELETION
+            }
+
+            for(auto label : check_label->successors)
+            {
+                label->pred_label = nullptr;
+            }
+#endif
+
             recursive_delete(*check_label);
 #endif
 
             neighbor_entry.erase(check_label_it);
+
+#ifdef STATS
+            ++deleted_labels_;
+#endif
 
             --neighbor_labels_end;
 
@@ -106,19 +127,36 @@ check_domination(Label* new_label,
         else if(leq(new_label->cost, check_label->cost))
         {
 
-#ifdef USE_TREE_DELETION
-            auto it = find(check_label->pred_label->successors.begin(),
-                           check_label->pred_label->successors.end(),
-                           check_label);
+#if defined USE_TREE_DELETION || defined STATS
+#if defined STATS && !defined USE_TREE_DELETION
+            if(check_label->pred_label != nullptr)
+            {
+#endif
+                auto it = find(check_label->pred_label->successors.begin(),
+                               check_label->pred_label->successors.end(),
+                               check_label);
 
-            assert(it != check_label->pred_label->successors.end());
+                assert(it != check_label->pred_label->successors.end());
 
-            check_label->pred_label->successors.erase(it);
+                check_label->pred_label->successors.erase(it);
 
+#if defined STATS && !defined USE_TREE_DELETION
+            }
+
+            for(auto label : check_label->successors)
+            {
+                label->pred_label = nullptr;
+            }
+#endif
+            
             recursive_delete(*check_label);
 #endif
 
             neighbor_entry.erase(check_label_it);
+
+#ifdef STATS
+            ++deleted_labels_;
+#endif
 
             --neighbor_labels_end;
 
@@ -143,7 +181,7 @@ check_domination(Label* new_label,
     {
         Label* pred = new_label->pred_label;
         neighbor_entry.push_back(new_label);
-#ifdef USE_TREE_DELETION
+#if defined USE_TREE_DELETION || defined STATS
         pred->successors.push_back(new_label);
 #endif
 
@@ -155,9 +193,13 @@ check_domination(Label* new_label,
     return changed;
 }
 
-#ifdef USE_TREE_DELETION
+#if defined USE_TREE_DELETION || defined STATS
 void EpLcLs::recursive_delete(Label& label)
 {
+#if defined STATS && defined USE_TREE_DELETION
+    recursive_deletions_ += 1;
+#endif
+    
     // deque superior
     deque<Label*> queue;
     queue.push_back(&label);
@@ -167,7 +209,15 @@ void EpLcLs::recursive_delete(Label& label)
         Label* curr = queue.front();
         queue.pop_front();
 
+#ifdef USE_TREE_DELETION
         curr->deleted = true;
+#else
+        curr->mark_recursive_deleted = true;
+#endif
+
+#if defined USE_TREE_DELETION && defined STATS
+        ++deleted_tree_labels_;
+#endif
 
         for(auto succ : curr->successors)
         {
@@ -246,12 +296,24 @@ void EpLcLs::Solve(const Graph& graph,
                     continue;
                 }
 
+#ifdef STATS
+                ++arc_pushes_;
+#endif
+
                 node neighbor = current_edge->opposite(current_node);
                 auto& neighbor_entry = node_entries[neighbor];
 
                 if(neighbor == source) {
                     continue;
                 }
+
+#ifdef STATS
+                if(current_label->mark_recursive_deleted)
+                {
+                    ++touched_recursively_deleted_label_;
+                }
+#endif
+
 
                 auto new_label = new Label(current_label->cost + *weights(current_edge),
                                            neighbor,
@@ -274,6 +336,9 @@ void EpLcLs::Solve(const Graph& graph,
                     else
                     {
                         delete new_label;
+#ifdef STATS
+                        ++deleted_labels_;
+#endif
                     }
 
                 }
@@ -284,6 +349,9 @@ void EpLcLs::Solve(const Graph& graph,
         else if(!current_label->in_node_list)
         {
             delete current_label;
+#ifdef STATS
+            ++deleted_labels_;
+#endif
         }
 
     }

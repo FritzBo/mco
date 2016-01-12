@@ -74,6 +74,10 @@ check_domination(vector<Label*>& new_labels,
                 neighbor_entry.erase(neighbor_labels,
                                      check_label_it);
 
+#ifdef STATS
+                ++deleted_labels_;
+#endif
+
                 --neighbor_labels_end;
 
             } else if(eq(new_label->cost, check_label->cost)) {
@@ -82,6 +86,10 @@ check_domination(vector<Label*>& new_labels,
 
                 neighbor_entry.erase(neighbor_labels,
                                      check_label_it);
+
+#ifdef STATS
+                ++deleted_labels_;
+#endif
 
                 --neighbor_labels_end;
 
@@ -105,6 +113,10 @@ check_domination(vector<Label*>& new_labels,
 
                 neighbor_entry.erase(neighbor_labels,
                                      check_label_it);
+
+#ifdef STATS
+                ++deleted_labels_;
+#endif
 
                 --neighbor_labels_end;
 
@@ -133,6 +145,10 @@ check_domination(vector<Label*>& new_labels,
                     neighbor_entry.erase(neighbor_new_labels,
                                          check_label_it);
 
+#ifdef STATS
+                    ++deleted_labels_;
+#endif
+
                     --neighbor_new_labels_end;
 
                 } else if(eq(new_label->cost, check_label->cost)) {
@@ -141,6 +157,10 @@ check_domination(vector<Label*>& new_labels,
 
                     neighbor_entry.erase(neighbor_new_labels,
                                          check_label_it);
+
+#ifdef STATS
+                    ++deleted_labels_;
+#endif
 
                     --neighbor_new_labels_end;
 
@@ -163,6 +183,10 @@ check_domination(vector<Label*>& new_labels,
                     
                     neighbor_entry.erase(neighbor_new_labels,
                                          check_label_it);
+
+#ifdef STATS
+                    ++deleted_labels_;
+#endif
                     
                     --neighbor_new_labels_end;
 
@@ -193,6 +217,9 @@ check_domination(vector<Label*>& new_labels,
         }
         else {
             delete new_label;
+#ifdef STATS
+            ++deleted_labels_;
+#endif
         }
         
         ++new_label_it;
@@ -205,8 +232,8 @@ check_domination(vector<Label*>& new_labels,
 void EpSolverBS::
 recursive_delete(Label& label)
 {
-#if defined USE_TREE_DELETIONS && defined STATS
-    ++recursive_deletions_;
+#if defined STATS && defined USE_TREE_DELETION
+    recursive_deletions_ += 1;
 #endif
 
     std::deque<Label*> queue;
@@ -222,7 +249,7 @@ recursive_delete(Label& label)
         curr->mark_recursive_deleted = true;
 #endif
 
-#if defined TREE_DELETION && defined STATS
+#if defined USE_TREE_DELETION && defined STATS
         ++deleted_tree_labels_;
 #endif
 
@@ -296,7 +323,9 @@ void EpSolverBS::Solve(const Graph& graph,
                     continue;
                 }
 
+#ifdef STATS
                 arc_pushes_ += 1;
+#endif
 
                 node neighbor = current_edge->opposite(current_node);
                 auto& neighbor_entry = node_entries[neighbor];
@@ -315,7 +344,7 @@ void EpSolverBS::Solve(const Graph& graph,
 #ifdef STATS
                     if(label->mark_recursive_deleted)
                     {
-                        ++touched_recursively_deleted_label;
+                        ++touched_recursively_deleted_label_;
                     }
 #endif
 
@@ -334,6 +363,11 @@ void EpSolverBS::Solve(const Graph& graph,
 
                             new_labels[size] = new_label;
                             ++size;
+                        } else {
+                            delete new_label;
+#ifdef STATS
+                            ++deleted_labels_;
+#endif
                         }
                     }
 
