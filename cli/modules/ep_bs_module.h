@@ -25,6 +25,9 @@ public:
 private:
 
     // stats:
+    unsigned        num_nodes_                          = 0;
+    unsigned        num_edges_                          = 0;
+    unsigned        num_objectives_                     = 0;
     unsigned long   label_compares_                     = 0;
     unsigned        deleted_tree_labels_                = 0;
     unsigned        recursive_deletions_                = 0;

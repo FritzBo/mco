@@ -101,6 +101,10 @@ void EpBsModule::perform(int argc, char** argv) {
         
         parser.getGraph(file_name, graph, raw_costs, dimension, source, target);
 
+        num_nodes_ = graph.numberOfNodes();
+        num_edges_ = graph.numberOfEdges();
+        num_objectives_ = dimension;
+
         EdgeArray<Point> costs(graph, Point(dimension));
         Point factor(100.0, dimension);
         InstanceScalarizer::scaleround_instance(graph,
@@ -395,6 +399,12 @@ solutions() {
 
 string EpBsModule::statistics() {
     std::stringstream sstream;
+    sstream << num_nodes_;
+    sstream << ", ";
+    sstream << num_edges_;
+    sstream << ", ";
+    sstream << num_objectives_;
+    sstream << ", ";
     sstream << (label_select_ ? string("ls") : string("ns"));
     sstream << ", ";
     sstream << label_compares_;
