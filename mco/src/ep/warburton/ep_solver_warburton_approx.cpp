@@ -455,7 +455,7 @@ computeBounds(const Graph& graph,
 		label_limits[k] = (number_nodes - 1) * theta / epsilon[k];
         
         // Compute an upper bound on the longest path
-		ub[k] = min({ceil(log(max_e[k] * (number_nodes - 1)) / log(theta)),
+		ub[k] = std::min({ceil(log(max_e[k] * (number_nodes - 1)) / log(theta)),
             
             // Below this, all scaled edge weights in this objective
             // will be 0
@@ -469,7 +469,7 @@ computeBounds(const Graph& graph,
 #endif
         
         // Since L_k > (n - 1) / \varepsilon (p. 75)
-        lb[k] = max({1.0,
+        lb[k] = std::max({1.0,
             floor(log((number_nodes - 1)/epsilon[k])/log(theta))});
         
         // Try to rise the lower bound to reduce the number of subproblems
