@@ -10,6 +10,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <limits>
 
 using std::list;
 using std::pair;
