@@ -355,10 +355,11 @@ void EpLcLs::Solve(const Graph& graph,
         }
 
     }
-    
-    for(auto label : node_entries[target].labels())
+
+    for(unsigned i = 0; i < node_entries[target].labels_end(); ++i)
     {
         list<edge> path;
+        auto label = node_entries[target].labels()[i];
         auto curr = label;
         if(!curr->deleted)
         {
