@@ -6,6 +6,7 @@ include_directories(${GTEST_INCLUDE_PATH})
 
 set(SOURCE_FILES
 Point_test.cpp
+forward_star_test.cpp
 )
 
 add_executable(core_test ${SOURCE_FILES})

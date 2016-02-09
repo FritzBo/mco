@@ -21,7 +21,7 @@ using ::testing::Values;
 
 using mco::Point;
 
-/*********************************************************************
+/***************************************************************
  Construct by Dimension
  ------------------
  Input:
@@ -35,7 +35,7 @@ using mco::Point;
  d          Description
  1          p[i] = 0.0 f.a. i, p.dimension = d
  2          p.values = nullptr, p.dimension = 0
-********************************************************************/
+*****************************************************************/
 
 TEST(PointTest, ConstructionByDimension) {
     

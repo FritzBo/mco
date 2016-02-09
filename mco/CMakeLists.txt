@@ -21,6 +21,7 @@ include/mco/basic/abstract_graph_instance.h
 include/mco/basic/weight_function_adaptors.h
 include/mco/basic/utility.h
 include/mco/basic/cdd_files.h
+include/mco/basic/forward_star.h
 
 # Assignment
 include/mco/ap/basic/abstract_ap_solver.h
@@ -109,6 +110,9 @@ include/mco/ae/ae_logger.h
 
 
 #### Sources ####
+
+# Core
+src/basic/forward_star.cpp
 
 # Assignment
 src/ap/basic/ap_generator.cpp
