@@ -34,6 +34,8 @@ private:
     unsigned        arc_pushes_                         = 0;
     unsigned        touched_recursively_deleted_label_  = 0;
     unsigned long   deleted_labels_                     = 0;
+
+    double          solution_time_                      = 0;
     
     std::list<std::pair<const std::list<ogdf::edge>, const mco::Point>> solutions_;
 

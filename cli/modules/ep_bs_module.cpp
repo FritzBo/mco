@@ -30,6 +30,9 @@ using ogdf::EdgeArray;
 using ogdf::NodeArray;
 using ogdf::node;
 using ogdf::edge;
+using std::chrono::steady_clock;
+using std::chrono::duration;
+using std::chrono::duration_cast;
 
 #include <tclap/CmdLine.h>
 
@@ -220,6 +223,9 @@ void EpBsModule::perform(int argc, char** argv) {
             solver.set_bounds(bounds);
             solver.set_heuristic(ideal_heuristic);
             
+
+            steady_clock::time_point start = steady_clock::now();
+
             solver.Solve(graph,
                          cost_function,
                          dimension,
@@ -227,6 +233,11 @@ void EpBsModule::perform(int argc, char** argv) {
                          target,
                          directed);
             
+            steady_clock::time_point end = steady_clock::now();
+            duration<double> computation_span
+            = duration_cast<duration<double>>(end - start);
+            solution_time_ = computation_span.count();
+
             solutions_.insert(solutions_.begin(),
                               solver.solutions().cbegin(),
                               solver.solutions().cend());
@@ -418,6 +429,8 @@ string EpBsModule::statistics() {
     sstream << recursive_deletions_;
     sstream << ", ";
     sstream << touched_recursively_deleted_label_;
+    sstream << ", ";
+    sstream << solution_time_;
 
     return sstream.str();
 }
