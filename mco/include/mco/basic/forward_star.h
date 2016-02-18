@@ -12,6 +12,8 @@
 #include <vector>
 #include <string>
 
+#include <ogdf/basic/Graph.h>
+
 #include <mco/basic/point.h>
 
 namespace mco {
@@ -30,9 +32,9 @@ public:
 
     FSEdgeArray() = delete;
 
-    inline explicit FSEdgeArray(ForwardStar& fs);
+    inline explicit FSEdgeArray(const ForwardStar& fs);
 
-    inline FSEdgeArray(ForwardStar& fs,
+    inline FSEdgeArray(const ForwardStar& fs,
                        T object);
 
     inline T& operator[](edge e)
@@ -40,10 +42,16 @@ public:
         return objects_[e];
     }
 
+    inline const T& operator[](edge e) const
+    {
+        return objects_[e];
+    }
+
 private:
     std::vector<T> objects_;
-    ForwardStar& ref_object_;
+    const ForwardStar& ref_object_;
 
+    friend ForwardStar;
     friend ForwardStarFileReader;
 };
 
@@ -54,9 +62,9 @@ public:
 
     FSNodeArray() = delete;
 
-    inline explicit FSNodeArray(ForwardStar& fs);
+    inline explicit FSNodeArray(const ForwardStar& fs);
 
-    inline FSNodeArray(ForwardStar& fs,
+    inline FSNodeArray(const ForwardStar& fs,
                        T object);
 
     inline T& operator[](node e)
@@ -64,10 +72,16 @@ public:
         return objects_[e];
     }
 
+    inline const T& operator[](node e) const
+    {
+        return objects_[e];
+    }
+
 private:
     std::vector<T> objects_;
-    ForwardStar& ref_object_;
-    
+    const ForwardStar& ref_object_;
+
+    friend ForwardStar;
     friend ForwardStarFileReader;
 };
 
@@ -130,10 +144,15 @@ class ForwardStar
         ForwardStar& fs_;
     };
 
+    unsigned no_nodes;
+    unsigned no_edges;
+
 public:
 
     ForwardStar()
-    :   nodes(*this),
+    :   no_nodes(0),
+        no_edges(0),
+        nodes(*this),
         first_edge_(0),
         heads_(*this),
         tails_(*this)
@@ -143,7 +162,9 @@ public:
 
     ForwardStar(unsigned no_nodes,
                 unsigned no_edges)
-    :   nodes(*this),
+    :   no_nodes(no_nodes),
+        no_edges(no_edges),
+        nodes(*this),
         first_edge_(no_nodes + 1),
         heads_(*this),
         tails_(*this)
@@ -151,29 +172,32 @@ public:
         first_edge_[no_nodes] = no_edges;
     }
 
+    ForwardStar(ogdf::Graph& graph,
+                bool directed);
+
     NodeCollection nodes;
 
-    inline AdjacencyCollection adj_edges(node n)
+    inline AdjacencyCollection adj_edges(node n) const
     {
         return AdjacencyCollection(*this, n);
     }
 
-    inline node head(edge e)
+    inline node head(edge e) const
     {
         return heads_[e];
     }
 
-    inline node tail(edge e)
+    inline node tail(edge e) const
     {
         return tails_[e];
     }
 
-    inline unsigned numberOfNodes()
+    inline unsigned numberOfNodes() const
     {
         return first_edge_.size() - 1;
     }
 
-    inline unsigned numberOfEdges()
+    inline unsigned numberOfEdges() const
     {
         return no_edges;
     }
@@ -215,7 +239,7 @@ private:
             unsigned pos_;
         };
     public:
-        AdjacencyCollection(ForwardStar& fs,
+        AdjacencyCollection(const ForwardStar& fs,
                             node n)
         :   fs_(fs),
             n_(n)
@@ -223,23 +247,20 @@ private:
 
         }
 
-        inline AdjacencyCollectionIterator begin()
+        inline AdjacencyCollectionIterator begin() const
         {
             return AdjacencyCollectionIterator(fs_.first_edge_[n_]);
         }
 
-        inline AdjacencyCollectionIterator end()
+        inline AdjacencyCollectionIterator end() const
         {
             return AdjacencyCollectionIterator(fs_.first_edge_[n_ + 1]);
         }
 
     private:
-        ForwardStar& fs_;
+        const ForwardStar& fs_;
         unsigned n_;
     };
-
-    unsigned no_nodes;
-    unsigned no_edges;
 
     std::vector<unsigned> first_edge_;
 
@@ -255,7 +276,7 @@ private:
     friend class ForwardStarFileReader;
 };
 
-class BackwardStar
+class ReverseStar
 {
 
 };
@@ -266,21 +287,23 @@ public:
     
     void read(std::string filename,
               ForwardStar& graph,
+              FSNodeArray<int>& extern_node_ids,
               FSEdgeArray<Point>& weights,
               unsigned& dimension,
               node& source,
-              node& target);
+              node& target,
+              bool directed);
 };
 
 template<typename T>
-FSEdgeArray<T>::FSEdgeArray(ForwardStar& fs)
+FSEdgeArray<T>::FSEdgeArray(const ForwardStar& fs)
 :   objects_(fs.no_edges),
     ref_object_(fs)
 {
 }
 
 template<typename T>
-FSEdgeArray<T>::FSEdgeArray(ForwardStar& fs,
+FSEdgeArray<T>::FSEdgeArray(const ForwardStar& fs,
                             T object)
 :   ref_object_(fs),
     objects_(fs.no_edges,
@@ -289,14 +312,14 @@ FSEdgeArray<T>::FSEdgeArray(ForwardStar& fs,
 }
 
 template<typename T>
-FSNodeArray<T>::FSNodeArray(ForwardStar& fs)
+FSNodeArray<T>::FSNodeArray(const ForwardStar& fs)
 :   objects_(fs.no_nodes),
     ref_object_(fs)
 {
 }
 
 template<typename T>
-FSNodeArray<T>::FSNodeArray(ForwardStar& fs,
+FSNodeArray<T>::FSNodeArray(const ForwardStar& fs,
                             T object)
 :   ref_object_(fs),
     objects_(fs.no_nodes,

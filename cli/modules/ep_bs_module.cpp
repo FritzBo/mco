@@ -22,14 +22,6 @@ using std::make_pair;
 using std::numeric_limits;
 using std::cout;
 using std::endl;
-
-#include <ogdf/basic/Graph.h>
-
-using ogdf::Graph;
-using ogdf::EdgeArray;
-using ogdf::NodeArray;
-using ogdf::node;
-using ogdf::edge;
 using std::chrono::steady_clock;
 using std::chrono::duration;
 using std::chrono::duration_cast;
@@ -64,6 +56,17 @@ using mco::ConstrainedReachabilityPreprocessing;
 using mco::InstanceScalarizer;
 using mco::EPDualBensonSolver;
 
+using mco::ForwardStar;
+using mco::node;
+using mco::edge;
+using mco::FSEdgeArray;
+using mco::FSNodeArray;
+using mco::ForwardStarFileReader;
+
+// Todo: Delete
+#include <chrono>
+#include <thread>
+
 void EpBsModule::perform(int argc, char** argv) {
     try {
         CmdLine cmd("Label Correcting Approximation for the Efficient Path Problem.", ' ', "0.1");
@@ -95,73 +98,80 @@ void EpBsModule::perform(int argc, char** argv) {
         bool do_first_phase = do_first_phase_argument.getValue();
         bool label_select = label_select_arg.getValue();
 
-        Graph graph;
-        EdgeArray<Point> raw_costs(graph);
+        ForwardStar graph;
+        FSNodeArray<int> extern_ids(graph);
+        FSEdgeArray<Point> raw_costs(graph);
         unsigned dimension;
         node source, target;
         
-        TemporaryGraphParser parser;
-        
-        parser.getGraph(file_name, graph, raw_costs, dimension, source, target);
+        ForwardStarFileReader file_reader;
+        file_reader.read(file_name,
+                         graph,
+                         extern_ids,
+                         raw_costs,
+                         dimension,
+                         source,
+                         target,
+                         directed);
 
         num_nodes_ = graph.numberOfNodes();
         num_edges_ = graph.numberOfEdges();
         num_objectives_ = dimension;
 
-        EdgeArray<Point> costs(graph, Point(dimension));
-        Point factor(100.0, dimension);
-        InstanceScalarizer::scaleround_instance(graph,
-                                                raw_costs,
-                                                dimension,
-                                                factor,
-                                                costs);
+//        FSEdgeArray<Point> costs(graph, Point(dimension));
+//        Point factor(100.0, dimension);
+//        InstanceScalarizer::scaleround_instance(graph,
+//                                                raw_costs,
+//                                                dimension,
+//                                                factor,
+//                                                costs);
 
 
-        vector<NodeArray<double>> distances(dimension, graph);
-        
-        calculate_ideal_heuristic(graph,
-                                  costs,
-                                  dimension,
-                                  source,
-                                  target,
-                                  directed,
-                                  distances);
-        
-        auto ideal_heuristic = [distances] (node n, unsigned objective) {
-            return distances[objective][n];
+//        vector<NodeArray<double>> distances(dimension, graph);
+//        
+//        calculate_ideal_heuristic(graph,
+//                                  costs,
+//                                  dimension,
+//                                  source,
+//                                  target,
+//                                  directed,
+//                                  distances);
+//        
+//        auto ideal_heuristic = [distances] (node n, unsigned objective) {
+//            return distances[objective][n];
+//        };
+
+//        Point bounds(numeric_limits<double>::infinity(), dimension);
+//        parse_ideal_bounds(ideal_bounds_arg,
+//                           dimension,
+//                           ideal_heuristic,
+//                           source,
+//                           bounds);
+
+//        parse_absolute_bounds(absolute_bounds_arg,
+//                              dimension,
+//                              bounds);
+
+        auto cost_function = [&raw_costs] (edge e) -> Point* {
+            return &raw_costs[e];
         };
-        
-        Point bounds(numeric_limits<double>::infinity(), dimension);
-        parse_ideal_bounds(ideal_bounds_arg,
-                           dimension,
-                           ideal_heuristic,
-                           source,
-                           bounds);
 
-        parse_absolute_bounds(absolute_bounds_arg,
-                              dimension,
-                              bounds);
-        
-        auto cost_function = [&costs] (edge e) -> Point* {
-            return &costs[e];
-        };
-
-        ConstrainedReachabilityPreprocessing prepro;
-        list<Point> bounds_list;
-        for(unsigned i = 0; i < dimension; ++i) {
-            if(bounds[i] < numeric_limits<double>::infinity()) {
-                Point new_bound(dimension + 1);
-                new_bound[i] = 1;
-                new_bound[dimension] = -bounds[i];
-                bounds_list.push_back(std::move(new_bound));
-            }
-        }
-        prepro.preprocess(graph,
-                          cost_function,
-                          dimension,
-                          source,
-                          target,
-                          bounds_list);
+//        ConstrainedReachabilityPreprocessing prepro;
+//        list<Point> bounds_list;
+//        for(unsigned i = 0; i < dimension; ++i) {
+//            if(bounds[i] < numeric_limits<double>::infinity()) {
+//                Point new_bound(dimension + 1);
+//                new_bound[i] = 1;
+//                new_bound[dimension] = -bounds[i];
+//                bounds_list.push_back(std::move(new_bound));
+//            }
+//        }
+//        prepro.preprocess(graph,
+//                          cost_function,
+//                          dimension,
+//                          source,
+//                          target,
+//                          bounds_list);
 
 
 //        thread *first_phase_thread = nullptr;
@@ -211,18 +221,16 @@ void EpBsModule::perform(int argc, char** argv) {
 //
 //        }
 
-        EdgeArray<Point>* scaled_costs = nullptr;
+//        EdgeArray<Point>* scaled_costs = nullptr;
 
 
         if(!label_select)
         {
 
             EpSolverBS solver;
-
             
-            solver.set_bounds(bounds);
-            solver.set_heuristic(ideal_heuristic);
-            
+//            solver.set_bounds(bounds);
+//            solver.set_heuristic(ideal_heuristic);
 
             steady_clock::time_point start = steady_clock::now();
 
@@ -230,9 +238,8 @@ void EpBsModule::perform(int argc, char** argv) {
                          cost_function,
                          dimension,
                          source,
-                         target,
-                         directed);
-            
+                         target);
+
             steady_clock::time_point end = steady_clock::now();
             duration<double> computation_span
             = duration_cast<duration<double>>(end - start);
@@ -254,15 +261,14 @@ void EpBsModule::perform(int argc, char** argv) {
             EpLcLs solver;
 
 
-            solver.set_bounds(bounds);
-            solver.set_heuristic(ideal_heuristic);
+//            solver.set_bounds(bounds);
+//            solver.set_heuristic(ideal_heuristic);
 
             solver.Solve(graph,
                          cost_function,
                          dimension,
                          source,
-                         target,
-                         directed);
+                         target);
 
             solutions_.insert(solutions_.begin(),
                               solver.solutions().cbegin(),
@@ -278,49 +284,49 @@ void EpBsModule::perform(int argc, char** argv) {
 
         label_select_ = label_select;
 
-        delete scaled_costs;
-        
+//        delete scaled_costs;
+
     } catch(ArgException& e) {
         std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
     }
 }
 
-void EpBsModule::parse_ideal_bounds(const MultiArg<string>& argument,
-                                         unsigned dimension,
-                                         function<double(node, unsigned)> heuristic,
-                                         const node source,
-                                         Point& bounds) {
-    
-    auto bounds_it = argument.begin();
-    while(bounds_it != argument.end()) {
-        vector<string> tokens;
-        mco::tokenize(*bounds_it, tokens, ":");
-        
-        if(tokens.size() != 2) {
-            cout << "Error" << endl;
-            return;
-        }
-        
-        unsigned objective_function = stoul(tokens[0]);
-        double factor = stod(tokens[1]);
-        
-        if(objective_function > dimension) {
-            cout << "Error" << endl;
-            return;
-        }
-        
-        if(objective_function == 0) {
-            cout << "Error" << endl;
-            return;
-        }
-        
-        bounds[objective_function - 1] = factor * heuristic(source, objective_function - 1);
-        
-        bounds_it++;
-    }
-    
-    
-}
+//void EpBsModule::parse_ideal_bounds(const MultiArg<string>& argument,
+//                                         unsigned dimension,
+//                                         function<double(node, unsigned)> heuristic,
+//                                         const node source,
+//                                         Point& bounds) {
+//    
+//    auto bounds_it = argument.begin();
+//    while(bounds_it != argument.end()) {
+//        vector<string> tokens;
+//        mco::tokenize(*bounds_it, tokens, ":");
+//        
+//        if(tokens.size() != 2) {
+//            cout << "Error" << endl;
+//            return;
+//        }
+//        
+//        unsigned objective_function = stoul(tokens[0]);
+//        double factor = stod(tokens[1]);
+//        
+//        if(objective_function > dimension) {
+//            cout << "Error" << endl;
+//            return;
+//        }
+//        
+//        if(objective_function == 0) {
+//            cout << "Error" << endl;
+//            return;
+//        }
+//        
+//        bounds[objective_function - 1] = factor * heuristic(source, objective_function - 1);
+//        
+//        bounds_it++;
+//    }
+//    
+//    
+//}
 
 void EpBsModule::parse_absolute_bounds(const MultiArg<string>& argument,
                                           unsigned dimension,
@@ -357,55 +363,55 @@ void EpBsModule::parse_absolute_bounds(const MultiArg<string>& argument,
 
 }
 
-void EpBsModule::calculate_ideal_heuristic(const Graph& graph,
-                                                 const EdgeArray<Point>& costs,
-                                                 unsigned dimension,
-                                                 const node source,
-                                                 const node target,
-                                                 bool directed,
-                                                 vector<NodeArray<double>>& distances) {
+//void EpBsModule::calculate_ideal_heuristic(const Graph& graph,
+//                                                 const EdgeArray<Point>& costs,
+//                                                 unsigned dimension,
+//                                                 const node source,
+//                                                 const node target,
+//                                                 bool directed,
+//                                                 vector<NodeArray<double>>& distances) {
+//
+//    Dijkstra<double, PairComparator<double, std::less<double>>> sssp_solver;
+//
+//    NodeArray<edge> predecessor(graph);
+//
+//    for(unsigned i = 0; i < dimension; ++i) {
+//        auto length = [&costs, i] (edge e) {
+//            return costs[e][i];
+//        };
+//
+//        sssp_solver.singleSourceShortestPaths(graph,
+//                                              length,
+//                                              target,
+//                                              predecessor,
+//                                              distances[i],
+//                                              directed ? DijkstraModes::Backward :
+//                                              DijkstraModes::Undirected);
+//    }
+//
+//}
 
-    Dijkstra<double, PairComparator<double, std::less<double>>> sssp_solver;
+//void EpBsModule::first_phase(const Graph* graph,
+//                                  function<Point*(edge)> cost_function,
+//                                  unsigned dimension,
+//                                  const node source,
+//                                  const node target,
+//                                  std::function<void(ogdf::NodeArray<Point*>&, ogdf::NodeArray<ogdf::edge>&)> callback) {
+//
+//    OGDF_ALLOCATOR::initThread();
+//    //    for(double epsilon = 1; epsilon > 1E-6; epsilon /= 10) {
+//    EPDualBensonSolver<> weighted_solver(1E-8);
+//
+//    weighted_solver.Solve(*graph, cost_function, source, target, callback);
+//    //    }
+//    OGDF_ALLOCATOR::flushPool();
+//
+//    cout << "Finished first phase" << endl;
+//}
 
-    NodeArray<edge> predecessor(graph);
-
-    for(unsigned i = 0; i < dimension; ++i) {
-        auto length = [&costs, i] (edge e) {
-            return costs[e][i];
-        };
-
-        sssp_solver.singleSourceShortestPaths(graph,
-                                              length,
-                                              target,
-                                              predecessor,
-                                              distances[i],
-                                              directed ? DijkstraModes::Backward :
-                                              DijkstraModes::Undirected);
-    }
-
-}
-
-void EpBsModule::first_phase(const Graph* graph,
-                                  function<Point*(edge)> cost_function,
-                                  unsigned dimension,
-                                  const node source,
-                                  const node target,
-                                  std::function<void(ogdf::NodeArray<Point*>&, ogdf::NodeArray<ogdf::edge>&)> callback) {
-
-    OGDF_ALLOCATOR::initThread();
-    //    for(double epsilon = 1; epsilon > 1E-6; epsilon /= 10) {
-    EPDualBensonSolver<> weighted_solver(1E-8);
-
-    weighted_solver.Solve(*graph, cost_function, source, target, callback);
-    //    }
-    OGDF_ALLOCATOR::flushPool();
-
-    cout << "Finished first phase" << endl;
-}
-
-const list<pair<const list<edge>, const Point>>& EpBsModule::
+const list<pair<const list<ogdf::edge>, const Point>>& EpBsModule::
 solutions() {
-    return solutions_;
+    return *new list<pair<const list<ogdf::edge>, const Point>>();
 }
 
 string EpBsModule::statistics() {

@@ -23,15 +23,6 @@ using std::endl;
 using std::function;
 using std::pair;
 
-#include <ogdf/basic/Graph.h>
-
-using ogdf::edge;
-using ogdf::node;
-using ogdf::Graph;
-using ogdf::NodeArray;
-using ogdf::EdgeArray;
-using ogdf::AdjElement;
-
 #include <mco/basic/point.h>
 #include <mco/ep/basic/ep_instance.h>
 #include <mco/basic/utility.h>
@@ -240,12 +231,11 @@ bool EpLcLs::check_heuristic_prunable(const Label& label)
 }
 
 
-void EpLcLs::Solve(const Graph& graph,
-                   std::function<const Point*(const ogdf::edge)> weights,
+void EpLcLs::Solve(const ForwardStar& graph,
+                   std::function<const Point*(const edge)> weights,
                    unsigned dimension,
-                   const ogdf::node source,
-                   const ogdf::node target,
-                   bool directed)
+                   const node source,
+                   const node target)
 {
 
     dimension_ = dimension;
@@ -254,11 +244,11 @@ void EpLcLs::Solve(const Graph& graph,
         because the queue might grow very large */
 
 	deque<Label*> queue;
-	NodeArray<NodeEntry> node_entries(graph);
+	FSNodeArray<NodeEntry> node_entries(graph);
 
     auto initial_label = new Label(Point(0.0, dimension),
                                    source,
-                                   nullptr,
+                                   source,
                                    nullptr);
 
     node_entries[source].push_back(initial_label);
@@ -281,26 +271,15 @@ void EpLcLs::Solve(const Graph& graph,
                 continue;
             }
 
-            for(auto adj : current_node->adjEntries)
+            for(auto current_edge : graph.adj_edges(current_node))
             {
 
-                edge current_edge = adj->theEdge();
-                    
-                if(current_edge->isSelfLoop())
-                {
-                    continue;
-                }
-
-                if(directed && current_edge->target() == current_node)
-                {
-                    continue;
-                }
 
 #ifdef STATS
                 ++arc_pushes_;
 #endif
 
-                node neighbor = current_edge->opposite(current_node);
+                node neighbor = graph.head(current_edge);
                 auto& neighbor_entry = node_entries[neighbor];
 
                 if(neighbor == source) {
@@ -365,9 +344,6 @@ void EpLcLs::Solve(const Graph& graph,
         {
             while(curr->n != source)
             {
-                assert(curr->pred_edge->source() == curr->n ||
-                       curr->pred_edge->target() == curr->n);
-
                 path.push_back(curr->pred_edge);
                 curr = curr->pred_label;
             }

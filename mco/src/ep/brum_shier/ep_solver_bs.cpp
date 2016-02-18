@@ -22,15 +22,6 @@ using std::endl;
 using std::function;
 using std::pair;
 
-#include <ogdf/basic/Graph.h>
-
-using ogdf::edge;
-using ogdf::node;
-using ogdf::Graph;
-using ogdf::NodeArray;
-using ogdf::EdgeArray;
-using ogdf::AdjElement;
-
 #include <mco/basic/point.h>
 #include <mco/ep/basic/ep_instance.h>
 #include <mco/basic/utility.h>
@@ -274,21 +265,20 @@ bool EpSolverBS::check_heuristic_prunable(const Label& label) {
 }
 
 
-void EpSolverBS::Solve(const Graph& graph,
-                       std::function<const Point*(const ogdf::edge)> weights,
+void EpSolverBS::Solve(const ForwardStar& graph,
+                       std::function<const Point*(const edge)> weights,
                        unsigned dimension,
-                       const ogdf::node source,
-                       const ogdf::node target,
-                       bool directed) {
+                       const node source,
+                       const node target) {
 
     dimension_ = dimension;
-    
+
     ring_buffer<node> queue(graph.numberOfNodes() + 1);
-	NodeArray<NodeEntry> node_entries(graph);
+	FSNodeArray<NodeEntry> node_entries(graph);
 
     auto initial_label = new Label(Point(0.0, dimension),
                                    source,
-                                   nullptr,
+                                   source,
                                    nullptr);
 
     node_entries[source].push_back(initial_label);
@@ -309,25 +299,14 @@ void EpSolverBS::Solve(const Graph& graph,
 
             auto& current_new_labels = current_node_entry.new_labels();
 
-            for(auto adj : current_node->adjEntries) {
-                
-                edge current_edge = adj->theEdge();
-                
-                if(current_edge->isSelfLoop())
-                {
-                    continue;
-                }
-
-                if(directed && current_edge->target() == current_node)
-                {
-                    continue;
-                }
+            for(auto current_edge : graph.adj_edges(current_node))
+            {
+                node neighbor = graph.head(current_edge);
 
 #ifdef STATS
                 arc_pushes_ += 1;
 #endif
 
-                node neighbor = current_edge->opposite(current_node);
                 auto& neighbor_entry = node_entries[neighbor];
 
     //			cout << neighbor << ", ";
@@ -337,7 +316,7 @@ void EpSolverBS::Solve(const Graph& graph,
                 unsigned size = 0;
 
                 unsigned current_label_it = 0;
-                while(current_label_it < current_node_entry. new_labels_end()) {
+                while(current_label_it < current_node_entry.new_labels_end()) {
 
                     auto label = current_new_labels[current_label_it];
 
@@ -399,6 +378,8 @@ void EpSolverBS::Solve(const Graph& graph,
 
     }
 
+    std::cout << node_entries[target].new_labels_end() << std::endl;
+
     auto& target_entry = node_entries[target];
     for(unsigned i = 0; i < target_entry.new_labels_end(); ++i) {
         auto label = target_entry.new_labels()[i];
@@ -406,9 +387,6 @@ void EpSolverBS::Solve(const Graph& graph,
         auto curr = label;
         if(!curr->deleted) {
             while(curr->n != source) {
-
-                assert(curr->pred_edge->source() == curr->n ||
-                       curr->pred_edge->target() == curr->n);
 
                 path.push_back(curr->pred_edge);
                 curr = curr->pred_label;

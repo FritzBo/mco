@@ -13,25 +13,25 @@
 //#define STATS
 
 #include <mco/basic/abstract_solver.h>
+#include <mco/basic/forward_star.h>
 
 namespace mco
 {
 
-class EpLcLs : public AbstractSolver<std::list<ogdf::edge>>
+class EpLcLs : public AbstractSolver<std::list<edge>>
 {
 
-    using heuristic_type = std::function<double(ogdf::node, unsigned)>;
+    using heuristic_type = std::function<double(node, unsigned)>;
     
 public:
 	EpLcLs(double epsilon = 0)
     : epsilon_(epsilon) { }
     
-	virtual void Solve(const ogdf::Graph& graph,
-                       std::function<const Point*(const ogdf::edge)> costs,
+	virtual void Solve(const ForwardStar& graph,
+                       std::function<const Point*(const edge)> costs,
                        unsigned dimension,
-                       const ogdf::node source,
-                       const ogdf::node target,
-                       bool directed = true);
+                       const node source,
+                       const node target);
 
     void set_heuristic(heuristic_type heuristic)
     {
@@ -107,8 +107,8 @@ private:
     struct Label
     {
         Point cost;
-        const ogdf::node n;
-        const ogdf::edge pred_edge;
+        const node n;
+        const edge pred_edge;
         Label* pred_label;
         bool deleted = false;
         bool in_queue = false;
@@ -123,8 +123,8 @@ private:
 #endif
 
         Label(const Point cost,
-              const ogdf::node n,
-              const ogdf::edge p_edge,
+              const node n,
+              const edge p_edge,
               Label* p_label)
         :   cost(cost),
             n(n),

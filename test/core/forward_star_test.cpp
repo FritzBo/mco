@@ -36,16 +36,19 @@ TEST(ForwardStarTest, FileReadTest)
     ForwardStarFileReader reader;
 
     ForwardStar graph;
+    FSNodeArray<int> extern_ids(graph);
     FSEdgeArray<Point> weights(graph);
     unsigned dimension;
     node source, target;
 
     reader.read("../instances/ep/graph_1000_1000",
                 graph,
+                extern_ids,
                 weights,
                 dimension,
                 source,
-                target);
+                target,
+                false);
 
     EXPECT_EQ(graph.numberOfNodes(), 318);
     EXPECT_EQ(graph.numberOfEdges(), 1166);
@@ -98,16 +101,19 @@ TEST(ForwardStarTest, DijkstraTest)
     ForwardStarFileReader reader;
 
     ForwardStar graph;
+    FSNodeArray<int> extern_ids(graph);
     FSEdgeArray<Point> weights(graph);
     unsigned dimension;
     node source, target;
 
     reader.read("../instances/ep/grid80_100_4",
                 graph,
+                extern_ids,
                 weights,
                 dimension,
                 source,
-                target);
+                target,
+                true);
 
     FSNodeArray<node> predecessor(graph);
     FSNodeArray<Point*> distance(graph);
