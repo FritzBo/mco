@@ -18,24 +18,34 @@
 
 namespace mco {
 
-using edge = unsigned;
-using node = unsigned;
+using edge = int;
+using node = int;
+
+constexpr int nulledge = -1;
+constexpr int nullnode = -1;
 
 class ForwardStar;
 
 class ForwardStarFileReader;
 
+class ReverseStarConstructor;
+
 template<typename T>
-class FSEdgeArray
+class FSArray
 {
+
 public:
 
-    FSEdgeArray() = delete;
+    FSArray() = delete;
 
-    inline explicit FSEdgeArray(const ForwardStar& fs);
+    inline explicit FSArray(unsigned size)
+    :   objects_(size)
+    { }
 
-    inline FSEdgeArray(const ForwardStar& fs,
-                       T object);
+    inline FSArray(unsigned size,
+            T object)
+    :   objects_(size, object)
+    { }
 
     inline T& operator[](edge e)
     {
@@ -49,14 +59,26 @@ public:
 
 private:
     std::vector<T> objects_;
-    const ForwardStar& ref_object_;
 
     friend ForwardStar;
     friend ForwardStarFileReader;
+    friend ReverseStarConstructor;
 };
 
 template<typename T>
-class FSNodeArray
+class FSEdgeArray : public FSArray<T>
+{
+public:
+
+    inline explicit FSEdgeArray(const ForwardStar& fs);
+
+    inline FSEdgeArray(const ForwardStar& fs,
+                       T object);
+
+};
+
+template<typename T>
+class FSNodeArray : public FSArray<T>
 {
 public:
 
@@ -67,77 +89,62 @@ public:
     inline FSNodeArray(const ForwardStar& fs,
                        T object);
 
-    inline T& operator[](node e)
+};
+
+class GraphObjectIterator
+{
+public:
+    GraphObjectIterator(unsigned begin)
+    :   pos_(begin)
     {
-        return objects_[e];
     }
 
-    inline const T& operator[](node e) const
+    inline edge operator*()
     {
-        return objects_[e];
+        return pos_;
+    }
+
+    inline GraphObjectIterator& operator++()
+    {
+        ++pos_;
+        return *this;
+    }
+
+    inline bool operator!=(GraphObjectIterator& other)
+    {
+        return pos_ != other.pos_;
+    }
+
+    inline bool operator==(GraphObjectIterator& other)
+    {
+        return pos_ == other.pos_;
     }
 
 private:
-    std::vector<T> objects_;
-    const ForwardStar& ref_object_;
-
-    friend ForwardStar;
-    friend ForwardStarFileReader;
+    unsigned pos_;
 };
+
 
 class ForwardStar
 {
     class AdjacencyCollection;
-    class NodeCollection;
 
     class NodeCollection
     {
-        class NodeCollectionIterator
-        {
-        public:
-            NodeCollectionIterator(unsigned begin)
-            :   pos_(begin)
-            {
-            }
-
-            inline node operator*()
-            {
-                return pos_;
-            }
-
-            inline NodeCollectionIterator& operator++()
-            {
-                ++pos_;
-                return *this;
-            }
-
-            inline bool operator!=(NodeCollectionIterator& other)
-            {
-                return pos_ != other.pos_;
-            }
-
-            inline bool operator==(NodeCollectionIterator& other)
-            {
-                return pos_ == other.pos_;
-            }
-
-        private:
-            unsigned pos_;
-        };
     public:
         inline NodeCollection(ForwardStar& fs)
         :   fs_(fs)
         {
         }
 
-        inline NodeCollectionIterator begin()
+        inline GraphObjectIterator begin() const
         {
-            return NodeCollectionIterator(0);
+            return GraphObjectIterator(0);
         }
 
-        inline NodeCollectionIterator end()
+        inline GraphObjectIterator end() const
         {
-            return NodeCollectionIterator(fs_.no_nodes);
+            return GraphObjectIterator(fs_.no_nodes);
         }
         
     private:
@@ -206,38 +213,6 @@ public:
 private:
     class AdjacencyCollection
     {
-        class AdjacencyCollectionIterator
-        {
-        public:
-            AdjacencyCollectionIterator(unsigned begin)
-            :   pos_(begin)
-            {
-            }
-
-            inline edge operator*()
-            {
-                return pos_;
-            }
-
-            inline AdjacencyCollectionIterator& operator++()
-            {
-                ++pos_;
-                return *this;
-            }
-
-            inline bool operator!=(AdjacencyCollectionIterator& other)
-            {
-                return pos_ != other.pos_;
-            }
-
-            inline bool operator==(AdjacencyCollectionIterator& other)
-            {
-                return pos_ == other.pos_;
-            }
-
-        private:
-            unsigned pos_;
-        };
     public:
         AdjacencyCollection(const ForwardStar& fs,
                             node n)
@@ -247,14 +222,14 @@ private:
 
         }
 
-        inline AdjacencyCollectionIterator begin() const
+        inline GraphObjectIterator begin() const
         {
-            return AdjacencyCollectionIterator(fs_.first_edge_[n_]);
+            return GraphObjectIterator(fs_.first_edge_[n_]);
         }
 
-        inline AdjacencyCollectionIterator end() const
+        inline GraphObjectIterator end() const
         {
-            return AdjacencyCollectionIterator(fs_.first_edge_[n_ + 1]);
+            return GraphObjectIterator(fs_.first_edge_[n_ + 1]);
         }
 
     private:
@@ -262,7 +237,14 @@ private:
         unsigned n_;
     };
 
-    std::vector<unsigned> first_edge_;
+    void resize()
+    {
+        first_edge_.resize(no_nodes + 1);
+        heads_.objects_.resize(no_edges);
+        tails_.objects_.resize(no_edges);
+    }
+
+    std::vector<edge> first_edge_;
 
     FSEdgeArray<node> heads_;
     FSEdgeArray<node> tails_;
@@ -274,10 +256,18 @@ private:
     friend class FSNodeArray;
 
     friend class ForwardStarFileReader;
+
+    friend class ReverseStarConstructor;
 };
 
-class ReverseStar
+using EdgeTrace = FSEdgeArray<edge>;
+
+class ReverseStarConstructor
 {
+public:
+    static void construct_reverse_star(const ForwardStar& fs,
+                                       ForwardStar& rs,
+                                       EdgeTrace& rs_fs_trace);
 
 };
 
@@ -296,34 +286,53 @@ public:
 };
 
 template<typename T>
+class ReverseEdgeArray {
+public:
+    inline explicit ReverseEdgeArray(const FSEdgeArray<T>& edge_array,
+                                     const EdgeTrace& trace)
+    :   edge_array_(edge_array),
+        trace_(trace) { }
+
+    inline T& operator[](edge e)
+    {
+        return edge_array_[trace_[e]];
+    }
+
+    inline const T& operator[](edge e) const
+    {
+        return edge_array_[trace_[e]];
+    }
+
+private:
+    const FSEdgeArray<T>& edge_array_;
+    const EdgeTrace& trace_;
+};
+
+template<typename T>
 FSEdgeArray<T>::FSEdgeArray(const ForwardStar& fs)
-:   objects_(fs.no_edges),
-    ref_object_(fs)
+:   FSArray<T>(fs.no_edges)
 {
 }
 
 template<typename T>
 FSEdgeArray<T>::FSEdgeArray(const ForwardStar& fs,
                             T object)
-:   ref_object_(fs),
-    objects_(fs.no_edges,
-             object)
+:   FSArray<T>(fs.no_edges,
+               object)
 {
 }
 
 template<typename T>
 FSNodeArray<T>::FSNodeArray(const ForwardStar& fs)
-:   objects_(fs.no_nodes),
-    ref_object_(fs)
+:   FSArray<T>(fs.no_nodes)
 {
 }
 
 template<typename T>
 FSNodeArray<T>::FSNodeArray(const ForwardStar& fs,
                             T object)
-:   ref_object_(fs),
-    objects_(fs.no_nodes,
-             object)
+:   FSArray<T>(fs.no_nodes,
+               object)
 {
 }
 

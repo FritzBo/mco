@@ -180,4 +180,41 @@ void ForwardStarFileReader::read(std::string filename,
 
 }
 
+void ReverseStarConstructor::construct_reverse_star(const ForwardStar &fs,
+                                                    ForwardStar &rs,
+                                                    EdgeTrace& rs_fs_trace)
+{
+    rs.no_nodes = fs.no_nodes;
+    rs.no_edges = fs.no_edges;
+    rs.resize();
+
+    rs_fs_trace.objects_.resize(fs.no_edges);
+
+    // Store edges in reverse order
+    FSNodeArray<vector<pair<node, edge>>> reverse_adjacency(fs);
+
+    for(node n : fs.nodes)
+    {
+        for(edge e : fs.adj_edges(n))
+        {
+            reverse_adjacency[fs.head(e)].push_back(make_pair(fs.tail(e), e));
+        }
+    }
+
+    // Fill reverse star and reverse forward trace
+    unsigned i = 0;
+    for(unsigned j = 0; j < rs.no_nodes; ++j)
+    {
+        rs.first_edge_[j] = i;
+        for(pair<node, edge> p : reverse_adjacency[j])
+        {
+            rs.heads_[i] = p.first;
+            rs.tails_[i] = j;
+            rs_fs_trace[i] = p.second;
+            ++i;
+        }
+    }
+    rs.first_edge_[rs.no_nodes] = rs.no_edges;
+}
+
 }
