@@ -29,38 +29,29 @@ using std::pair;
 namespace mco {
 
 bool EpSolverBS::
-check_domination(vector<Label*>& new_labels,
-                 unsigned new_labels_end,
+check_domination(vector<Label>& new_labels,
                  NodeEntry& neighbor_entry) {
 
     EqualityPointComparator eq;
     ComponentwisePointComparator leq(0, false);
 
     auto& neighbor_labels = neighbor_entry.labels();
-    auto neighbor_labels_end = neighbor_entry.labels_end();
-
     auto& neighbor_new_labels = neighbor_entry.new_labels();
-    auto neighbor_new_labels_end = neighbor_entry.new_labels_end();
 
     bool changed = false;
 
     bool dominated;
 
-    unsigned new_label_it = 0;
-    while(new_label_it < new_labels_end) {
-
-        auto new_label = new_labels[new_label_it];
-
-        assert(new_label != nullptr);
-
+    for(auto& new_label : new_labels)
+    {
         dominated = false;
 
         unsigned check_label_it = 0;
-        while(check_label_it < neighbor_labels_end) {
+        while(check_label_it < neighbor_labels.size()) {
 
-            auto check_label = neighbor_labels[check_label_it];
+            auto& check_label = neighbor_labels[check_label_it];
 
-            if(check_label->deleted) {
+            if(check_label.deleted) {
 
                 neighbor_entry.erase(neighbor_labels,
                                      check_label_it);
@@ -69,9 +60,7 @@ check_domination(vector<Label*>& new_labels,
                 ++deleted_labels_;
 #endif
 
-                --neighbor_labels_end;
-
-            } else if(eq(new_label->cost, check_label->cost)) {
+            } else if(eq(new_label.cost, check_label.cost)) {
 
                 remove_label(check_label);
 
@@ -80,15 +69,10 @@ check_domination(vector<Label*>& new_labels,
 
 #ifdef STATS
                 ++deleted_labels_;
-#endif
-
-                --neighbor_labels_end;
-
-#ifdef STATS
                 label_compares_ += 1;
 #endif
 
-            } else if(leq(check_label->cost, new_label->cost)) {
+            } else if(leq(check_label.cost, new_label.cost)) {
 
                 dominated = true;
 
@@ -98,7 +82,7 @@ check_domination(vector<Label*>& new_labels,
 
                 break;
 
-            } else if(leq(new_label->cost, check_label->cost)) {
+            } else if(leq(new_label.cost, check_label.cost)) {
 
                 remove_label(check_label);
 
@@ -107,11 +91,6 @@ check_domination(vector<Label*>& new_labels,
 
 #ifdef STATS
                 ++deleted_labels_;
-#endif
-
-                --neighbor_labels_end;
-
-#ifdef STATS
                 label_compares_ += 3;
 #endif
 
@@ -127,11 +106,11 @@ check_domination(vector<Label*>& new_labels,
         if(!dominated) {
 
             check_label_it = 0;
-            while(check_label_it < neighbor_new_labels_end) {
+            while(check_label_it < neighbor_new_labels.size()) {
 
-                auto check_label = neighbor_new_labels[check_label_it];
+                auto& check_label = neighbor_new_labels[check_label_it];
 
-                if(check_label->deleted) {
+                if(check_label.deleted) {
 
                     neighbor_entry.erase(neighbor_new_labels,
                                          check_label_it);
@@ -140,9 +119,7 @@ check_domination(vector<Label*>& new_labels,
                     ++deleted_labels_;
 #endif
 
-                    --neighbor_new_labels_end;
-
-                } else if(eq(new_label->cost, check_label->cost)) {
+                } else if(eq(new_label.cost, check_label.cost)) {
 
                     remove_label(check_label);
 
@@ -151,15 +128,10 @@ check_domination(vector<Label*>& new_labels,
 
 #ifdef STATS
                     ++deleted_labels_;
-#endif
-
-                    --neighbor_new_labels_end;
-
-#ifdef STATS
                     label_compares_ += 1;
 #endif
 
-                } else if(leq(check_label->cost, new_label->cost)) {
+                } else if(leq(check_label.cost, new_label.cost)) {
 
 #ifdef STATS
                     label_compares_ += 2;
@@ -168,7 +140,7 @@ check_domination(vector<Label*>& new_labels,
                     dominated = true;
                     break;
 
-                } else if(leq(new_label->cost, check_label->cost)) {
+                } else if(leq(new_label.cost, check_label.cost)) {
 
                     remove_label(check_label);
                     
@@ -177,11 +149,6 @@ check_domination(vector<Label*>& new_labels,
 
 #ifdef STATS
                     ++deleted_labels_;
-#endif
-                    
-                    --neighbor_new_labels_end;
-
-#ifdef STATS
                     label_compares_ += 3;
 #endif
 
@@ -196,24 +163,22 @@ check_domination(vector<Label*>& new_labels,
             }
         }
         
-        if(!dominated) {
-            Label* pred = new_label->pred_label;
-            neighbor_entry.push_back(new_label);
-            ++neighbor_new_labels_end;
+        if(!dominated)
+        {
+            neighbor_entry.new_labels().push_back(std::move(new_label));
 #if defined USE_TREE_DELETION || defined STATS
-            pred->successors.push_back(new_label);
+            Label* pred = new_label.pred_label;
+            pred->successors.push_back(neighbor_entry.new_labels().back());
 #endif
 
             changed = true;
         }
-        else {
-            delete new_label;
 #ifdef STATS
+        else
+        {
             ++deleted_labels_;
-#endif
         }
-        
-        ++new_label_it;
+#endif
     }
     
     return changed;
@@ -276,12 +241,10 @@ void EpSolverBS::Solve(const ForwardStar& graph,
     ring_buffer<node> queue(graph.numberOfNodes() + 1);
 	FSNodeArray<NodeEntry> node_entries(graph);
 
-    auto initial_label = new Label(Point(0.0, dimension),
-                                   source,
-                                   source,
-                                   nullptr);
-
-    node_entries[source].push_back(initial_label);
+    node_entries[source].new_labels().emplace_back(Point(0.0, dimension),
+                                                   source,
+                                                   source,
+                                                   nullptr);
 
 	queue.push_back(source);
     node_entries[source].in_queue = true;
@@ -311,53 +274,50 @@ void EpSolverBS::Solve(const ForwardStar& graph,
 
     //			cout << neighbor << ", ";
 
-                vector<Label*> new_labels(current_node_entry.new_labels_end(), nullptr);
+                vector<Label> new_labels;
 
                 unsigned size = 0;
 
-                unsigned current_label_it = 0;
-                while(current_label_it < current_node_entry.new_labels_end()) {
-
-                    auto label = current_new_labels[current_label_it];
-
+                for(auto& label : current_new_labels)
+                {
 #ifdef STATS
-                    if(label->mark_recursive_deleted)
+                    if(label.mark_recursive_deleted)
                     {
                         ++touched_recursively_deleted_label_;
                     }
 #endif
 
-                    assert(label != nullptr);
-                    assert(label->n == current_node);
+                    assert(label.n == current_node);
 
-                    if(!label->deleted) {
+                    if(!label.deleted)
+                    {
 
-                        auto new_label = new Label(label->cost + *weights(current_edge),
-                                                   neighbor,
-                                                   current_edge,
-                                                   label);
+                        Label new_label(label.cost + *weights(current_edge),
+                                        neighbor,
+                                        current_edge,
+                                        &label);
 
                         if(!use_bounds_ || !use_heuristic_ ||
-                           !check_heuristic_prunable(*new_label)) {
+                           !check_heuristic_prunable(new_label))
+                        {
 
-                            new_labels[size] = new_label;
+                            new_labels.push_back(std::move(new_label));
                             ++size;
-                        } else {
-                            delete new_label;
-#ifdef STATS
-                            ++deleted_labels_;
-#endif
                         }
+#ifdef STATS
+                        else
+                        {
+                            ++deleted_labels_;
+                        }
+#endif
                     }
-
-                    ++current_label_it;
                 }
 
-                if(!new_labels.empty()) {
+                if(!new_labels.empty())
+                {
 
 
                     bool changed = check_domination(new_labels,
-                                                    size,
                                                     neighbor_entry);
 
                     if(!node_entries[neighbor].in_queue &&
@@ -378,13 +338,13 @@ void EpSolverBS::Solve(const ForwardStar& graph,
 
     }
 
-    std::cout << node_entries[target].new_labels_end() << std::endl;
+    std::cout << node_entries[target].new_labels().size() << std::endl;
 
     auto& target_entry = node_entries[target];
-    for(unsigned i = 0; i < target_entry.new_labels_end(); ++i) {
-        auto label = target_entry.new_labels()[i];
+    for(unsigned i = 0; i < target_entry.new_labels().size(); ++i) {
+        auto& label = target_entry.new_labels()[i];
         list<edge> path;
-        auto curr = label;
+        auto curr = &label;
         if(!curr->deleted) {
             while(curr->n != source) {
 
@@ -397,7 +357,7 @@ void EpSolverBS::Solve(const ForwardStar& graph,
 
             path.reverse();
 
-            add_solution(path, label->cost);
+            add_solution(path, label.cost);
         }
     }
 }

@@ -112,10 +112,10 @@ private:
 
     struct Label
     {
-        const Point cost;
-        const node n;
-        const edge pred_edge;
-        Label * pred_label;
+        Point cost;
+        node n;
+        edge pred_edge;
+        Label* pred_label;
         bool deleted = false;
 
 #ifdef STATS
@@ -128,15 +128,40 @@ private:
         std::list<Label*> successors;
 #endif
 
-        Label(const Point cost,
-              const node n,
-              const edge p_edge,
+        Label(Point cost,
+              node n,
+              edge p_edge,
               Label* p_label)
         :   cost(cost),
             n(n),
             pred_edge(p_edge),
             pred_label(p_label),
             deleted(false) { }
+
+        Label(Label&& other)
+        :   cost(std::move(other.cost)),
+            n(other.n),
+            pred_edge(other.pred_edge),
+            pred_label(other.pred_label),
+            deleted(false)
+#ifdef USE_TREE_DELETION
+            ,successors(std::move(other.successors))
+#endif
+        {
+        }
+
+        Label& operator=(Label&& other)
+        {
+            cost = std::move(other.cost);
+            n = other.n;
+            pred_edge = other.pred_edge;
+            pred_label = other.pred_label;
+            deleted = other.deleted;
+#ifdef USE_TREE_DELETION
+            successors = std::move(other.successors);
+#endif
+            return *this;
+        }
     };
 
     struct NodeEntry
@@ -148,124 +173,52 @@ private:
         inline NodeEntry()
         :   in_queue(false),
             labels_(),
-            labels_end_(0),
-            new_labels_(),
-            new_labels_end_(0)
+            new_labels_()
         {
         }
 
-        inline void push_back(Label* label)
-        {
-            add_label(new_labels_, new_labels_end_, label);
-        }
-
-        inline void erase(std::vector<Label*>& arr,
+        inline void erase(std::vector<Label>& arr,
                    unsigned index)
         {
 
             assert(&arr == &labels_ ||
                    &arr == &new_labels_);
 
-            delete arr[index];
-
-            if(&arr == &labels_)
-            {
-                arr[index] = arr[labels_end_ - 1];
-#ifndef NDEBUG
-                arr[labels_end_ - 1] = nullptr;
-#endif
-                --labels_end_;
-            }
-            else
-            {
-                arr[index] = arr[new_labels_end_ - 1];
-#ifndef NDEBUG
-                arr[new_labels_end_ - 1] = nullptr;
-#endif
-                --new_labels_end_;
-                
-            }
+            arr[index] = std::move(arr[arr.size() - 1]);
+            arr.pop_back();
         }
 
         inline void proceed_labels_it()
         {
-            for(unsigned i = 0; i < new_labels_end_; ++i)
+            for(auto& label : new_labels_)
             {
-                add_label(labels_, labels_end_, new_labels_[i]);
-#ifndef NDEBUG
-                new_labels_[i] = nullptr;
-#endif
+                labels_.push_back(std::move(label));
             }
-            new_labels_end_ = 0;
+
+            new_labels_.clear();
         }
 
         inline bool has_new_labels()
         {
-            return new_labels_end_ > 0;
+            return !new_labels_.empty();
         }
 
-        inline std::vector<Label*>& labels()
+        inline std::vector<Label>& labels()
         {
             return labels_;
         }
 
-        inline std::vector<Label*>& new_labels()
+        inline std::vector<Label>& new_labels()
         {
             return new_labels_;
         }
 
-        inline unsigned labels_end()
-        {
-            return labels_end_;
-        }
-
-        inline unsigned new_labels_end()
-        {
-            return new_labels_end_;
-        }
-
-        ~NodeEntry()
-        {
-            for(unsigned i = 0; i < labels_end_; ++i)
-            {
-                delete labels_[i];
-                labels_[i] = nullptr;
-            }
-
-            for(unsigned i = 0; i < new_labels_end_; ++i)
-            {
-                delete new_labels_[i];
-                new_labels_[i] = nullptr;
-            }
-        }
-
     private:
-        std::vector<Label*> labels_;
-        unsigned labels_end_;
-
-        std::vector<Label*> new_labels_;
-        unsigned new_labels_end_;
-
-        inline void add_label(std::vector<Label*>& arr,
-                       unsigned& end_pointer,
-                       Label* label)
-        {
-
-            if(arr.size() > end_pointer)
-            {
-                arr[end_pointer] = label;
-            }
-            else
-            {
-                arr.push_back(label);
-            }
-            ++end_pointer;
-            
-        }
+        std::vector<Label> labels_;
+        std::vector<Label> new_labels_;
     };
 
-    bool check_domination(std::vector<Label*>& new_labels,
-                          unsigned new_labels_end,
+    bool check_domination(std::vector<Label>& new_labels,
                           NodeEntry& neighbor_entry);
 
 #if defined USE_TREE_DELETION || defined STATS
@@ -274,26 +227,26 @@ private:
 
     bool check_heuristic_prunable(const Label& label);
 
-    inline void remove_label(Label* label);
+    inline void remove_label(Label& label);
 
 
 };
 
-inline void EpSolverBS::remove_label(Label* label)
+inline void EpSolverBS::remove_label(Label& label)
 {
 #if defined USE_TREE_DELETION || defined STATS
 #if defined STATS && !defined USE_TREE_DELETION
-    if(label->pred_label != nullptr)
+    if(label.pred_label != nullptr)
     {
 #endif
 
-        auto it = find(label->pred_label->successors.begin(),
-                       label->pred_label->successors.end(),
+        auto it = find(label.pred_label->successors.begin(),
+                       label.pred_label->successors.end(),
                        label);
 
-        assert(it != label->pred_label->successors.end());
+        assert(it != label.pred_label->successors.end());
 
-        label->pred_label->successors.erase(it);
+        label.pred_label->successors.erase(it);
 
 #if defined STATS && !defined USE_TREE_DELETION
     }
@@ -305,9 +258,9 @@ inline void EpSolverBS::remove_label(Label* label)
 #endif
 
 
-    if(label->successors.empty())
+    if(label.successors.empty())
     {
-        label->deleted = true;
+        label.deleted = true;
     }
     else
     {
