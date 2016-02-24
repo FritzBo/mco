@@ -67,6 +67,7 @@ include/mco/ep/dual_benson/ep_dual_benson.h
 include/mco/ep/dual_benson/constrained_ep_dual_benson.h
 include/mco/ep/dual_benson/ep_benson_verifier.h
 include/mco/ep/preprocessing/constrained_reach.h
+include/mco/ep/preprocessing/paretoprep.h
 include/mco/ep/basic/instance_scalarizer.h
 
 
@@ -148,6 +149,7 @@ src/ep/warburton/ep_solver_warburton_approx.cpp
 src/ep/lc_approx/lc_approx.cpp
 src/ep/basic/dijkstra.cpp
 src/ep/preprocessing/constrained_reach.cpp
+src/ep/preprocessing/paretoprep.cpp
 src/ep/basic/instance_scalarizer.cpp
 
 # MO Spanning Tree
