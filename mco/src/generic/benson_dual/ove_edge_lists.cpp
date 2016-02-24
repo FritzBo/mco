@@ -10,12 +10,14 @@
 #include <cassert>
 #include <set>
 #include <list>
+#include <deque>
 #include <vector>
 #include <cmath>
 
 using std::make_pair;
 using std::vector;
 using std::list;
+using std::deque;
 using std::set;
 using std::abs;
 
@@ -43,7 +45,7 @@ EdgeListVE::EdgeListVE(Point &initial_value, unsigned int dimension, double epsi
 	Point *p;
 	for(unsigned int i = 0; i < dimension_ - 1; ++i) {
 		n = vertex_graph_.newNode();
-		node_inequality_indices_[n] = new list<int>();
+		node_inequality_indices_[n] = new vector<int>();
 		p = new Point(dimension_ + 1);
 		for(unsigned int j = 0; j < dimension_ - 1; ++j) {
 			(*p)[j] = i == j ? 1 : 0;
@@ -72,7 +74,7 @@ EdgeListVE::EdgeListVE(Point &initial_value, unsigned int dimension, double epsi
         for(auto v : vertex_graph_.nodes) {
 			if(v != n) {
 				edge e1 = vertex_graph_.newEdge(v, n);
-				edge_inequality_indices_[e1] = new list<int>();
+				edge_inequality_indices_[e1] = new vector<int>();
 				set_intersection(	node_inequality_indices_[v]->begin(),
 									node_inequality_indices_[v]->end(),
 									node_inequality_indices_[n]->begin(),
@@ -80,7 +82,7 @@ EdgeListVE::EdgeListVE(Point &initial_value, unsigned int dimension, double epsi
 									back_inserter(*edge_inequality_indices_[e1]));
 
 				edge e2 = vertex_graph_.newEdge(n, v);
-				edge_inequality_indices_[e2] = new list<int>();
+				edge_inequality_indices_[e2] = new vector<int>();
 				edge_inequality_indices_[e2]->insert(edge_inequality_indices_[e2]->end(),
 						edge_inequality_indices_[e1]->begin(), edge_inequality_indices_[e1]->end());
 			}
@@ -96,7 +98,7 @@ EdgeListVE::EdgeListVE(Point &initial_value, unsigned int dimension, double epsi
 	list_of_inequalities_.push_back(p);
 
 	n = vertex_graph_.newNode();
-	node_inequality_indices_[n] = new list<int>();
+	node_inequality_indices_[n] = new vector<int>();
 	p = new Point(dimension_ + 1);
 	for(unsigned int j = 0; j < dimension_; ++j)
 		(*p)[j] = 0;
@@ -117,7 +119,7 @@ EdgeListVE::EdgeListVE(Point &initial_value, unsigned int dimension, double epsi
     for(auto v : vertex_graph_.nodes) {
 		if(v != n) {
 			edge e1 = vertex_graph_.newEdge(v, n);
-			edge_inequality_indices_[e1] = new list<int>();
+			edge_inequality_indices_[e1] = new vector<int>();
 			set_intersection(	node_inequality_indices_[v]->begin(),
 								node_inequality_indices_[v]->end(),
 								node_inequality_indices_[n]->begin(),
@@ -125,7 +127,7 @@ EdgeListVE::EdgeListVE(Point &initial_value, unsigned int dimension, double epsi
 								back_inserter(*edge_inequality_indices_[e1]));
 
 			edge e2 = vertex_graph_.newEdge(n, v);
-			edge_inequality_indices_[e2] = new list<int>();
+			edge_inequality_indices_[e2] = new vector<int>();
 			edge_inequality_indices_[e2]->insert(edge_inequality_indices_[e2]->end(),
 					edge_inequality_indices_[e1]->begin(), edge_inequality_indices_[e1]->end());
 		}
@@ -140,7 +142,7 @@ EdgeListVE::EdgeListVE(Point &initial_value, unsigned int dimension, double epsi
 	list_of_inequalities_.push_back(p);
 
 	n = vertex_graph_.newNode();
-	node_inequality_indices_[n] = new list<int>();
+	node_inequality_indices_[n] = new vector<int>();
 	p = new Point(dimension_ + 1);
 	for(unsigned int j = 0; j < dimension_ - 1; ++j)
 		(*p)[j] = 0;
@@ -158,7 +160,7 @@ EdgeListVE::EdgeListVE(Point &initial_value, unsigned int dimension, double epsi
     for(auto v : vertex_graph_.nodes) {
 		if(v != n) {
 			edge e1 = vertex_graph_.newEdge(v, n);
-			edge_inequality_indices_[e1] = new list<int>();
+			edge_inequality_indices_[e1] = new vector<int>();
 			set_intersection(	node_inequality_indices_[v]->begin(),
 								node_inequality_indices_[v]->end(),
 								node_inequality_indices_[n]->begin(),
@@ -166,7 +168,7 @@ EdgeListVE::EdgeListVE(Point &initial_value, unsigned int dimension, double epsi
 								back_inserter(*edge_inequality_indices_[e1]));
 
 			edge e2 = vertex_graph_.newEdge(n, v);
-			edge_inequality_indices_[e2] = new list<int>();
+			edge_inequality_indices_[e2] = new vector<int>();
 			edge_inequality_indices_[e2]->insert(edge_inequality_indices_[e2]->end(),
 					edge_inequality_indices_[e1]->begin(), edge_inequality_indices_[e1]->end());
 		}
@@ -315,17 +317,17 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 	// End Redundancy check
 
 
-	list<node> active_nodes;
+	deque<node> active_nodes;
 	active_nodes.push_back(get_node(vertex));
 
 //	cout << "Root node: " << get_node(vertex) << endl;
 
-	list<node> new_face_nodes;
+	vector<node> new_face_nodes;
 
 	NodeArray<bool> already_active(vertex_graph_, false);
 	NodeArray<bool> already_on_face(vertex_graph_, false);
 	NodeArray<node> father_node(vertex_graph_, nullptr);
-	NodeArray<list<list<int>> *> node_active_index_sets(vertex_graph_, nullptr);
+	NodeArray<vector<vector<int>> *> node_active_index_sets(vertex_graph_, nullptr);
 
 	bool nondegenerate = true;
 
@@ -380,9 +382,9 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 //				cout << "neighbor " << new_node << " resides on hyperplane" << endl;
 
 				if(node_active_index_sets[new_node] == nullptr)
-					node_active_index_sets[new_node] = new list<list<int>>();
+					node_active_index_sets[new_node] = new vector<vector<int>>();
 
-				list<int> active_inequalities;
+				vector<int> active_inequalities;
 				active_inequalities.insert(active_inequalities.end(),
 						edge_inequality_indices_[adj->theEdge()]->begin(),
 						edge_inequality_indices_[adj->theEdge()]->end());
@@ -429,26 +431,26 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 //					cout << "4 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
 
 //				cout << adj->theEdge() << endl;
-				list<int> * old_indices = edge_inequality_indices_[adj->theEdge()];
+				vector<int> * old_indices = edge_inequality_indices_[adj->theEdge()];
 				edge new_edge = vertex_graph_.split(adj->theEdge());
 //				cout << adj->theEdge() << endl;
 				new_node = new_edge->source();
 
 				assert(old_indices != nullptr);
 
-				list<int> active_inequalities;
+				vector<int> active_inequalities;
 				active_inequalities.insert(active_inequalities.end(),
 						edge_inequality_indices_[adj->theEdge()]->begin(),
 						edge_inequality_indices_[adj->theEdge()]->end());
 
-				node_active_index_sets[new_node] = new list<list<int>>();
+				node_active_index_sets[new_node] = new vector<vector<int>>();
 				node_active_index_sets[new_node]->emplace_back(active_inequalities);
 
-				edge_inequality_indices_[new_edge] = new list<int>();
+				edge_inequality_indices_[new_edge] = new vector<int>();
 				edge_inequality_indices_[new_edge]->insert(edge_inequality_indices_[new_edge]->end(),
 						old_indices->begin(), old_indices->end());
 
-				node_inequality_indices_[new_node] = new list<int>();
+				node_inequality_indices_[new_node] = new vector<int>();
 //				cout << (void *) new_node << endl;
 
 				set_intersection(	node_inequality_indices_[active_node]->begin(),
@@ -461,7 +463,7 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 
 				new_edge = vertex_graph_.newEdge(neighbor, new_node);
 
-				edge_inequality_indices_[new_edge] = new list<int>();
+				edge_inequality_indices_[new_edge] = new vector<int>();
 				edge_inequality_indices_[new_edge]->insert(edge_inequality_indices_[new_edge]->end(),
 										old_indices->begin(), old_indices->end());
 
@@ -573,13 +575,13 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 
 			if(add_edge) {
 				edge e = vertex_graph_.newEdge(n1, n2);
-				edge_inequality_indices_[e] = new list<int>();
+				edge_inequality_indices_[e] = new vector<int>();
 				edge_inequality_indices_[e]->insert(edge_inequality_indices_[e]->end(),
 						active_inequalities.begin(), active_inequalities.end());
 				edge_inequality_indices_[e]->push_back(list_of_inequalities_.size() - 1);
 
 				e = vertex_graph_.newEdge(n2, n1);
-				edge_inequality_indices_[e] = new list<int>();
+				edge_inequality_indices_[e] = new vector<int>();
 				edge_inequality_indices_[e]->insert(edge_inequality_indices_[e]->end(),
 						active_inequalities.begin(), active_inequalities.end());
 				edge_inequality_indices_[e]->push_back(list_of_inequalities_.size() - 1);
@@ -625,7 +627,7 @@ bool EdgeListVE::inside_face(node n1, node n2, bool nondegenerate) {
 		set<Point *, LexPointComparator> common_vertices(comp_);
 
 		unsigned int i = 0;
-		list<unsigned int> tight_inequalities;
+		vector<unsigned int> tight_inequalities;
 
 		set_intersection(	node_inequality_indices_[n1]->begin(),
 							node_inequality_indices_[n1]->end(),
@@ -643,12 +645,14 @@ bool EdgeListVE::inside_face(node n1, node n2, bool nondegenerate) {
 			}
 
 		// [FP96] NC2
-		if(!nc2)
+		if(!nc2) {
 			return true;
+        }
 
 		// [FP96] NC1
-		if(tight_inequalities.size() < dimension_ - 2)
+		if(tight_inequalities.size() < dimension_ - 2) {
 			return true;
+        }
 
 		for(auto inequality_index : tight_inequalities) {
 
@@ -667,7 +671,7 @@ bool EdgeListVE::inside_face(node n1, node n2, bool nondegenerate) {
 			if(common_vertices.empty())
 				common_vertices.insert(new_vertices.begin(), new_vertices.end());
 			else {
-				list<Point *> temp_points;
+				vector<Point *> temp_points;
 				set_intersection(common_vertices.begin(), common_vertices.end(), new_vertices.begin(), new_vertices.end(), back_inserter(temp_points), comp_);
 //					cout << "intersection size: "<< temp_points.size() << endl;
 				common_vertices.clear();
@@ -688,7 +692,7 @@ bool EdgeListVE::inside_face(node n1, node n2, bool nondegenerate) {
 
 	} else if(dimension_ == 3 || nondegenerate) {
 
-		list<int> inequality_intersection;
+		vector<int> inequality_intersection;
 
 		node n1 = point_nodes_[&p1];
 		node n2 = point_nodes_[&p2];

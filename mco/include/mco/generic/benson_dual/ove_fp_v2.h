@@ -85,11 +85,11 @@ private:
     inline void pop_pending();
     inline GraphlessPoint* top_pending();
     
-    std::list<GraphlessPoint*> candidate_points_;
+    std::vector<GraphlessPoint*> candidate_points_;
     
     std::list<GraphlessPoint*> extreme_points_;
     
-    std::list<GraphlessPoint*> permanent_points_;
+    std::vector<GraphlessPoint*> permanent_points_;
     std::vector<Point> inequalities_;
 };
     

@@ -153,8 +153,8 @@ add_hyperplane(Point &vertex, Point &normal, double rhs) {
     
     // three sets of extreme points:
     // cutted points, on-plane points and inside points
-    list<list<GraphlessPoint*>::iterator> inside_points;
-    list<list<GraphlessPoint*>::iterator> cut_off_points;
+    vector<list<GraphlessPoint*>::iterator> inside_points;
+    vector<list<GraphlessPoint*>::iterator> cut_off_points;
     
     // Check for each pending point to which set it belongs
     for(auto it = extreme_points_.begin();
@@ -178,7 +178,7 @@ add_hyperplane(Point &vertex, Point &normal, double rhs) {
     }
     
     // list to store new points
-    list<GraphlessPoint*> new_points;
+    vector<GraphlessPoint*> new_points;
     
     // check for each cutted off pending point if there is a permanent
     // or another pending point strictly inside the polytope which makes them a
