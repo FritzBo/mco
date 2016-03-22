@@ -16,6 +16,9 @@
 class EpBsParModule : public AlgorithmModule<std::list<ogdf::edge>> {
     
 public:
+    EpBsParModule()
+    :   AlgorithmModule(OGDF) { }
+
     virtual void perform(int argc, char** args);
     virtual ~EpBsParModule() {}
     
