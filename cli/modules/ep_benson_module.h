@@ -18,6 +18,9 @@
 class EpBensonModule : public AlgorithmModule<std::list<ogdf::edge>> {
     
 public:
+    EpBensonModule()
+    :   AlgorithmModule(OGDF) { }
+
     virtual void perform(int argc, char** args);
     virtual ~EpBensonModule() {}
     

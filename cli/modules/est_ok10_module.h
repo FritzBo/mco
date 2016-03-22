@@ -18,6 +18,9 @@
 class EstOk10Module : public AlgorithmModule<std::list<ogdf::edge>> {
     
 public:
+    EstOk10Module()
+    :   AlgorithmModule(OGDF) { }
+
     virtual void perform(int argc, char** args);
     virtual ~EstOk10Module() {}
     

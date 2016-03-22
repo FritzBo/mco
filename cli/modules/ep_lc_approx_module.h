@@ -16,6 +16,9 @@
 class EpLCApproxModule : public AlgorithmModule<std::list<ogdf::edge>> {
     
 public:
+    EpLCApproxModule()
+    :   AlgorithmModule(OGDF) { }
+
     virtual void perform(int argc, char** args);
     virtual ~EpLCApproxModule() {}
     

@@ -13,13 +13,16 @@
 
 #include "../basic/modules.h"
 
-class EpBsModule : public AlgorithmModule<std::list<ogdf::edge>> {
+class EpBsModule : public AlgorithmModule<std::list<mco::node>> {
     
 public:
+    EpBsModule()
+    :   AlgorithmModule(FORWARDSTAR) { }
+
     virtual void perform(int argc, char** args);
     virtual ~EpBsModule() {}
     
-    virtual const std::list<std::pair<const std::list<ogdf::edge>, const mco::Point>>& solutions();
+    virtual const std::list<std::pair<const std::list<mco::node>, const mco::Point>>& solutions();
     virtual std::string statistics();
     
 private:
@@ -37,7 +40,7 @@ private:
 
     double          solution_time_                      = 0;
     
-    std::list<std::pair<const std::list<mco::edge>, const mco::Point>> solutions_;
+    std::list<std::pair<const std::list<mco::node>, const mco::Point>> solutions_;
 
     bool label_select_;
     

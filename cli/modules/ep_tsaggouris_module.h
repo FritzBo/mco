@@ -18,6 +18,9 @@
 class EpTsaggourisModule : public AlgorithmModule<std::list<ogdf::edge>> {
     
 public:
+    EpTsaggourisModule()
+    :   AlgorithmModule(OGDF) { }
+
     virtual void perform(int argc, char** args);
     virtual ~EpTsaggourisModule() {}
     

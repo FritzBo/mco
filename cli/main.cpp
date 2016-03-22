@@ -11,6 +11,7 @@
 #include <vector>
 #include <list>
 #include <chrono>
+#include <thread>
 
 using std::cout;
 using std::endl;
@@ -87,9 +88,16 @@ using mco::CddFiles;
 #include "modules/ui_verifier.h"
 
 int main(int argc, char** argv) {
+
+    // todo: remove
+#ifndef NDEBUG
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+#endif
+
     try {
         ModuleFactory module_factory;
 
+        // OGDF Graphen
         ApBfModule ap_bf_module;
         ApBensonModule ap_benson_module;
         ApOk10Module ap_ok10_module;
@@ -98,7 +106,6 @@ int main(int argc, char** argv) {
         EpMartinsModule martins_module;
         EpLCApproxModule lc_approx_module;
         EpTsaggourisModule tsaggouris_module;
-        EpBsModule bs_module;
         EpBsParModule bs_par_module;
         EpIdealModule ideal_module;
         EpLDModule ld_module;
@@ -107,6 +114,9 @@ int main(int argc, char** argv) {
         EstOk10Module est_ok10_module;
 
         UpperImageVerifier ui_verifier;
+
+        // ForwardStar Graphen
+        EpBsModule bs_module;
 
         module_factory.add_module("ap-bf", ap_bf_module);
         module_factory.add_module("ap-benson", ap_benson_module);
@@ -188,7 +198,8 @@ int main(int argc, char** argv) {
         duration<double> computation_span
         = duration_cast<duration<double>>(end - start);
 
-        if(print_summary) {
+        if(print_summary && choosen_module->type == ALGORITHM) {
+
             auto algo_module = dynamic_cast<AlgorithmModule<list<edge>>*>(choosen_module);
 
             if(print_verbose) {
@@ -209,79 +220,131 @@ int main(int argc, char** argv) {
             }
         }
 
-        if(print_frontier ||
-           print_solutions ||
-           print_count ||
-           print_cdd_v_rep) {
+        if(choosen_module->type == ALGORITHM)
+        {
+            if(print_frontier ||
+               print_solutions ||
+               print_count ||
+               print_cdd_v_rep)
+            {
 
-            auto ep_algo_module = dynamic_cast<AlgorithmModule<list<edge>>*>(choosen_module);
-            
-            auto solutions = ep_algo_module->solutions();
+                if(print_count) {
+                    unsigned solution_size;
+                    if(dynamic_cast<BasicAlgorithmModule*>(choosen_module)->graph_type == OGDF)
+                    {
+                        auto ep_algo_module = dynamic_cast<AlgorithmModule<list<edge>>*>(choosen_module);
 
-            if(print_count) {
-                if(print_verbose) {
-                    cout << solutions.size() << " points" << endl;
-                } else {
-                    if(print_timing || print_summary) {
-                        cout << ", ";
+                        solution_size = ep_algo_module->solutions().size();
                     }
-                    cout << solutions.size();
-                }
-            }
-            
-            if(print_frontier || print_solutions) {
-                
-                int count = 0;
-                auto solution_it = solutions.cbegin();
-                while(solution_it != solutions.cend() && (
-                      count < 25 || force_print_all)) {
-                    
-                    auto solution = *solution_it;
-                    
-                    if(print_frontier) {
-                        auto point_it = solution.second.cbegin();
-                        while(point_it != solution.second.cend()) {
-                            cout << *point_it++ << ", ";
+                    else if(dynamic_cast<BasicAlgorithmModule*>(choosen_module)->graph_type == FORWARDSTAR)
+                    {
+                        auto ep_algo_module = dynamic_cast<AlgorithmModule<list<mco::node>>*>(choosen_module);
+
+                        solution_size = ep_algo_module->solutions().size();
+                    }
+
+                    if(print_verbose) {
+                        cout << solution_size << " points" << endl;
+                    } else {
+                        if(print_timing || print_summary) {
+                            cout << ", ";
                         }
+                        cout << solution_size;
                     }
-                    if(print_solutions) {
-                        edge first_edge = *solution.first.begin();
-                        edge second_edge = *(++solution.first.begin());
-                        
-                        node last_node = first_edge->target() == second_edge->target() ||
-                            first_edge->target() == second_edge->source() ?
-                            first_edge->source() : first_edge->target();
-                        
-                        cout << last_node << ", ";
-                        
-                        for(auto edge : solution.first) {
-                            if(edge->target() != last_node) {
-                                cout << edge->target() << ", ";
-                                last_node = edge->target();
-                            } else {
-                                cout << edge->source() << ", ";
-                                last_node = edge->source();
+                }
+                
+                if(print_frontier || print_solutions) {
+
+                    int count = 0;
+                    if(dynamic_cast<BasicAlgorithmModule*>(choosen_module)->graph_type == OGDF)
+                    {
+                        auto algo_module = dynamic_cast<AlgorithmModule<list<edge>>*>(choosen_module);
+                        auto solutions = algo_module->solutions();
+                        auto solution_it = solutions.cbegin();
+                        while(solution_it != solutions.cend() && (
+                              count < 25 || force_print_all)) {
+                            
+                            auto solution = *solution_it;
+                            
+                            if(print_frontier) {
+                                auto point_it = solution.second.cbegin();
+                                while(point_it != solution.second.cend()) {
+                                    cout << *point_it++ << ", ";
+                                }
                             }
+                            if(print_solutions) {
+                                edge first_edge = *solution.first.begin();
+                                edge second_edge = *(++solution.first.begin());
+                                
+                                node last_node = first_edge->target() == second_edge->target() ||
+                                    first_edge->target() == second_edge->source() ?
+                                    first_edge->source() : first_edge->target();
+                                
+                                cout << last_node << ", ";
+                                
+                                for(auto edge : solution.first) {
+                                    if(edge->target() != last_node) {
+                                        cout << edge->target() << ", ";
+                                        last_node = edge->target();
+                                    } else {
+                                        cout << edge->source() << ", ";
+                                        last_node = edge->source();
+                                    }
+                                }
+                            }
+                            cout << endl;
+                            solution_it++;
+                            count++;
                         }
                     }
-                    cout << endl;
-                    solution_it++;
-                    count++;
+                    else if(dynamic_cast<BasicAlgorithmModule*>(choosen_module)->graph_type == FORWARDSTAR)
+                    {
+                        auto algo_module = dynamic_cast<AlgorithmModule<list<mco::node>>*>(choosen_module);
+                        auto solutions = algo_module->solutions();
+                        auto solution_it = solutions.cbegin();
+                        while(solution_it != solutions.cend() && (
+                                                                  count < 25 || force_print_all)) {
+
+                            auto solution = *solution_it;
+
+                            if(print_frontier) {
+                                auto point_it = solution.second.cbegin();
+                                while(point_it != solution.second.cend()) {
+                                    cout << *point_it++ << ", ";
+                                }
+                            }
+                            if(print_solutions) {
+                                auto node_it = solution.first.begin();
+                                while(node_it != solution.first.end())
+                                {
+                                    cout << *node_it << ", ";
+                                    ++node_it;
+                                }
+
+                            }
+                            cout << endl;
+                            solution_it++;
+                            count++;
+                        }
+                    }
+                    
                 }
-                
-            }
-            if(print_cdd_v_rep) {
 
-                unsigned dimension = solutions.begin()->second.dimension();
-                
-                cout << std::setprecision(20);
-                CddFiles::write_v_rep(cout,
-                                      solutions.size(),
-                                      dimension,
-                                      solutions.begin(),
-                                      solutions.end());
+                if(print_cdd_v_rep && choosen_module->type == ALGORITHM && dynamic_cast<BasicAlgorithmModule*>(choosen_module)->graph_type == OGDF) {
 
+                    auto solutions = dynamic_cast<AlgorithmModule<list<edge>>*>(choosen_module)->solutions();
 
+                    unsigned dimension = solutions.begin()->second.dimension();
+
+                    cout << std::setprecision(20);
+                    CddFiles::write_v_rep(cout,
+                                          solutions.size(),
+                                          dimension,
+                                          solutions.begin(),
+                                          solutions.end());
+                    
+                    
+                }
             }
         }
 

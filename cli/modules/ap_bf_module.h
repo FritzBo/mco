@@ -18,6 +18,10 @@
 class ApBfModule : public AlgorithmModule<std::list<ogdf::edge>> {
     
 public:
+
+    ApBfModule()
+    :   AlgorithmModule(OGDF) { }
+
     virtual void perform(int argc, char** args);
     virtual ~ApBfModule() {}
     

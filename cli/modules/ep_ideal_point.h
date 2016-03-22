@@ -18,6 +18,9 @@
 class EpIdealModule : public AlgorithmModule<std::list<ogdf::edge>> {
     
 public:
+    EpIdealModule()
+    :   AlgorithmModule(OGDF) { }
+
     virtual void perform(int argc, char** args);
     virtual ~EpIdealModule() {}
     

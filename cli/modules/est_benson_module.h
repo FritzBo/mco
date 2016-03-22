@@ -18,6 +18,9 @@
 class EstBensonModule : public AlgorithmModule<std::list<ogdf::edge>> {
     
 public:
+    EstBensonModule()
+    :   AlgorithmModule(OGDF) { }
+
     virtual void perform(int argc, char** args);
     virtual ~EstBensonModule() {}
     

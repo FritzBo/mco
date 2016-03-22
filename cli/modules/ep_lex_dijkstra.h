@@ -19,6 +19,9 @@
 class EpLDModule : public AlgorithmModule<std::list<ogdf::edge>> {
     
 public:
+    EpLDModule()
+    :   AlgorithmModule(OGDF) { }
+
     virtual void perform(int argc, char** args);
     virtual ~EpLDModule() {}
     

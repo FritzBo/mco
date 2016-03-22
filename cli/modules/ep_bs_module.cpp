@@ -409,9 +409,9 @@ void EpBsModule::parse_absolute_bounds(const MultiArg<string>& argument,
 //    cout << "Finished first phase" << endl;
 //}
 
-const list<pair<const list<ogdf::edge>, const Point>>& EpBsModule::
+const list<pair<const list<mco::node>, const Point>>& EpBsModule::
 solutions() {
-    return *new list<pair<const list<ogdf::edge>, const Point>>();
+    return solutions_;
 }
 
 string EpBsModule::statistics() {

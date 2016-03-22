@@ -18,6 +18,9 @@
 class ApOk10Module : public AlgorithmModule<std::list<ogdf::edge>> {
     
 public:
+    ApOk10Module()
+    :   AlgorithmModule(OGDF) { }
+
     virtual void perform(int argc, char** args);
     virtual ~ApOk10Module() {}
     

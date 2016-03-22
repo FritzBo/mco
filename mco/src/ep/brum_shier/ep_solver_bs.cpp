@@ -338,17 +338,15 @@ void EpSolverBS::Solve(const ForwardStar& graph,
 
     }
 
-    std::cout << node_entries[target].new_labels().size() << std::endl;
-
     auto& target_entry = node_entries[target];
     for(unsigned i = 0; i < target_entry.new_labels().size(); ++i) {
         auto& label = target_entry.new_labels()[i];
-        list<edge> path;
+        list<node> path;
         auto curr = &label;
         if(!curr->deleted) {
             while(curr->n != source) {
 
-                path.push_back(curr->pred_edge);
+                path.push_back(graph.head(curr->pred_edge));
                 curr = curr->pred_label;
 
             }

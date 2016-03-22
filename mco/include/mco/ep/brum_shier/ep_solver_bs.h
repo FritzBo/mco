@@ -21,7 +21,7 @@
 namespace mco
 {
 
-class EpSolverBS : public AbstractSolver<std::list<edge>>
+class EpSolverBS : public AbstractSolver<std::list<mco::node>>
 {
 
     using heuristic_type = std::function<double(node, unsigned)>;

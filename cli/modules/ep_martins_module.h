@@ -19,6 +19,9 @@
 class EpMartinsModule : public AlgorithmModule<std::list<ogdf::edge>> {
     
 public:
+    EpMartinsModule()
+    :   AlgorithmModule(OGDF) { }
+
     virtual void perform(int argc, char** args);
     virtual ~EpMartinsModule() {}
     
