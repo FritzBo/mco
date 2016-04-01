@@ -50,6 +50,8 @@ public:
     :   BasicModule(ALGORITHM),
         graph_type(type) { }
 
+    virtual std::string statistics() = 0;
+
     const GraphType graph_type;
 };
 
@@ -66,7 +68,6 @@ public:
     :   BasicAlgorithmModule(type) { }
     
     virtual const std::list<std::pair<csolution_type, const mco::Point>>& solutions() = 0;
-    virtual std::string statistics() = 0;
 };
 
 class ModuleFactory {

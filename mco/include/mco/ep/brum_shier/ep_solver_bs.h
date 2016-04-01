@@ -110,13 +110,15 @@ private:
     unsigned arc_pushes_ = 0;
     unsigned long deleted_labels_ = 0;
 
+    struct NodeEntry;
+
     struct Label
     {
+        unsigned label_id;
         Point cost;
         node n;
         edge pred_edge;
-        Label* pred_label;
-        bool deleted = false;
+        unsigned pred_label_id;
 
 #ifdef STATS
         bool mark_recursive_deleted = false;
@@ -126,38 +128,48 @@ private:
         /* Lists are more efficient here, because most of the time
          the collection of successors is actually empty or very small. */
         std::list<Label*> successors;
+        bool deleted = false;
 #endif
 
         Label(Point cost,
               node n,
               edge p_edge,
-              Label* p_label)
+              unsigned p_label_id,
+              NodeEntry& node_entry)
         :   cost(cost),
             n(n),
             pred_edge(p_edge),
-            pred_label(p_label),
-            deleted(false) { }
+            pred_label_id(p_label_id)
+
+#if defined USE_TREE_DELETION || defined STATS
+            , deleted(false)
+#endif
+        {
+            label_id = node_entry.get_new_id();
+        }
 
         Label(Label&& other)
-        :   cost(std::move(other.cost)),
+        :   label_id(other.label_id),
+            cost(std::move(other.cost)),
             n(other.n),
             pred_edge(other.pred_edge),
-            pred_label(other.pred_label),
-            deleted(false)
-#ifdef USE_TREE_DELETION
-            ,successors(std::move(other.successors))
+            pred_label_id(other.pred_label_id)
+#if defined USE_TREE_DELETION || defined STATS
+            , deleted(false)
+            , successors(std::move(other.successors))
 #endif
         {
         }
 
         Label& operator=(Label&& other)
         {
+            label_id = other.label_id;
             cost = std::move(other.cost);
             n = other.n;
             pred_edge = other.pred_edge;
-            pred_label = other.pred_label;
+            pred_label_id = other.pred_label_id;
+#if defined USE_TREE_DELETION || defined STATS
             deleted = other.deleted;
-#ifdef USE_TREE_DELETION
             successors = std::move(other.successors);
 #endif
             return *this;
@@ -213,9 +225,16 @@ private:
             return new_labels_;
         }
 
+        unsigned get_new_id()
+        {
+            return id_counter++;
+        }
+
     private:
         std::vector<Label> labels_;
         std::vector<Label> new_labels_;
+
+        unsigned id_counter = 1;
     };
 
     bool check_domination(std::vector<Label>& new_labels,

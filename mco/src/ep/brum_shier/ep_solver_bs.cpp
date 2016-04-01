@@ -51,6 +51,7 @@ check_domination(vector<Label>& new_labels,
 
             auto& check_label = neighbor_labels[check_label_it];
 
+#if defined USE_TREE_DELETION || defined STATS
             if(check_label.deleted) {
 
                 neighbor_entry.erase(neighbor_labels,
@@ -60,19 +61,9 @@ check_domination(vector<Label>& new_labels,
                 ++deleted_labels_;
 #endif
 
-            } else if(eq(new_label.cost, check_label.cost)) {
-
-                remove_label(check_label);
-
-                neighbor_entry.erase(neighbor_labels,
-                                     check_label_it);
-
-#ifdef STATS
-                ++deleted_labels_;
-                label_compares_ += 1;
+            } else
 #endif
-
-            } else if(leq(check_label.cost, new_label.cost)) {
+            if(leq(check_label.cost, new_label.cost)) {
 
                 dominated = true;
 
@@ -110,6 +101,7 @@ check_domination(vector<Label>& new_labels,
 
                 auto& check_label = neighbor_new_labels[check_label_it];
 
+#if defined USE_TREE_DELETION || defined STATS
                 if(check_label.deleted) {
 
                     neighbor_entry.erase(neighbor_new_labels,
@@ -119,19 +111,9 @@ check_domination(vector<Label>& new_labels,
                     ++deleted_labels_;
 #endif
 
-                } else if(eq(new_label.cost, check_label.cost)) {
-
-                    remove_label(check_label);
-
-                    neighbor_entry.erase(neighbor_new_labels,
-                                         check_label_it);
-
-#ifdef STATS
-                    ++deleted_labels_;
-                    label_compares_ += 1;
+                } else
 #endif
-
-                } else if(leq(check_label.cost, new_label.cost)) {
+                if(leq(check_label.cost, new_label.cost)) {
 
 #ifdef STATS
                     label_compares_ += 2;
@@ -243,8 +225,9 @@ void EpSolverBS::Solve(const ForwardStar& graph,
 
     node_entries[source].new_labels().emplace_back(Point(0.0, dimension),
                                                    source,
-                                                   source,
-                                                   nullptr);
+                                                   nulledge,
+                                                   0,
+                                                   node_entries[source]);
 
 	queue.push_back(source);
     node_entries[source].in_queue = true;
@@ -265,6 +248,11 @@ void EpSolverBS::Solve(const ForwardStar& graph,
             for(auto current_edge : graph.adj_edges(current_node))
             {
                 node neighbor = graph.head(current_edge);
+
+                if(neighbor == source)
+                {
+                    continue;
+                }
 
 #ifdef STATS
                 arc_pushes_ += 1;
@@ -289,13 +277,16 @@ void EpSolverBS::Solve(const ForwardStar& graph,
 
                     assert(label.n == current_node);
 
+#if defined USE_TREE_DELETION || defined STATS
                     if(!label.deleted)
                     {
+#endif
 
                         Label new_label(label.cost + *weights(current_edge),
                                         neighbor,
                                         current_edge,
-                                        &label);
+                                        label.label_id,
+                                        neighbor_entry);
 
                         if(!use_bounds_ || !use_heuristic_ ||
                            !check_heuristic_prunable(new_label))
@@ -310,13 +301,13 @@ void EpSolverBS::Solve(const ForwardStar& graph,
                             ++deleted_labels_;
                         }
 #endif
+#if defined USE_TREE_DELETION || defined STATS
                     }
+#endif
                 }
 
                 if(!new_labels.empty())
                 {
-
-
                     bool changed = check_domination(new_labels,
                                                     neighbor_entry);
 
@@ -339,24 +330,49 @@ void EpSolverBS::Solve(const ForwardStar& graph,
     }
 
     auto& target_entry = node_entries[target];
-    for(unsigned i = 0; i < target_entry.new_labels().size(); ++i) {
+    for(unsigned i = 0; i < target_entry.new_labels().size(); ++i)
+    {
         auto& label = target_entry.new_labels()[i];
         list<node> path;
         auto curr = &label;
-        if(!curr->deleted) {
-            while(curr->n != source) {
 
-                path.push_back(graph.head(curr->pred_edge));
-                curr = curr->pred_label;
+#if defined USE_TREE_DELETION || defined STATS
+        if(!curr->deleted)
+        {
+#endif
+            while(curr->n != source)
+            {
+                path.push_back(curr->n);
 
+#ifndef NDEBUG
+                Label* test = curr;
+#endif
+                node pred_node = graph.tail(curr->pred_edge);
+
+                assert(pred_node != curr->n);
+
+                for(auto& candidate_label : node_entries[pred_node].labels())
+                {
+                    if(candidate_label.label_id == curr->pred_label_id)
+                    {
+                        curr = &candidate_label;
+                        break;
+                    }
+                }
+
+                assert(test != curr);
             }
 
             assert(path.size() > 0);
 
+            path.push_back(source);
+
             path.reverse();
 
             add_solution(path, label.cost);
+#if defined USE_TREE_DELETION || defined STATS
         }
+#endif
     }
 }
 

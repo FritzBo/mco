@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
 
         if(print_summary && choosen_module->type == ALGORITHM) {
 
-            auto algo_module = dynamic_cast<AlgorithmModule<list<edge>>*>(choosen_module);
+            auto algo_module = dynamic_cast<BasicAlgorithmModule*>(choosen_module);
 
             if(print_verbose) {
                 cout << "Statistics: " << algo_module->statistics() << endl;
