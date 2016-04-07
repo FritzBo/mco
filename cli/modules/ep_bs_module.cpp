@@ -39,6 +39,7 @@ using TCLAP::MultiArg;
 #include <mco/ep/basic/dijkstra.h>
 #include <mco/ep/preprocessing/constrained_reach.h>
 #include <mco/ep/brum_shier/ep_solver_bs.h>
+#include <mco/ep/brum_shier/ep_solver_bs_bi.h>
 #include <mco/ep/ep_lc_ls.h>
 #include <mco/ep/dual_benson/ep_dual_benson.h>
 #include <mco/benchmarks/temporary_graphs_parser.h>
@@ -46,6 +47,7 @@ using TCLAP::MultiArg;
 #include <mco/cli/parse_util.h>
 
 using mco::EpSolverBS;
+using mco::EpSolverBSBi;
 using mco::EpLcLs;
 using mco::TemporaryGraphParser;
 using mco::Point;
@@ -223,14 +225,12 @@ void EpBsModule::perform(int argc, char** argv) {
 
 //        EdgeArray<Point>* scaled_costs = nullptr;
 
-
-        if(!label_select)
+        if(dimension == 2)
         {
 
-            EpSolverBS solver;
-            
 //            solver.set_bounds(bounds);
 //            solver.set_heuristic(ideal_heuristic);
+            EpSolverBSBi solver;
 
             steady_clock::time_point start = steady_clock::now();
 
@@ -255,6 +255,39 @@ void EpBsModule::perform(int argc, char** argv) {
             arc_pushes_ = solver.arc_pushes();
             touched_recursively_deleted_label_ = solver.touched_recursively_deleted_label();
             deleted_labels_ = solver.deleted_labels();
+            method_ = "ns-bi";
+        }
+        else if(!label_select)
+        {
+                EpSolverBS solver;
+                
+//            solver.set_bounds(bounds);
+//            solver.set_heuristic(ideal_heuristic);
+
+                steady_clock::time_point start = steady_clock::now();
+
+                solver.Solve(graph,
+                             cost_function,
+                             dimension,
+                             source,
+                             target);
+
+                steady_clock::time_point end = steady_clock::now();
+                duration<double> computation_span
+                = duration_cast<duration<double>>(end - start);
+                solution_time_ = computation_span.count();
+
+                solutions_.insert(solutions_.begin(),
+                                  solver.solutions().cbegin(),
+                                  solver.solutions().cend());
+
+                label_compares_ = solver.label_compares();
+                deleted_tree_labels_ = solver.deleted_tree_labels();
+                recursive_deletions_ = solver.recursive_deletions();
+                arc_pushes_ = solver.arc_pushes();
+                touched_recursively_deleted_label_ = solver.touched_recursively_deleted_label();
+                deleted_labels_ = solver.deleted_labels();
+                method_ = "ns";
         }
         else
         {
@@ -280,9 +313,8 @@ void EpBsModule::perform(int argc, char** argv) {
             arc_pushes_ = solver.arc_pushes();
             touched_recursively_deleted_label_ = solver.touched_recursively_deleted_label();
             deleted_labels_ = solver.deleted_labels();
+            method_ = "ls";
         }
-
-        label_select_ = label_select;
 
 //        delete scaled_costs;
 
@@ -422,7 +454,7 @@ string EpBsModule::statistics() {
     sstream << ", ";
     sstream << num_objectives_;
     sstream << ", ";
-    sstream << (label_select_ ? string("ls") : string("ns"));
+    sstream << method_;
     sstream << ", ";
     sstream << label_compares_;
     sstream << ", ";

@@ -6,8 +6,8 @@
  *      Author: fritz
  */
 
-#ifndef BSSSA_H_
-#define BSSSA_H_
+#ifndef BSSSA_BI_H_
+#define BSSSA_BI_H_
 
 //#define USE_TREE_DELETION
 //#define STATS
@@ -21,13 +21,13 @@
 namespace mco
 {
 
-class EpSolverBS : public AbstractSolver<std::list<mco::node>>
+class EpSolverBSBi : public AbstractSolver<std::list<mco::node>>
 {
 
     using heuristic_type = std::function<double(node, unsigned)>;
     
 public:
-	EpSolverBS(double epsilon = 0)
+	EpSolverBSBi(double epsilon = 0)
     : epsilon_(epsilon)
     {
     }
@@ -50,7 +50,7 @@ public:
         use_bounds_ = true;
     }
 
-    ~EpSolverBS()
+    ~EpSolverBSBi()
     {
 #if defined USE_TREE_DELETION && defined STATS && !defined NDEBUG
         std::cout << "Tree-deleted labels: " << deleted_tree_labels_ << std::endl;
@@ -130,6 +130,15 @@ private:
         std::list<Label*> successors;
         bool deleted = false;
 #endif
+
+        Label()
+        :   cost(Point()),
+            n(nullnode),
+            pred_edge(nulledge),
+            pred_label_id(0)
+        {
+            label_id = 0;
+        }
 
         Label(Point cost,
               node n,
@@ -248,10 +257,23 @@ private:
 
     inline void remove_label(Label& label);
 
+    int compare(Label const &a, Label const &b);
+
+    void foo(std::vector<Label> &N,
+             std::vector<Label> &pushed,
+             std::vector<Label> &pending);
+
+//    bool merge(std::vector<Label>& input_set,
+//               std::vector<Label>& target_set,
+//               bool insert = false);
+//
+//    void clean_set(std::vector<Label>& set,
+//                   std::vector<unsigned>& positions,
+//                   std::vector<std::pair<unsigned, unsigned>>* insertions);
 
 };
 
-inline void EpSolverBS::remove_label(Label& label)
+inline void EpSolverBSBi::remove_label(Label& label)
 {
 #if defined USE_TREE_DELETION || defined STATS
 #if defined STATS && !defined USE_TREE_DELETION

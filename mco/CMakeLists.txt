@@ -19,6 +19,7 @@ include/mco/basic/lex_point_comparator.h
 include/mco/basic/abstract_solver.h
 include/mco/basic/abstract_graph_instance.h
 include/mco/basic/weight_function_adaptors.h
+include/mco/basic/ringbuffer.h
 include/mco/basic/utility.h
 include/mco/basic/cdd_files.h
 include/mco/basic/forward_star.h
@@ -50,6 +51,7 @@ include/mco/ep/basic/ep_instance.h
 include/mco/ep/basic/abstract_ep_solver.h
 include/mco/ep/basic/ep_lagrange_bisect.h
 include/mco/ep/brum_shier/ep_solver_bs.h
+include/mco/ep/brum_shier/ep_solver_bs_bi.h
 include/mco/ep/brum_shier/ep_solver_bs_par.h
 include/mco/ep/brum_shier/ep_weighted_bs.h
 include/mco/ep/ep_lc_ls.h
@@ -137,6 +139,7 @@ src/benchmarks/temporary_graphs_parser.cpp
 src/ep/basic/ep_instance.cpp
 src/ep/basic/ep_lagrange_bisect.cpp
 src/ep/brum_shier/ep_solver_bs.cpp
+src/ep/brum_shier/ep_solver_bs_bi.cpp
 src/ep/brum_shier/ep_solver_bs_par.cpp
 src/ep/brum_shier/ep_weighted_bs.cpp
 src/ep/ep_lc_ls.cpp

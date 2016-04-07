@@ -335,6 +335,8 @@ void EpLcLs::Solve(const ForwardStar& graph,
 
     }
 
+
+    // TODO: pred_label pointer zeigen ins leere!
     for(unsigned i = 0; i < node_entries[target].labels_end(); ++i)
     {
         list<edge> path;

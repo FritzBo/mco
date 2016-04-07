@@ -25,6 +25,7 @@ using std::pair;
 #include <mco/basic/point.h>
 #include <mco/ep/basic/ep_instance.h>
 #include <mco/basic/utility.h>
+#include <mco/basic/ringbuffer.h>
 
 namespace mco {
 
