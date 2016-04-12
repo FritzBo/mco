@@ -41,7 +41,7 @@ using TCLAP::SwitchArg;
 #include <mco/generic/benson_dual/ove_cdd_gmp.h>
 #include <mco/generic/benson_dual/ove_node_lists.h>
 #include <mco/generic/benson_dual/ove_edge_lists.h>
-#include <mco/generic/benson_dual/ove_ppl.h>
+//#include <mco/generic/benson_dual/ove_ppl.h>
 #include <mco/basic/point.h>
 
 #include <mco/generic/benson_dual/upper_image_container.h>
@@ -50,7 +50,7 @@ using mco::Point;
 using mco::MCAPParser;
 using mco::AssignmentInstance;
 using mco::APBensonDualSolver;
-using mco::OnlineVertexEnumeratorPPL;
+//using mco::OnlineVertexEnumeratorPPL;
 using mco::OnlineVertexEnumeratorCDD;
 using mco::OnlineVertexEnumeratorCddGmp;
 
@@ -84,7 +84,7 @@ void ApBensonModule::perform(int argc, char** argv) {
 
         cmd.add(epsilon_argument);
         cmd.add(file_name_argument);
-        cmd.add(use_ppl_arg);
+//        cmd.add(use_ppl_arg);
         cmd.add(use_cdd_arg);
         cmd.add(use_cdd_gmp_arg);
         cmd.add(use_gl_ove_arg);
@@ -174,7 +174,7 @@ void ApBensonModule::perform(int argc, char** argv) {
                 auto writer = get_upper_image_writer(&solver);
                 writer.write_image(output_file_name, &solver);
             }
-        } else if(use_ppl & !use_gl_ove && !use_nl_ove) {
+        } /*else if(use_ppl & !use_gl_ove && !use_nl_ove) {
 
             mode_ = "ppl";
 
@@ -193,7 +193,7 @@ void ApBensonModule::perform(int argc, char** argv) {
             auto writer = get_upper_image_writer(&solver);
             writer.write_image(output_file_name, &solver);
 
-        } else if(use_gl_ove && !use_nl_ove) {
+        }*/ else if(use_gl_ove && !use_nl_ove) {
 
             mode_ = "gl";
 
