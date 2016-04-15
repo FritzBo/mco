@@ -17,13 +17,19 @@
 
 namespace mco {
 
-class EpSolverTsaggourisApprox: public mco::AbstractEpSolver {
+class EpSolverTsaggourisApprox: public mco::AbstractEpSolver
+{
 	const Point epsilon_;
 
-	unsigned int position(const Point &) const;
-	void ExtendAndMerge(std::vector<const Label *> &, const ogdf::edge, const ogdf::node, std::vector<const Label *> &) const;
+	unsigned position(const Point &) const;
+	void ExtendAndMerge(std::vector<const Label *> &,
+                        const ogdf::edge,
+                        const ogdf::node,
+                        std::vector<const Label *> &) const;
 
 	std::vector<double> c_min_;
+    std::vector<double> c_max_;
+    std::vector<double> max_path_cost_;
 	std::vector<double> bases_;
 
 public:

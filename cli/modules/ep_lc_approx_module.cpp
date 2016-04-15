@@ -170,10 +170,10 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         LCApprox solver;
 
 
-        if(ideal_bounds_arg.getValue().size() > 0 ||
-           absolute_bounds_arg.getValue().size() > 0) {
-            solver.set_bound(bounds);
-        }
+//        if(ideal_bounds_arg.getValue().size() > 0 ||
+//           absolute_bounds_arg.getValue().size() > 0) {
+//            solver.set_bound(bounds);
+//        }
 
         if(disjunctive_bound_arg.getValue().size() > 0) {
             solver.add_disjunctive_bounds(disjuncitve_bounds.begin(),

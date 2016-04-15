@@ -37,99 +37,207 @@ using ogdf::Graph;
 
 namespace mco {
 
-EpSolverTsaggourisApprox::EpSolverTsaggourisApprox(EpInstance &instance, const Point epsilon) : AbstractEpSolver(instance), epsilon_(epsilon) {
+EpSolverTsaggourisApprox::
+EpSolverTsaggourisApprox(EpInstance &instance,
+                         const Point epsilon)
+:   AbstractEpSolver(instance),
+    epsilon_(epsilon)
+{
 }
 
-unsigned int EpSolverTsaggourisApprox::position(const Point &point) const {
+unsigned EpSolverTsaggourisApprox::position(const Point &point) const
+{
+
 	unsigned int pos = 0;
+
 	for(unsigned int i = 0; i < instance().dimension() - 1; ++i)
-		pos += bases_[i] * static_cast<unsigned int>(floor(log(point[i]/c_min_[i])/log(epsilon_[i])));
+    {
+        double dpos = log(point[i] / c_min_[i]) / log(epsilon_[i]);
+		pos += bases_[i] * static_cast<unsigned>(floor(dpos));
+    }
 	return pos;
 }
 
-void EpSolverTsaggourisApprox::ExtendAndMerge(vector<const Label *> &old_Py_n, const edge e, const node n, vector<const Label *> &new_Py_n) const {
-	const function<Point *(edge)> & weights = instance().weights();
-	const unsigned int dimension = instance().dimension();
+void EpSolverTsaggourisApprox::ExtendAndMerge(vector<const Label *> &old_Py_n,
+                                              const edge e,
+                                              const node n,
+                                              vector<const Label *> &new_Py_n) const {
 
-	for(auto label : old_Py_n) {
+	auto& weights = instance().weights();
+	auto dimension = instance().dimension();
+
+	for(auto label : old_Py_n)
+    {
 		if(label == nullptr)
+        {
 			continue;
+        }
 
-		const Label *new_label = new const Label(new Point(*label->point + *weights(e)), n, label);
-		const Label *old_label = new_Py_n[position(*new_label->point)];
-		if(old_label == nullptr || (*new_label->point)[dimension - 1] < (*old_label->point)[dimension - 1]) {
-			new_Py_n[position(*new_label->point)] = new_label;
+		auto new_label = new const Label(label->point + *weights(e), n, label);
+
+//        bool too_large = false;
+//        for(unsigned i = 0; i < dimension - 1; ++i)
+//        {
+//            if(new_label->point[i] > max_path_cost_[i])
+//            {
+//                too_large = true;
+//            }
+//        }
+//        if(too_large)
+//        {
+//            std::cout << new_label->point << std::endl;
+//            const Label* curr = new_label;
+//            unsigned length = 0;
+//            while(curr->n->index() != 1 && length < 80)
+//            {
+//                std::cout << curr->n << ", ";
+//                curr = curr->pred;
+//                ++length;
+//            }
+//            std::cout << std::endl;
+//            std::cout << "length: " << length << std::endl;
+//            delete new_label;
+//            continue;
+//        }
+
+		auto old_label = new_Py_n[position(new_label->point)];
+
+		if(old_label == nullptr ||
+           new_label->point[dimension - 1] < old_label->point[dimension - 1])
+        {
+			new_Py_n[position(new_label->point)] = new_label;
 			delete old_label;
-		} else
+		}
+        else
+        {
 			delete new_label;
+        }
 	}
 }
 
-void EpSolverTsaggourisApprox::Solve() {
+void EpSolverTsaggourisApprox::Solve()
+{
 	const unsigned int dimension = instance().dimension();
 	const Graph &graph = instance().graph();
 	const function<Point *(edge)> & weights = instance().weights();
 
-	vector<double> c_max(dimension - 1);
-	c_min_.reserve(dimension - 1);
+    c_max_.resize(dimension - 1);
+	c_min_.resize(dimension - 1);
+    max_path_cost_.resize(dimension - 1);
 
-	for(unsigned int i = 0; i < dimension - 1; ++i) {
-		c_max[i] = 0;
+	for(unsigned int i = 0; i < dimension - 1; ++i)
+    {
+		c_max_[i] = 0;
 		c_min_[i] = numeric_limits<double>::infinity();
 	}
 
-    for(auto e : graph.edges) {
+    for(auto e : graph.edges)
+    {
 		if(e->isSelfLoop())
+        {
 			continue;
+        }
 
-		for(unsigned int i = 0; i < dimension - 1; ++i) {
-			c_max[i] = max(c_max[i], (*weights(e))[i]);
+		for(unsigned int i = 0; i < dimension - 1; ++i)
+        {
+			c_max_[i] = max(c_max_[i], (*weights(e))[i]);
 			c_min_[i] = min(c_min_[i], (*weights(e))[i]);
 
 			if(c_min_[i] == 0)
+            {
 				throw invalid_argument("Edge cost 0 is not allowed.");
+            }
 		}
 	}
 
-	double a;
-	unsigned int size = 1;
-	bases_.reserve(dimension - 1);
+    for(unsigned i = 0; i < dimension - 1; ++i)
+    {
+        max_path_cost_[i] = static_cast<unsigned>(c_max_[i] * (graph.numberOfNodes() - 1));
+    }
 
-	for(unsigned int i = 0; i < dimension - 1; ++i) {
-		a = log(graph.numberOfNodes() * (c_max[i] / c_min_[i])) / log(epsilon_[i]);
-		bases_[i] = size;
+//    std::cout << "c_max_: ";
+//    for(auto x : c_max_)
+//    {
+//        std::cout << x << " ";
+//    }
+//    std::cout << std::endl;
+//
+//    std::cout << "c_min: ";
+//    for(auto x : c_min_)
+//    {
+//        std::cout << x << " ";
+//    }
+//    std::cout << std::endl;
+
+	double a;
+	unsigned size = 1;
+	bases_.resize(dimension - 1);
+
+	for(unsigned i = 0; i < dimension - 1; ++i)
+    {
+		a = log(graph.numberOfNodes() * c_max_[i]) / log(epsilon_[i]) + 1;
+        bases_[i] = size;
 		size *= static_cast<unsigned int>(floor(a));
 	}
 
+//    std::cout << "bases: ";
+//    for(auto x : bases_)
+//    {
+//        std::cout << x << " ";
+//    }
+//    std::cout << std::endl;
+
 	NodeArray<vector<const Label *>> * old_Py = new NodeArray<vector<const Label *>>(graph);
 
-    for(auto n : graph.nodes) {
+    for(auto n : graph.nodes)
+    {
 		(*old_Py)[n].resize(size, nullptr);
 	}
 
-	(*old_Py)[instance().source()][0] = new Label(new Point(dimension), nullptr, nullptr);
+	(*old_Py)[instance().source()][0] = new Label(Point(dimension), nullptr, nullptr);
 
-	for(int i = 1; i < graph.numberOfNodes(); ++i) {
-        std::cout << i << std::endl;
-        for(auto n : graph.nodes) {
-			auto new_Py = new NodeArray<vector<const Label *>>(*old_Py);
-            for(auto adj : n->adjEntries) {
+	for(int i = 1; i < graph.numberOfNodes(); ++i)
+    {
+//        std::cout << i << std::endl;
+
+        auto new_Py = new NodeArray<vector<const Label *>>(graph);
+        for(auto n : graph.nodes)
+        {
+            (*new_Py)[n].resize(size, nullptr);
+        }
+
+        for(auto n : graph.nodes)
+        {
+            if(n == instance().source())
+            {
+                continue;
+            }
+
+            for(auto adj : n->adjEntries)
+            {
                 auto e = adj->theEdge();
 				if(e->target() != n)
+                {
 					continue;
+                }
 
 				ExtendAndMerge((*old_Py)[e->source()], e, e->source(), (*new_Py)[n]);
 			}
-			delete old_Py;
-			old_Py = new NodeArray<vector<const Label *>>(*new_Py);
-			delete new_Py;
 		}
+
+        delete old_Py;
+        old_Py = new NodeArray<vector<const Label *>>(*new_Py);
+        delete new_Py;
     }
 
 	list<pair<csolution_type, const Point>> target_points;
-	for(auto label : (*old_Py)[instance().target()])
+    for(auto label : (*old_Py)[instance().target()])
+    {
 		if(label != nullptr)
-			target_points.push_back(make_pair(list<edge>(), *label->point));
+        {
+			target_points.push_back(make_pair(list<edge>(), label->point));
+        }
+    }
 
 	add_solutions(target_points.begin(), target_points.end());
 

@@ -87,25 +87,25 @@ void EpTsaggourisModule::perform(int argc, char** argv) {
         unsigned exact_objective = exact_argument.getValue();
         
         Graph graph;
-        EdgeArray<Point> raw_costs(graph);
+        EdgeArray<Point> costs(graph);
         unsigned dimension;
         node source, target;
         
         TemporaryGraphParser parser;
         
-        parser.getGraph(file_name, graph, raw_costs, dimension, source, target);
+        parser.getGraph(file_name, graph, costs, dimension, source, target);
 
-        EdgeArray<Point> costs(graph, Point(dimension));
-        Point factor(100.0, dimension);
-        InstanceScalarizer::scaleround_instance(graph,
-                                                raw_costs,
-                                                dimension,
-                                                factor,
-                                                costs);
+//        EdgeArray<Point> costs(graph, Point(dimension));
+//        Point factor(100.0, dimension);
+//        InstanceScalarizer::scaleround_instance(graph,
+//                                                raw_costs,
+//                                                dimension,
+//                                                factor,
+//                                                costs);
+//
+//
+//        vector<NodeArray<double>> distances(dimension, graph);
 
-
-        vector<NodeArray<double>> distances(dimension, graph);
-        
 //        calculate_ideal_heuristic(graph,
 //                                  costs,
 //                                  dimension,

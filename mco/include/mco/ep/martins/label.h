@@ -16,16 +16,30 @@
 namespace mco {
 
 struct Label {
-	const Point * const point;
+	const Point point;
 	ogdf::node n;
 	const Label * const pred;
 	bool mark_dominated;
 
-	Label(const Point *point, ogdf::node n, const Label *pred);
-	Label(const Label &label);
-	Label & operator=(const Label &label) = delete;
+    inline Label(Point&& point,
+                 ogdf::node n,
+                 const Label *pred)
+    :   point(std::move(point)),
+        n(n),
+        pred(pred),
+        mark_dominated(false)
+    {
+    }
 
-	~Label();
+    inline Label(const Label &label)
+    :   point(label.point),
+        n(label.n),
+        pred(label.pred),
+        mark_dominated(label.mark_dominated)
+    {
+    }
+
+	Label & operator=(const Label &label) = delete;
 };
 
 }
