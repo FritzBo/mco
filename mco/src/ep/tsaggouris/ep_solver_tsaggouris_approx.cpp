@@ -105,8 +105,8 @@ void EpSolverTsaggourisApprox::ExtendAndMerge(vector<const Label *> &old_Py_n,
 		if(old_label == nullptr ||
            new_label->point[dimension - 1] < old_label->point[dimension - 1])
         {
+            delete old_label;
 			new_Py_n[position(new_label->point)] = new_label;
-			delete old_label;
 		}
         else
         {
@@ -225,6 +225,13 @@ void EpSolverTsaggourisApprox::Solve()
 			}
 		}
 
+        for(node n : graph.nodes)
+        {
+            for(auto l : old_Py->operator[](n))
+            {
+                delete l;
+            }
+        }
         delete old_Py;
         old_Py = new NodeArray<vector<const Label *>>(*new_Py);
         delete new_Py;
@@ -241,6 +248,13 @@ void EpSolverTsaggourisApprox::Solve()
 
 	add_solutions(target_points.begin(), target_points.end());
 
+    for(node n : graph.nodes)
+    {
+        for(auto l : old_Py->operator[](n))
+        {
+            delete l;
+        }
+    }
 	delete old_Py;
 }
 
