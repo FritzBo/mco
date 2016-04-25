@@ -1,0 +1,1 @@
+add_executable(appr_ratio src/appr_ratio.cpp)
