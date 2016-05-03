@@ -74,6 +74,9 @@ void find_sidetracks(Graph& graph,
         }
     }
 
+    Point epsilon(1E-6, costs(graph.chooseEdge())->dimension());
+    LexPointComparator comp;
+
     for(auto e : graph.edges)
     {
         if(sp_edges[e])
@@ -83,8 +86,6 @@ void find_sidetracks(Graph& graph,
 
         node tail = e->source();
         node head = e->target();
-        Point epsilon(1E-6, costs(graph.chooseEdge())->dimension());
-        LexPointComparator comp;
 
         if(comp(*distances[tail] - *distances[head] + *costs(e), epsilon))
         {
