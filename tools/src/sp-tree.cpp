@@ -97,8 +97,7 @@ void find_sidetracks(Graph& graph,
     }
 }
 
-void print_root_to_leaf_path(Graph& graph,
-                             NodeArray<edge>& predecessors,
+void print_root_to_leaf_path(NodeArray<edge>& predecessors,
                              NodeArray<Point*>& distances,
                              node source,
                              node n,
@@ -182,17 +181,21 @@ int main(int argc, char** argv)
 
         SwitchArg is_directed_arg("d", "directed", "Should the input be interpreted as a directed graph?", false);
 
+        SwitchArg count_only_arg("c", "count", "Should only the number of leaves be counted?", false);
+
         ValueArg<string> weight_arg("W", "weight", "Adding a weighted-sum as first objective", false, "", "weight");
 
 
         cmd.add(file_name_argument);
         cmd.add(is_directed_arg);
         cmd.add(weight_arg);
+        cmd.add(count_only_arg);
 
         cmd.parse(argc, argv);
 
         string file_name = file_name_argument.getValue();
         bool is_directed = is_directed_arg.getValue();
+        bool count_only = count_only_arg.getValue();
 
         Graph graph;
         EdgeArray<Point> costs(graph);
@@ -270,20 +273,28 @@ int main(int argc, char** argv)
         vector<node> leaves;
         compute_leaves(graph, predecessors, leaves);
 
-        print_root_to_leaf_path(graph, predecessors, distances, source, target, weighted);
-
-        for(auto n : leaves)
+        if(count_only)
         {
-            if(n != source)
-            {
-                print_root_to_leaf_path(graph, predecessors, distances, source, n, weighted);
-            }
+            std::cout << leaves.size() << std::endl;
         }
+        else
+        {
 
-        vector<edge> sidetracks;
-        find_sidetracks(graph, cost_function, predecessors, distances, sidetracks);
+            print_root_to_leaf_path(predecessors, distances, source, target, weighted);
 
-        print_sidetracks(sidetracks, cost_function, weighted);
+            for(auto n : leaves)
+            {
+                if(n != source)
+                {
+                    print_root_to_leaf_path(predecessors, distances, source, n, weighted);
+                }
+            }
+
+            vector<edge> sidetracks;
+            find_sidetracks(graph, cost_function, predecessors, distances, sidetracks);
+
+            print_sidetracks(sidetracks, cost_function, weighted);
+        }
 
 
         for(auto n : graph.nodes) {
