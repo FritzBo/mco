@@ -136,7 +136,7 @@ void compute_leaves(Graph& graph,
     {
         if(predecessors[n] != nullptr)
         {
-            leaf_candidate[predecessors[n]->source()] = false;
+            leaf_candidate[predecessors[n]->opposite(n)] = false;
         }
     }
     for(auto n: graph.nodes)
