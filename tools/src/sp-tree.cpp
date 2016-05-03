@@ -46,13 +46,16 @@ using mco::LexPointComparator;
 using cost_function_type = std::function<Point*(edge)>;
 
 void print_sidetracks(std::vector<edge>& sidetracks,
-                      cost_function_type costs)
+                      cost_function_type costs,
+                      bool weighted)
 {
     for(auto e : sidetracks)
     {
-        for(auto d : *costs(e))
+        unsigned start = weighted ? 1 : 0;
+        assert(costs(e)->dimension() > 0);
+        for(unsigned i = start; i < costs(e)->dimension(); ++i)
         {
-            std::cout << d << ", ";
+            std::cout << (*costs(e))[i] << ", ";
         }
         std::cout << e->source() << ", " << e->target() << ", " << std::endl;
     }
@@ -98,10 +101,13 @@ void print_root_to_leaf_path(Graph& graph,
                              NodeArray<edge>& predecessors,
                              NodeArray<Point*>& distances,
                              node source,
-                             node n)
+                             node n,
+                             bool weighted)
 {
-    for(auto d : *distances[n]) {
-        std::cout << d << ", ";
+    unsigned start = weighted ? 1 : 0;
+    assert(distances[n]->dimension() > 0);
+    for(unsigned i = start; i < distances[n]->dimension(); ++i) {
+        std::cout << (*distances[n])[i] << ", ";
     }
 
     list<node> path;
@@ -204,6 +210,7 @@ int main(int argc, char** argv)
 
         std::function<Point*(edge)> cost_function;
         EdgeArray<Point>* weighted_cost = nullptr;
+        bool weighted;
 
         if(weight_arg.isSet()) {
 
@@ -236,6 +243,8 @@ int main(int argc, char** argv)
                                            predecessors,
                                            is_directed ? DijkstraModes::Forward : DijkstraModes::Undirected);
 
+            weighted = true;
+
 
 
         } else {
@@ -253,26 +262,28 @@ int main(int argc, char** argv)
                                            distances,
                                            predecessors,
                                            is_directed ? DijkstraModes::Forward : DijkstraModes::Undirected);
+
+            weighted = false;
             
         }
 
         vector<node> leaves;
         compute_leaves(graph, predecessors, leaves);
 
-        print_root_to_leaf_path(graph, predecessors, distances, source, target);
+        print_root_to_leaf_path(graph, predecessors, distances, source, target, weighted);
 
         for(auto n : leaves)
         {
             if(n != source)
             {
-                print_root_to_leaf_path(graph, predecessors, distances, source, n);
+                print_root_to_leaf_path(graph, predecessors, distances, source, n, weighted);
             }
         }
 
         vector<edge> sidetracks;
         find_sidetracks(graph, cost_function, predecessors, distances, sidetracks);
 
-        print_sidetracks(sidetracks, cost_function);
+        print_sidetracks(sidetracks, cost_function, weighted);
 
 
         for(auto n : graph.nodes) {
