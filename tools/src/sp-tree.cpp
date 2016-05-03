@@ -42,9 +42,24 @@ using mco::DijkstraModes;
 using mco::TemporaryGraphParser;
 using mco::LexPointComparator;
 
+
+using cost_function_type = std::function<Point*(edge)>;
+
+void print_sidetracks(std::vector<edge>& sidetracks,
+                      cost_function_type costs)
+{
+    for(auto e : sidetracks)
+    {
+        for(auto d : *costs(e))
+        {
+            std::cout << d << ", ";
+        }
+        std::cout << e->source() << ", " << e->target() << ", " << std::endl;
+    }
+}
+
 void find_sidetracks(Graph& graph,
-                     unsigned dimension,
-                     EdgeArray<Point>& costs,
+                     cost_function_type costs,
                      NodeArray<edge>& predecessors,
                      NodeArray<Point*>& distances,
                      vector<edge>& sidetracks)
@@ -68,10 +83,10 @@ void find_sidetracks(Graph& graph,
 
         node tail = e->source();
         node head = e->target();
-        Point epsilon(1E-6, dimension);
+        Point epsilon(1E-6, costs(graph.chooseEdge())->dimension());
         LexPointComparator comp;
 
-        if(comp(*distances[tail] - *distances[head] + costs[e], epsilon))
+        if(comp(*distances[tail] - *distances[head] + *costs(e), epsilon))
         {
             sidetracks.push_back(e);
         }
@@ -186,19 +201,22 @@ int main(int argc, char** argv)
 
         LexDijkstra sssp;
 
+        std::function<Point*(edge)> cost_function;
+        EdgeArray<Point>* weighted_cost = nullptr;
+
         if(weight_arg.isSet()) {
 
             Point weight = parse_weight(weight_arg, dimension);
 
-            EdgeArray<Point> weighted_cost(graph);
+            weighted_cost = new ogdf::EdgeArray<Point>(graph);
 
             for(auto e : graph.edges) {
-                weighted_cost[e] = Point(dimension + 1);
+                (*weighted_cost)[e] = Point(dimension + 1);
 
-                weighted_cost[e][0] = weight * costs[e];
+                (*weighted_cost)[e][0] = weight * costs[e];
 
                 for(unsigned i = 1; i <= dimension; ++i) {
-                    weighted_cost[e][i] = costs[e][i - 1];
+                    (*weighted_cost)[e][i] = costs[e][i - 1];
                 }
             }
 
@@ -206,8 +224,8 @@ int main(int argc, char** argv)
                 distances[n] = new Point(dimension + 1);
             }
 
-            auto cost_function = [&weighted_cost] (edge e) {
-                return &weighted_cost[e];
+            cost_function = [weighted_cost] (edge e) {
+                return &(*weighted_cost)[e];
             };
 
             sssp.singleSourceShortestPaths(graph,
@@ -220,7 +238,7 @@ int main(int argc, char** argv)
 
 
         } else {
-            auto cost_function = [&costs] (edge e) {
+            cost_function = [&costs] (edge e) {
                 return &costs[e];
             };
 
@@ -251,16 +269,16 @@ int main(int argc, char** argv)
         }
 
         vector<edge> sidetracks;
-        find_sidetracks(graph, dimension, costs, predecessors, distances, sidetracks);
+        find_sidetracks(graph, cost_function, predecessors, distances, sidetracks);
 
-        for(auto e : sidetracks)
-        {
-            std::cout << e << std::endl;
-        }
+        print_sidetracks(sidetracks, cost_function);
+
 
         for(auto n : graph.nodes) {
             delete distances[n];
         }
+
+        delete weighted_cost;
         
     } catch(ArgException& e) {
         std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
