@@ -43,6 +43,7 @@ using mco::LexDijkstra;
 using mco::DijkstraModes;
 using mco::TemporaryGraphParser;
 using mco::LexPointComparator;
+using mco::EqualityPointComparator;
 
 
 using cost_function_type = std::function<Point*(edge)>;
@@ -142,7 +143,7 @@ void find_sidetracks(Graph& graph,
         }
     }
 
-    mco::EqualityPointComparator eq(1E-6);
+    EqualityPointComparator eq(1E-6);
 
     for(auto e : graph.edges)
     {
@@ -154,7 +155,7 @@ void find_sidetracks(Graph& graph,
         node tail = e->source();
         node head = e->target();
 
-        if(eq(*distances[tail], *distances[head] + *costs(e)))
+        if(eq(*distances[tail] + *costs(e), *distances[head]))
         {
             sidetracks.push_back(e);
         }
