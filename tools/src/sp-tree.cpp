@@ -10,10 +10,12 @@
 #include <string>
 #include <list>
 #include <vector>
+#include <deque>
 
 using std::string;
 using std::list;
 using std::vector;
+using std::deque;
 
 #include <tclap/CmdLine.h>
 
@@ -46,11 +48,17 @@ using mco::LexPointComparator;
 using cost_function_type = std::function<Point*(edge)>;
 
 void print_sidetracks(std::vector<edge>& sidetracks,
+                      EdgeArray<bool>& filter,
                       cost_function_type costs,
                       bool weighted)
 {
     for(auto e : sidetracks)
     {
+        if(!filter[e])
+        {
+            continue;
+        }
+
         unsigned start = weighted ? 1 : 0;
         assert(costs(e)->dimension() > 0);
         for(unsigned i = start; i < costs(e)->dimension(); ++i)
@@ -58,6 +66,63 @@ void print_sidetracks(std::vector<edge>& sidetracks,
             std::cout << (*costs(e))[i] << ", ";
         }
         std::cout << e->source() << ", " << e->target() << ", " << std::endl;
+    }
+}
+
+void filter_edges(Graph& graph,
+                  node target,
+                  NodeArray<edge>& predecessors,
+                  vector<edge>& sidetracks,
+                  EdgeArray<bool>& filter)
+{
+
+    // Construct directed graph
+
+    NodeArray<vector<edge>> back_edges(graph);
+
+    for(auto n : graph.nodes)
+    {
+        if(predecessors[n] != nullptr)
+        {
+            back_edges[n].push_back(predecessors[n]);
+        }
+    }
+
+    for(auto e : sidetracks)
+    {
+        back_edges[e->target()].push_back(e);
+    }
+
+    // BFS
+    deque<node> queue;
+    NodeArray<bool> seen(graph, false);
+    queue.push_back(target);
+    node curr = nullptr;
+
+    while(!queue.empty())
+    {
+        curr = queue.front();
+        queue.pop_front();
+        if(seen[curr])
+        {
+            continue;
+        }
+        seen[curr] = true;
+
+        for(auto e : back_edges[curr])
+        {
+            if(e->source() == curr)
+            {
+                continue;
+            }
+
+            filter[e] = true;
+
+            if(!seen[e->source()])
+            {
+                queue.push_back(e->source());
+            }
+        }
     }
 }
 
@@ -97,33 +162,52 @@ void find_sidetracks(Graph& graph,
     }
 }
 
-void print_root_to_leaf_path(NodeArray<edge>& predecessors,
+void print_root_to_leaf_path(EdgeArray <Point>& costs,
+                             NodeArray<edge>& predecessors,
                              NodeArray<Point*>& distances,
+                             NodeArray<bool>& printed_nodes,
+                             EdgeArray<bool> filter,
                              node source,
                              node n,
+                             unsigned dimension,
                              bool weighted)
 {
-    unsigned start = weighted ? 1 : 0;
-    assert(distances[n]->dimension() > 0);
-    for(unsigned i = start; i < distances[n]->dimension(); ++i) {
-        std::cout << (*distances[n])[i] << ", ";
-    }
-
-    list<node> path;
+    Point cost(dimension);
+    deque<node> path;
     auto curr = n;
     path.push_front(curr);
 
-    while(curr != source) {
+    while(curr != source&& !printed_nodes[curr]) {
+
+        cost += costs[predecessors[curr]];
+
+        if(!filter[predecessors[curr]])
+        {
+            path.clear();
+
+            for(unsigned i = 0; i < cost.dimension(); ++i)
+            {
+                cost[i] = 0;
+            }
+        }
 
         curr = predecessors[curr]->opposite(curr);
         path.push_front(curr);
     }
 
-    for(auto n : path) {
-        std::cout << n << ", ";
-    }
+    if(path.size() > 1)
+    {
+        for(unsigned i = 0; i < cost.dimension(); ++i) {
+            std::cout << cost[i] << ", ";
+        }
 
-    std::cout << std::endl;
+        for(auto n : path) {
+            std::cout << n << ", ";
+            printed_nodes[n] = true;
+        }
+
+        std::cout << std::endl;
+    }
 }
 
 void compute_leaves(Graph& graph,
@@ -167,6 +251,21 @@ Point parse_weight(ValueArg<string>& argument,
     return r;
 }
 
+void double_edges(Graph& graph,
+                  EdgeArray<Point>& costs)
+{
+    vector<edge> edges;
+    for(auto e : graph.edges)
+    {
+        edges.push_back(e);
+    }
+    for(auto e : edges)
+    {
+        auto new_edge = graph.newEdge(e->target(), e->source());
+        costs[new_edge] = costs[e];
+    }
+}
+
 int main(int argc, char** argv)
 {
     // todo: remove
@@ -206,6 +305,11 @@ int main(int argc, char** argv)
 
         parser.getGraph(file_name, graph, costs, dimension, source, target);
 
+        if(!is_directed)
+        {
+            double_edges(graph, costs);
+        }
+
         NodeArray<Point*> distances(graph);
         NodeArray<edge> predecessors(graph);
 
@@ -244,7 +348,7 @@ int main(int argc, char** argv)
                                            source,
                                            distances,
                                            predecessors,
-                                           is_directed ? DijkstraModes::Forward : DijkstraModes::Undirected);
+                                           DijkstraModes::Forward);
 
             weighted = true;
 
@@ -264,7 +368,7 @@ int main(int argc, char** argv)
                                            source,
                                            distances,
                                            predecessors,
-                                           is_directed ? DijkstraModes::Forward : DijkstraModes::Undirected);
+                                           DijkstraModes::Forward);
 
             weighted = false;
             
@@ -279,21 +383,24 @@ int main(int argc, char** argv)
         }
         else
         {
+            vector<edge> sidetracks;
+            find_sidetracks(graph, cost_function, predecessors, distances, sidetracks);
 
-            print_root_to_leaf_path(predecessors, distances, source, target, weighted);
+            EdgeArray<bool> filter(graph, false);
+            filter_edges(graph, target, predecessors, sidetracks, filter);
+
+            NodeArray<bool> printed_nodes(graph, false);
+            print_root_to_leaf_path(costs, predecessors, distances, printed_nodes, filter, source, target, dimension, weighted);
 
             for(auto n : leaves)
             {
                 if(n != source)
                 {
-                    print_root_to_leaf_path(predecessors, distances, source, n, weighted);
+                    print_root_to_leaf_path(costs, predecessors, distances, printed_nodes, filter, source, n, dimension, weighted);
                 }
             }
 
-            vector<edge> sidetracks;
-            find_sidetracks(graph, cost_function, predecessors, distances, sidetracks);
-
-            print_sidetracks(sidetracks, cost_function, weighted);
+            print_sidetracks(sidetracks, filter, cost_function, weighted);
         }
 
 
