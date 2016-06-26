@@ -40,6 +40,7 @@ using TCLAP::MultiArg;
 #include <mco/ep/preprocessing/constrained_reach.h>
 #include <mco/ep/brum_shier/ep_solver_bs.h>
 #include <mco/ep/brum_shier/ep_solver_bs_bi.h>
+#include <mco/ep/brum_shier/ep_solver_bs_td.h>
 #include <mco/ep/ep_lc_ls.h>
 #include <mco/ep/dual_benson/ep_dual_benson.h>
 #include <mco/benchmarks/temporary_graphs_parser.h>
@@ -48,6 +49,7 @@ using TCLAP::MultiArg;
 
 using mco::EpSolverBS;
 using mco::EpSolverBSBi;
+using mco::EpSolverBSTd;
 using mco::EpLcLs;
 using mco::TemporaryGraphParser;
 using mco::Point;
@@ -86,12 +88,15 @@ void EpBsModule::perform(int argc, char** argv) {
 
         SwitchArg label_select_arg("l", "label-select", "Using a label-selection strategy instead of node selection", false);
 
+        SwitchArg tree_deletion_arg("t", "tree-deletion", "Enabling tree deletion heuristic", false);
+
         cmd.add(file_name_argument);
         cmd.add(is_directed_arg);
         cmd.add(ideal_bounds_arg);
         cmd.add(absolute_bounds_arg);
         cmd.add(do_first_phase_argument);
         cmd.add(label_select_arg);
+        cmd.add(tree_deletion_arg);
 
         cmd.parse(argc, argv);
         
@@ -99,6 +104,7 @@ void EpBsModule::perform(int argc, char** argv) {
         bool directed = is_directed_arg.getValue();
         bool do_first_phase = do_first_phase_argument.getValue();
         bool label_select = label_select_arg.getValue();
+        bool tree_deletion = tree_deletion_arg.getValue();
 
         ForwardStar graph;
         FSNodeArray<int> extern_ids(graph);
@@ -260,6 +266,38 @@ void EpBsModule::perform(int argc, char** argv) {
 //        else
         if(!label_select)
         {
+            if(tree_deletion)
+            {
+                EpSolverBSTd solver;
+
+                steady_clock::time_point start = steady_clock::now();
+
+                solver.Solve(graph,
+                             cost_function,
+                             dimension,
+                             source,
+                             target);
+
+                steady_clock::time_point end = steady_clock::now();
+                duration<double> computation_span
+                = duration_cast<duration<double>>(end - start);
+                solution_time_ = computation_span.count();
+
+                solutions_.insert(solutions_.begin(),
+                                  solver.solutions().cbegin(),
+                                  solver.solutions().cend());
+
+                label_compares_ = solver.label_compares();
+                deleted_tree_labels_ = solver.deleted_tree_labels();
+                recursive_deletions_ = solver.recursive_deletions();
+                arc_pushes_ = solver.arc_pushes();
+                touched_recursively_deleted_label_ = solver.touched_recursively_deleted_label();
+                deleted_labels_ = solver.deleted_labels();
+
+                method_ = "ns-td";
+            }
+            else
+            {
                 EpSolverBS solver;
                 
 //            solver.set_bounds(bounds);
@@ -289,6 +327,7 @@ void EpBsModule::perform(int argc, char** argv) {
                 touched_recursively_deleted_label_ = solver.touched_recursively_deleted_label();
                 deleted_labels_ = solver.deleted_labels();
                 method_ = "ns";
+            }
         }
         else
         {

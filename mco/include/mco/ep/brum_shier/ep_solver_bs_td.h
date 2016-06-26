@@ -6,28 +6,27 @@
  *      Author: fritz
  */
 
-#ifndef BSSSA_H_
-#define BSSSA_H_
+#ifndef BSSSA_TD_H_
+#define BSSSA_TD_H_
 
-//#define USE_TREE_DELETION
 //#define STATS
 
 #include <iostream>
 
 #include <mco/basic/abstract_solver.h>
-
+#include <mco/basic/ringbuffer.h>
 #include <mco/basic/forward_star.h>
 
 namespace mco
 {
 
-class EpSolverBS : public AbstractSolver<std::list<mco::node>>
+class EpSolverBSTd : public AbstractSolver<std::list<mco::node>>
 {
 
     using heuristic_type = std::function<double(node, unsigned)>;
     
 public:
-	EpSolverBS(double epsilon = 0)
+	EpSolverBSTd(double epsilon = 0)
     : epsilon_(epsilon)
     {
     }
@@ -50,13 +49,11 @@ public:
         use_bounds_ = true;
     }
 
-    ~EpSolverBS()
+    ~EpSolverBSTd()
     {
-#if defined USE_TREE_DELETION && defined STATS && !defined NDEBUG
+#if defined STATS && !defined NDEBUG
         std::cout << "Tree-deleted labels: " << deleted_tree_labels_ << std::endl;
         std::cout << "Recursive deletions: " << recursive_deletions_ << std::endl;
-#endif
-#if defined STATS && !defined NDEBUG
         std::cout << "Processed recursively deleted labels: " << touched_recursively_deleted_label_ << std::endl;
         std::cout << "Number of compared labels: "  << label_compares_ / 1000 << "k" << std::endl;
         std::cout << "Numer of arc pushes: " << arc_pushes_ << std::endl;
@@ -114,64 +111,50 @@ private:
 
     struct Label
     {
-        unsigned label_id;
         Point cost;
         node n;
         edge pred_edge;
-        unsigned pred_label_id;
+        Label* pred_label;
+        bool deleted = false;
 
 #ifdef STATS
         bool mark_recursive_deleted = false;
 #endif
 
-#if defined USE_TREE_DELETION || defined STATS
         /* Lists are more efficient here, because most of the time
          the collection of successors is actually empty or very small. */
-        bool deleted = false;
         std::list<Label*> successors;
-#endif
 
-        Label(Point cost,
+        Label(Point&& cost,
               node n,
               edge p_edge,
-              unsigned p_label_id,
-              NodeEntry& node_entry)
-        :   cost(cost),
+              Label* p_label)
+        :   cost(std::move(cost)),
             n(n),
             pred_edge(p_edge),
-            pred_label_id(p_label_id)
-
-#if defined USE_TREE_DELETION || defined STATS
-            , deleted(false)
-#endif
+            pred_label(p_label),
+            deleted(false)
         {
-            label_id = node_entry.get_new_id();
         }
 
         Label(Label&& other)
-        :   label_id(other.label_id),
-            cost(std::move(other.cost)),
+        :   cost(std::move(other.cost)),
             n(other.n),
             pred_edge(other.pred_edge),
-            pred_label_id(other.pred_label_id)
-#if defined USE_TREE_DELETION || defined STATS
-            , deleted(false)
-            , successors(std::move(other.successors))
-#endif
+            pred_label(other.pred_label),
+            deleted(false),
+            successors(std::move(other.successors))
         {
         }
 
         Label& operator=(Label&& other)
         {
-            label_id = other.label_id;
             cost = std::move(other.cost);
             n = other.n;
             pred_edge = other.pred_edge;
-            pred_label_id = other.pred_label_id;
-#if defined USE_TREE_DELETION || defined STATS
+            pred_label = other.pred_label;
             deleted = other.deleted;
             successors = std::move(other.successors);
-#endif
             return *this;
         }
     };
@@ -189,12 +172,33 @@ private:
         {
         }
 
-        inline void erase(std::vector<Label>& arr,
+        inline void erase(std::vector<Label*>& arr,
                    unsigned index)
         {
 
             assert(&arr == &labels_ ||
                    &arr == &new_labels_);
+
+            auto erase_label = arr[index];
+
+            for(auto succ_label : erase_label->successors)
+            {
+                succ_label->pred_label = nullptr;
+            }
+
+            if(erase_label->pred_label != nullptr)
+            {
+                auto it = erase_label->pred_label->successors.begin();
+                while(it != erase_label->pred_label->successors.end())
+                {
+                    if(*it == erase_label)
+                    {
+                        erase_label->pred_label->successors.erase(it);
+                        break;
+                    }
+                    ++it;
+                }
+            }
 
             arr[index] = std::move(arr[arr.size() - 1]);
             arr.pop_back();
@@ -215,66 +219,41 @@ private:
             return !new_labels_.empty();
         }
 
-        inline std::vector<Label>& labels()
+        inline std::vector<Label*>& labels()
         {
             return labels_;
         }
 
-        inline std::vector<Label>& new_labels()
+        inline std::vector<Label*>& new_labels()
         {
             return new_labels_;
         }
 
-        unsigned get_new_id()
-        {
-            return id_counter++;
-        }
-
     private:
-        std::vector<Label> labels_;
-        std::vector<Label> new_labels_;
-
-        unsigned id_counter = 1;
+        std::vector<Label*> labels_;
+        std::vector<Label*> new_labels_;
     };
 
-    bool check_domination(std::vector<Label>& new_labels,
+    bool check_domination(std::vector<Label*>& new_labels,
                           NodeEntry& neighbor_entry);
 
-#if defined USE_TREE_DELETION || defined STATS
     void recursive_delete(Label& label);
-#endif
 
     bool check_heuristic_prunable(const Label& label);
 
     inline void remove_label(Label& label);
 
-
 };
 
-inline void EpSolverBS::remove_label(Label& label)
+inline void EpSolverBSTd::remove_label(Label& label)
 {
-#if defined USE_TREE_DELETION || defined STATS
-#if defined STATS && !defined USE_TREE_DELETION
-    if(label.pred_label != nullptr)
-    {
-#endif
+    auto it = find(label.pred_label->successors.begin(),
+                   label.pred_label->successors.end(),
+                   &label);
 
-        auto it = find(label.pred_label->successors.begin(),
-                       label.pred_label->successors.end(),
-                       label);
+    assert(it != label.pred_label->successors.end());
 
-        assert(it != label.pred_label->successors.end());
-
-        label.pred_label->successors.erase(it);
-
-#if defined STATS && !defined USE_TREE_DELETION
-    }
-
-    for(auto label : label->successors)
-    {
-        label->pred_label = nullptr;
-    }
-#endif
+    label.pred_label->successors.erase(it);
 
 
     if(label.successors.empty())
@@ -283,10 +262,10 @@ inline void EpSolverBS::remove_label(Label& label)
     }
     else
     {
-        recursive_delete(*label);
+        recursive_delete(label);
     }
-#endif
 }
+
 }
 
 #endif /* BSSSA_H_ */

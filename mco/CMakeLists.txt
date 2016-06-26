@@ -52,6 +52,7 @@ include/mco/ep/basic/abstract_ep_solver.h
 include/mco/ep/basic/ep_lagrange_bisect.h
 include/mco/ep/brum_shier/ep_solver_bs.h
 include/mco/ep/brum_shier/ep_solver_bs_bi.h
+include/mco/ep/brum_shier/ep_solver_bs_td.h
 include/mco/ep/brum_shier/ep_solver_bs_par.h
 include/mco/ep/brum_shier/ep_weighted_bs.h
 include/mco/ep/ep_lc_ls.h
@@ -140,6 +141,7 @@ src/ep/basic/ep_instance.cpp
 src/ep/basic/ep_lagrange_bisect.cpp
 src/ep/brum_shier/ep_solver_bs.cpp
 src/ep/brum_shier/ep_solver_bs_bi.cpp
+src/ep/brum_shier/ep_solver_bs_td.cpp
 src/ep/brum_shier/ep_solver_bs_par.cpp
 src/ep/brum_shier/ep_weighted_bs.cpp
 src/ep/ep_lc_ls.cpp
