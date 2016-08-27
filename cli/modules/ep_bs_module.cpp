@@ -332,36 +332,36 @@ void EpBsModule::perform(int argc, char** argv) {
 
                 method_ = "ns-td";
             }
-//            else if(parent_check)
-//            {
-//                EpSolverBSPc solver;
-//
-//                steady_clock::time_point start = steady_clock::now();
-//
-//                solver.Solve(graph,
-//                             cost_function,
-//                             dimension,
-//                             source,
-//                             target);
-//
-//                steady_clock::time_point end = steady_clock::now();
-//                duration<double> computation_span
-//                = duration_cast<duration<double>>(end - start);
-//                solution_time_ = computation_span.count();
-//
-//                solutions_.insert(solutions_.begin(),
-//                                  solver.solutions().cbegin(),
-//                                  solver.solutions().cend());
-//
-//                label_compares_ = solver.label_compares();
-//                deleted_tree_labels_ = solver.deleted_tree_labels();
-//                recursive_deletions_ = solver.recursive_deletions();
-//                arc_pushes_ = solver.arc_pushes();
-//                touched_recursively_deleted_label_ = solver.touched_recursively_deleted_label();
-//                deleted_labels_ = solver.deleted_labels();
-//
-//                method_ = "ns-pc";
-//            }
+            else if(parent_check)
+            {
+                EpSolverBSPc solver;
+
+                steady_clock::time_point start = steady_clock::now();
+
+                solver.Solve(graph,
+                             cost_function,
+                             dimension,
+                             source,
+                             target);
+
+                steady_clock::time_point end = steady_clock::now();
+                duration<double> computation_span
+                = duration_cast<duration<double>>(end - start);
+                solution_time_ = computation_span.count();
+
+                solutions_.insert(solutions_.begin(),
+                                  solver.solutions().cbegin(),
+                                  solver.solutions().cend());
+
+                label_compares_ = solver.label_compares();
+                deleted_tree_labels_ = solver.deleted_tree_labels();
+                recursive_deletions_ = solver.recursive_deletions();
+                arc_pushes_ = solver.arc_pushes();
+                touched_recursively_deleted_label_ = solver.touched_recursively_deleted_label();
+                deleted_labels_ = solver.deleted_labels();
+
+                method_ = "ns-pc";
+            }
             else
             {
                 EpSolverBS solver;

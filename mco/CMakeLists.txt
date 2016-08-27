@@ -143,6 +143,7 @@ src/ep/basic/ep_lagrange_bisect.cpp
 src/ep/brum_shier/ep_solver_bs.cpp
 src/ep/brum_shier/ep_solver_bs_bi.cpp
 src/ep/brum_shier/ep_solver_bs_td.cpp
+src/ep/brum_shier/ep_solver_bs_pc.cpp
 src/ep/brum_shier/ep_solver_bs_par.cpp
 src/ep/brum_shier/ep_weighted_bs.cpp
 src/ep/ep_lc_ls.cpp
