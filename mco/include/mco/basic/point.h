@@ -12,10 +12,7 @@
 #include <stdexcept>
 #include <cassert>
 #include <cmath>
-
-#ifndef NDEBUG
 #include <vector>
-#endif
 
 namespace mco {
 
@@ -380,11 +377,12 @@ class PointSet {
 public:
     PointSet() = delete;
 
-    //! Creates a new point set of points with
+    //! Creates a new point set of points with \p dimension components.
     explicit inline PointSet(unsigned dimension)
     :   dimension_(dimension),
         point_array_() { }
 
+    //! Creates a new point set of size \p size of points with \p dimension components
     inline PointSet(unsigned dimension, unsigned size)
     :   dimension_(dimension),
         point_array_(size * dimension, 0.0) { }
