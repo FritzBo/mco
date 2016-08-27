@@ -22,31 +22,26 @@ namespace mco {
 
 bool LCApprox::
 check_domination(vector<Label*>& new_labels,
-                 unsigned new_labels_end,
-                 NodeEntry& neighbor_entry) {
+                 NodeEntry& neighbor_entry)
+{
     
     EqualityPointComparator eq;
     ComponentwisePointComparator leq(0, false);
 
     auto& neighbor_labels = neighbor_entry.labels();
-    auto neighbor_labels_end = neighbor_entry.labels_end();
-
     auto& neighbor_new_labels = neighbor_entry.new_labels();
-    auto neighbor_new_labels_end = neighbor_entry.new_labels_end();
 
     bool changed = false;
 
     bool dominated;
 
-    unsigned new_label_it = 0;
-    while(new_label_it < new_labels_end) {
-
-        auto new_label = new_labels[new_label_it];
+    for(auto new_label : new_labels)
+    {
 
         dominated = false;
 
         unsigned check_label_it = 0;
-        while(check_label_it < neighbor_labels_end) {
+        while(check_label_it < neighbor_labels.size()) {
 
             auto check_label = neighbor_labels[check_label_it];
 
@@ -54,8 +49,6 @@ check_domination(vector<Label*>& new_labels,
 
                 neighbor_entry.erase(neighbor_labels,
                                      check_label_it);
-
-                --neighbor_labels_end;
 
             } else if(eq(new_label->pos, check_label->pos) &&
                       new_label->sum < check_label->sum) {
@@ -73,8 +66,6 @@ check_domination(vector<Label*>& new_labels,
                 neighbor_entry.erase(neighbor_labels,
                                      check_label_it);
 
-                --neighbor_labels_end;
-                
             } else if(leq(check_label->pos, new_label->pos)) {
 
                 dominated = true;
@@ -95,8 +86,6 @@ check_domination(vector<Label*>& new_labels,
                 neighbor_entry.erase(neighbor_labels,
                                      check_label_it);
 
-                --neighbor_labels_end;
-
             } else {
                 ++check_label_it;
             }
@@ -105,7 +94,7 @@ check_domination(vector<Label*>& new_labels,
         if(!dominated) {
 
             check_label_it = 0;
-            while(check_label_it < neighbor_new_labels_end) {
+            while(check_label_it < neighbor_new_labels.size()) {
 
                 auto check_label = neighbor_new_labels[check_label_it];
 
@@ -113,8 +102,6 @@ check_domination(vector<Label*>& new_labels,
 
                     neighbor_entry.erase(neighbor_new_labels,
                                          check_label_it);
-
-                    --neighbor_new_labels_end;
 
                 } else if(eq(new_label->pos, check_label->pos) &&
                           new_label->sum < check_label->sum) {
@@ -131,8 +118,6 @@ check_domination(vector<Label*>& new_labels,
 
                     neighbor_entry.erase(neighbor_new_labels,
                                          check_label_it);
-
-                    --neighbor_new_labels_end;
 
                 } else if(leq(check_label->pos, new_label->pos)) {
 
@@ -154,8 +139,6 @@ check_domination(vector<Label*>& new_labels,
                     neighbor_entry.erase(neighbor_new_labels,
                                          check_label_it);
 
-                    --neighbor_new_labels_end;
-
                 } else {
                     ++check_label_it;
                 }
@@ -165,13 +148,10 @@ check_domination(vector<Label*>& new_labels,
         if(!dominated) {
             Label* pred = new_label->pred_label;
             neighbor_entry.push_back(new_label);
-            ++neighbor_new_labels_end;
             pred->succ_label.push_back(new_label);
 
             changed = true;
         }
-
-        ++new_label_it;
     }
     
     return changed;
@@ -225,8 +205,8 @@ void LCApprox::
 Solve(const Graph& graph,
       cost_function_type cost_function,
       unsigned dimension,
-      const node source,
-      const node target,
+      const ogdf::node source,
+      const ogdf::node target,
       bool directed,
       const Point& epsilon) {
     
@@ -259,7 +239,7 @@ Solve(const Graph& graph,
     
     NodeArray<NodeEntry> node_entries(graph);
     
-    list<node> queue;
+    list<ogdf::node> queue;
     
     {
         auto initial_label = new Label(Point(0.0, dimension),
@@ -275,7 +255,7 @@ Solve(const Graph& graph,
     node_entries[source].in_queue = true;
     
     while(!queue.empty()) {
-        node current_node = queue.front();
+        ogdf::node current_node = queue.front();
         queue.pop_front();
         
         NodeEntry& current_node_entry = node_entries[current_node];
@@ -286,7 +266,7 @@ Solve(const Graph& graph,
             auto& current_new_labels = current_node_entry.new_labels();
             
             for(auto adj : current_node->adjEntries) {
-                edge current_edge = adj->theEdge();
+                ogdf::edge current_edge = adj->theEdge();
 
                 if(current_edge->isSelfLoop()) {
                     continue;
@@ -300,12 +280,12 @@ Solve(const Graph& graph,
                 
                 auto& neighbor_entry = node_entries[neighbor];
 
-                vector<Label*> new_labels(current_node_entry.new_labels_end(), nullptr);
+                vector<Label*> new_labels(current_node_entry.new_labels().size(), nullptr);
 
                 unsigned size = 0;
 
                 unsigned current_label_it = 0;
-                while(current_label_it < current_node_entry.new_labels_end()) {
+                while(current_label_it < current_node_entry.new_labels().size()) {
 
                     auto label = current_new_labels[current_label_it];
 
@@ -336,7 +316,6 @@ Solve(const Graph& graph,
                 if(size != 0) {
                 
                     bool changed = check_domination(new_labels,
-                                                    size,
                                                     neighbor_entry);
 
                     if(!node_entries[neighbor].in_queue &&
@@ -358,10 +337,10 @@ Solve(const Graph& graph,
         
     }
 
-    for(unsigned i = 0; i < node_entries[target].new_labels_end(); ++i) {
+    for(unsigned i = 0; i < node_entries[target].new_labels().size(); ++i) {
         auto label = node_entries[target].new_labels()[i];
 
-        list<edge> path;
+        list<ogdf::edge> path;
         const Label* curr = label;
         if(!curr->deleted) {
             while(curr->n != source) {
@@ -375,7 +354,7 @@ Solve(const Graph& graph,
             }
             
             assert(path.size() > 0);
-            
+
             path.reverse();
             
             add_solution(path, label->cost);

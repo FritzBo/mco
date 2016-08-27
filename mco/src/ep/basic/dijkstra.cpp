@@ -30,13 +30,13 @@ namespace mco {
 
 void LexDijkstra::singleSourceShortestPaths(
         Graph const &graph,
-        function<Point*(edge)> weight,
-        node const source,
+        function<Point*(ogdf::edge)> weight,
+        ogdf::node const source,
         NodeArray<Point *> &distance,
-        NodeArray<edge> &predecessor,
-        function<bool(node,edge)> mode) {
+        NodeArray<ogdf::edge> &predecessor,
+        function<bool(ogdf::node,ogdf::edge)> mode) {
 
-    using queue_element = std::pair<Point *, node>;
+    using queue_element = std::pair<Point *, ogdf::node>;
     
     LexPointComparator less;
     
@@ -62,9 +62,9 @@ void LexDijkstra::singleSourceShortestPaths(
         auto v = qe.second;
         queue.pop();
         for(auto adj : v->adjEntries) {
-            edge e = adj->theEdge();
+            ogdf::edge e = adj->theEdge();
             if(!mode(v, e)) continue;
-            node w = e->opposite(v);
+            ogdf::node w = e->opposite(v);
             tmp = *distance[v];
             tmp += *weight(e);
             if(less(&tmp, distance[w])) {
@@ -75,21 +75,6 @@ void LexDijkstra::singleSourceShortestPaths(
         }
     }
 }
-
-function<bool(node,edge)> const DijkstraModes::Forward =
-    [](node v, edge e) {
-        return v == e->source();
-    };
-
-function<bool(node,edge)> const DijkstraModes::Backward =
-    [](node v, edge e) {
-        return v == e->target();
-    };
-
-function<bool(node,edge)> const DijkstraModes::Undirected =
-    [](node, edge) {
-        return true;
-    };
 
 }
 

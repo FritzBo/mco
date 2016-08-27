@@ -13,6 +13,10 @@
 #include <cassert>
 #include <cmath>
 
+#ifndef NDEBUG
+#include <vector>
+#endif
+
 namespace mco {
 
 //! Class to model points in R^d.
@@ -28,10 +32,16 @@ class Point {
 public:
 
     //! Destructor deletes all allocated values.
+#ifdef NDEBUG
     virtual ~Point() noexcept { delete[] values_; }
+#endif
 
     //! Creates a well defined Point object with no components.
+#ifdef NDEBUG
     inline Point() : dimension_(0), values_(nullptr) { }
+#else
+    inline Point() : dimension_(0), values_(0) { }
+#endif
 
     //! Creates a well defined Point object with \p dimension components. The components will be initialized with 0.0.
     inline explicit Point(unsigned int dimension);
@@ -133,57 +143,105 @@ public:
 	const double& operator[](unsigned int index) const { return values_[index]; }
 
     //! Returns a const_iterator to beginning.
+#ifdef NDEBUG
     const double* cbegin() const { return values_; }
+#else
+    std::vector<double>::const_iterator cbegin() const { return values_.cbegin(); }
+#endif
 
     //! Returns a const_iterator to end.
+#ifdef NDEBUG
     const double* cend() const { return values_ + dimension_; }
+#else
+    std::vector<double>::const_iterator cend() const { return values_.cend(); }
+#endif
 
     //! Returns an interator to beginning.
+#ifdef NDEBUG
     double* begin() { return values_; }
+#else
+    std::vector<double>::iterator begin() { return values_.begin(); }
+#endif
 
     //! Returns an iterator to end.
+#ifdef NDEBUG
     double* end() { return values_ + dimension_; }
+#else
+    std::vector<double>::iterator end() { return values_.end(); }
+#endif
 
 	friend std::ostream & operator<<(std::ostream &, const Point &);
     friend void swap(Point& p1, Point& p2);
 
     
-private:
+protected:
     unsigned int dimension_ = 0; //! The number of components of this Point object.
 
+#ifdef NDEBUG
     double * values_ = nullptr; //! A pointer pointing to the values of this point object.
+#else
+    std::vector<double> values_;
+#endif
 };
 
 inline Point::Point(unsigned dimension)
-: dimension_(dimension) {
+: dimension_(dimension)
+#ifndef NDEBUG
+    , values_(dimension)
+#endif
+{
+#ifdef NDEBUG
     values_ = dimension_ ? new double[dimension] : nullptr;
+#endif
     for(unsigned int i = 0; i < dimension; ++i)
         values_[i] = 0;
 }
     
 inline Point::Point(const double *values, unsigned int dimension)
-: dimension_(dimension) {
+: dimension_(dimension)
+#ifndef NDEBUG
+    , values_(dimension)
+#endif
+{
+#ifdef NDEBUG
     values_ = dimension_ ? new double[dimension] : nullptr;
-    std::copy(values, values + dimension, values_);
+#endif
+    std::copy(values, values + dimension, begin());
 }
     
 inline Point::Point(double value, unsigned int dimension)
-: dimension_(dimension) {
+: dimension_(dimension)
+#ifndef NDEBUG
+    , values_(dimension)
+#endif
+{
+#ifdef NDEBUG
     values_ = dimension_ ? new double[dimension] : nullptr;
+#endif
     for(unsigned i = 0; i < dimension; ++i) {
         values_[i] = value;
     }
 }
     
 inline Point::Point(std::initializer_list<double> values)
-: dimension_(values.size()) {
+: dimension_(values.size())
+#ifndef NDEBUG
+    , values_(values.size())
+#endif
+{
+#ifdef NDEBUG
     values_ = dimension_ ? new double[values.size()] : nullptr;
-    std::copy(values.begin(), values.end(), values_);
+#endif
+    std::copy(values.begin(), values.end(), begin());
 }
 
 inline Point::Point(const Point &p) : dimension_(p.dimension_) {
+#ifdef NDEBUG
     values_ = dimension_ ? new double[dimension_] : nullptr;
-    std::copy(p.values_, p.values_ + dimension_, values_);
+#else
+    values_.resize(dimension());
+#endif
+    std::copy(p.cbegin(), p.cend(), begin());
 }
     
 inline Point::Point(Point&& that) noexcept : Point() {
@@ -317,6 +375,95 @@ inline void swap(Point& p1, Point& p2) {
     swap(p1.values_,    p2.values_);
     swap(p1.dimension_, p2.dimension_);
 }
+
+class PointSet {
+public:
+    PointSet() = delete;
+
+    //! Creates a new point set of points with
+    explicit inline PointSet(unsigned dimension)
+    :   dimension_(dimension),
+        point_array_() { }
+
+    inline PointSet(unsigned dimension, unsigned size)
+    :   dimension_(dimension),
+        point_array_(size * dimension, 0.0) { }
+
+    //! Removes a point from the set
+    inline void remove(unsigned index);
+
+    //! Create a new point with zero components.
+    inline void new_point();
+
+private:
+    unsigned dimension_;
+    std::vector<double> point_array_;
+};
+
+void PointSet::remove(unsigned index)
+{
+    unsigned copyend = point_array_.size() - 1;
+    unsigned deletend = index + dimension_;
+
+    for(unsigned i = 0; i < dimension_; ++i)
+    {
+        point_array_[deletend] = point_array_[copyend];
+        copyend -= 1;
+        deletend -= 1;
+    }
+
+    point_array_.resize(point_array_.size() - dimension_);
+}
+
+void PointSet::new_point()
+{
+    point_array_.resize(point_array_.size() + dimension_, 0.0);
+}
+
+class PointReference : public Point {
+
+    //! Destructor removes point from PointSet
+    virtual ~PointReference() noexcept
+    {
+        reference_set_.remove(index_);
+    }
+
+    //! Creates a well defined Point object with zeros.
+    inline PointReference(PointSet& ref_set);
+
+    //! Creates a Point object with \p dimension components consisting of the first \p dimension values of \p values.
+    inline PointReference(const double *values, unsigned int dimension);
+
+    //! Creates a Point object with \p dimension components which are all set to \p value.
+    inline PointReference(double value, unsigned int dimension);
+
+    //! Creates a Point object using all values from the initialzer list values.
+    inline PointReference(std::initializer_list<double> values);
+
+    //! Copy constructor
+    inline PointReference(const Point &p);
+
+    //! Move constructor (employing swap)
+    inline PointReference(Point&& that) noexcept;
+
+    //! Copy assignment
+    inline PointReference & operator=(const Point& that) noexcept;
+
+    //! Move assignment (employing swap)
+    inline PointReference & operator=(Point&& that) noexcept;
+    
+protected:
+    PointSet& reference_set_;
+    unsigned index_;
+};
+
+PointReference::PointReference(PointSet& ref_set)
+:   Point(),
+    reference_set_(ref_set)
+{
+    reference_set_.new_point();
+}
+
 
 } // namespace mco
 

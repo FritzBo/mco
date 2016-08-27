@@ -21,6 +21,8 @@
 namespace mco
 {
 
+using BiPoint = std::pair<int, int>;
+
 class EpSolverBSBi : public AbstractSolver<std::list<mco::node>>
 {
 
@@ -33,7 +35,7 @@ public:
     }
     
 	virtual void Solve(const ForwardStar& graph,
-                       std::function<const Point*(const edge)> costs,
+                       std::function<const BiPoint*(const edge)> costs,
                        unsigned dimension,
                        const node source,
                        const node target);
@@ -115,7 +117,7 @@ private:
     struct Label
     {
         unsigned label_id;
-        Point cost;
+        BiPoint cost;
         node n;
         edge pred_edge;
         unsigned pred_label_id;
@@ -132,7 +134,7 @@ private:
 #endif
 
         Label()
-        :   cost(Point()),
+        :   cost(BiPoint()),
             n(nullnode),
             pred_edge(nulledge),
             pred_label_id(0)
@@ -140,7 +142,7 @@ private:
             label_id = 0;
         }
 
-        Label(Point cost,
+        Label(BiPoint cost,
               node n,
               edge p_edge,
               unsigned p_label_id,
@@ -259,9 +261,9 @@ private:
 
     int compare(Label const &a, Label const &b);
 
-    void foo(std::vector<Label> &N,
-             std::vector<Label> &pushed,
-             std::vector<Label> &pending);
+    void merge(std::vector<Label> &N,
+               std::vector<Label> &pushed,
+               std::vector<Label> &pending);
 
 //    bool merge(std::vector<Label>& input_set,
 //               std::vector<Label>& target_set,
@@ -309,6 +311,15 @@ inline void EpSolverBSBi::remove_label(Label& label)
     }
 #endif
 }
+
+inline BiPoint operator+(const BiPoint& p1, const BiPoint& p2)
+{
+    BiPoint p;
+    p.first = p1.first + p2.first;
+    p.second = p1.second + p2.second;
+    return p;
+}
+
 }
 
 #endif /* BSSSA_H_ */

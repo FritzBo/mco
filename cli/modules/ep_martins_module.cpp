@@ -429,8 +429,8 @@ void EpMartinsModule::calculate_ideal_heuristic(
                                               target,
                                               predecessor,
                                               distances[i],
-                                              directed ? DijkstraModes::Backward :
-                                              DijkstraModes::Undirected);
+                                              directed ? DijkstraModes<>::Backward :
+                                              DijkstraModes<>::Undirected);
     }
 
 }

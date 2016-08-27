@@ -99,7 +99,7 @@ void EpIdealModule::perform(int argc, char** argv) {
                                            source,
                                            predecessors,
                                            distances,
-                                           is_directed ? DijkstraModes::Forward : DijkstraModes::Undirected);
+                                           is_directed ? DijkstraModes<>::Forward : DijkstraModes<>::Undirected);
 
             ideal_point[i] = distances[target];
         }

@@ -25,39 +25,39 @@ using mco::DijkstraModes;
 namespace mco {
 
 void ConstrainedReachabilityPreprocessing::preprocess(Graph &graph,
-                                                      function<Point*(edge)> cost_function,
+                                                      function<Point*(ogdf::edge)> cost_function,
                                                       unsigned dimension,
-                                                      const node source,
-                                                      const node target,
+                                                      const ogdf::node source,
+                                                      const ogdf::node target,
                                                       list<Point> linear_bound,
                                                       bool directed) {
     
-    list<node> candidates;
+    list<ogdf::node> candidates;
     
     Dijkstra<double, PairComparator<double, std::less<double>>> sssp_solver;
     
-    NodeArray<edge> predecessor(graph);
+    NodeArray<ogdf::edge> predecessor(graph);
     vector<NodeArray<double>> source_distances(dimension, graph);
     vector<NodeArray<double>> target_distances(dimension, graph);
     
     for(unsigned i = 0; i < dimension; ++i) {
         
         
-        auto weight = [cost_function, i] (edge e) {return (cost_function(e))->operator[](i); };
+        auto weight = [cost_function, i] (ogdf::edge e) {return (cost_function(e))->operator[](i); };
     
         sssp_solver.singleSourceShortestPaths(graph,
                                               weight,
                                               source,
                                               predecessor,
                                               source_distances[i],
-                                              directed ? DijkstraModes::Forward : DijkstraModes::Undirected);
+                                              directed ? DijkstraModes<>::Forward : DijkstraModes<>::Undirected);
         
         sssp_solver.singleSourceShortestPaths(graph,
                                               weight,
                                               target,
                                               predecessor,
                                               target_distances[i],
-                                              directed ? DijkstraModes::Backward : DijkstraModes::Undirected);
+                                              directed ? DijkstraModes<>::Backward : DijkstraModes<>::Undirected);
 
     }
 

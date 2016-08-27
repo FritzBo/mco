@@ -27,6 +27,7 @@ ForwardStar::ForwardStar(ogdf::Graph& ogdf_graph, bool directed)
 :   no_nodes(0),
     no_edges(0),
     nodes(*this),
+    edges(*this),
     heads_(*this),
     tails_(*this)
 {

@@ -51,7 +51,7 @@ TEST(PointTest, ConstructionByDimension) {
     Point p2(0);
     
     EXPECT_EQ(p2.dimension(),   0);
-    EXPECT_EQ(p2.cbegin(),      nullptr);
+    EXPECT_EQ(p2.cbegin(),      p2.cend());
 }
 
 /*********************************************************************
@@ -105,7 +105,7 @@ TEST(PointTest, ConstructionByArray) {
     Point p3(a, 0);
     
     EXPECT_EQ(p3.dimension(),   0);
-    EXPECT_EQ(p3.cbegin(),      nullptr);
+    EXPECT_EQ(p3.cbegin(),      p3.cend());
     
     // d = 0
     // -- If len(a) < d
@@ -117,7 +117,7 @@ TEST(PointTest, ConstructionByArray) {
     Point p4(a, 0);
     
     EXPECT_EQ(0,        p4.dimension());
-    EXPECT_EQ(nullptr,  p4.cbegin());
+    EXPECT_EQ(p4.cend(),  p4.cbegin());
 
     // d = 0
     // -- a is nullptr
@@ -126,7 +126,7 @@ TEST(PointTest, ConstructionByArray) {
     Point p2(a, 0);
     
     EXPECT_EQ(p2.dimension(), 0);
-    EXPECT_EQ(p2.cbegin(), nullptr);
+    EXPECT_EQ(p2.cbegin(), p2.cend());
 }
 
 
@@ -195,9 +195,9 @@ TEST_P(ConstructBySingleValueFixture, CheckValue) {
 
 TEST_P(ConstructBySingleValueFixture, CheckValuesPointer) {
     if(dimension == 0) {
-        EXPECT_EQ(nullptr,  p.cbegin());
+        EXPECT_EQ(p.cend(),  p.cbegin());
     } else {
-        EXPECT_NE(nullptr, p.cbegin());
+        EXPECT_NE(p.cend(), p.cbegin());
     }
 }
 
@@ -248,7 +248,7 @@ TEST(PointTest, ConstructByInitList) {
     Point p3({});
     
     EXPECT_EQ(p3.dimension(), 0);
-    EXPECT_EQ(p3.cbegin(), nullptr);
+    EXPECT_EQ(p3.cbegin(), p3.cend());
 }
 
 /*********************************************************************
@@ -282,7 +282,7 @@ TEST(PointTest, CopyConstruct) {
     Point p4(p3);
     
     EXPECT_EQ(0, p4.dimension());
-    EXPECT_EQ(nullptr, p4.cbegin());
+    EXPECT_EQ(p4.cend(), p4.cbegin());
 }
 
 /*********************************************************************
@@ -313,7 +313,7 @@ TEST(PointTest, MoveConstruct) {
     double a = 434.234;
     
     Point p1(a, 5);
-    const double * adress = p1.cbegin();
+    auto adress = p1.cbegin();
     
     Point p2(std::move(p1));
     
@@ -321,15 +321,15 @@ TEST(PointTest, MoveConstruct) {
     EXPECT_EQ(adress,   p2.cbegin());
     EXPECT_EQ(a,        p2[3]);
     
-    EXPECT_EQ(nullptr,  p1.cbegin());
+    EXPECT_EQ(p1.cend(),  p1.cbegin());
     EXPECT_EQ(0,        p1.dimension());
     
     Point p3(0);
     Point p4(std::move(p3));
     
     EXPECT_EQ(0, p4.dimension());
-    EXPECT_EQ(nullptr, p4.cbegin());
-    EXPECT_EQ(nullptr, p4.cbegin());
+    EXPECT_EQ(p4.cend(), p4.cbegin());
+    EXPECT_EQ(p4.cend(), p4.cbegin());
     EXPECT_EQ(0, p4.dimension());
 }
 
@@ -407,7 +407,7 @@ TEST(PointTest, CopyAssign) {
     p4 = p3;
     
     EXPECT_EQ(0, p4.dimension());
-    EXPECT_EQ(nullptr, p4.cbegin());
+    EXPECT_EQ(p4.cend(), p4.cbegin());
     
     // (1-2)
     Point p7(3);
@@ -443,7 +443,7 @@ TEST(PointTest, MoveAssign) {
     double a = 434.234;
     
     Point p1(a, dim);
-    const double * adress = p1.cbegin();
+    auto adress = p1.cbegin();
     
     Point p2(dim);
     p2 = std::move(p1);
@@ -457,8 +457,8 @@ TEST(PointTest, MoveAssign) {
     p4 = std::move(p3);
     
     EXPECT_EQ(0, p4.dimension());
-    EXPECT_EQ(nullptr, p4.cbegin());
-    EXPECT_EQ(nullptr, p4.cbegin());
+    EXPECT_EQ(p4.cend(), p4.cbegin());
+    EXPECT_EQ(p4.cend(), p4.cbegin());
     EXPECT_EQ(0, p4.dimension());
 }
 
@@ -479,7 +479,7 @@ TEST(PointTest, AddInplace) {
     p3 += p4;
     
     EXPECT_EQ(0, p3.dimension());
-    EXPECT_EQ(nullptr, p3.cbegin());
+    EXPECT_EQ(p3.cend(), p3.cbegin());
     
 #ifdef DEBUG
     
@@ -506,7 +506,7 @@ TEST(PointTest, SubtractInplace) {
     p3 -= p4;
     
     EXPECT_EQ(0,        p3.dimension());
-    EXPECT_EQ(nullptr,  p3.cbegin());
+    EXPECT_EQ(p3.cend(),  p3.cbegin());
     
 #ifdef DEBUG
     
@@ -541,7 +541,7 @@ TEST(PointTest, ScalarProdInplace) {
     p2 *= d1;
     
     EXPECT_EQ(0,        p2.dimension());
-    EXPECT_EQ(nullptr,  p2.cbegin());
+    EXPECT_EQ(p2.cend(),  p2.cbegin());
 }
 
 TEST(PointTest, Negation) {
@@ -558,14 +558,14 @@ TEST(PointTest, Negation) {
     const Point p2(0);
     
     EXPECT_EQ(0,        (-p2).dimension());
-    EXPECT_EQ(nullptr,  (-p2).cbegin());
+    EXPECT_EQ((-p2).cend(),  (-p2).cbegin());
 }
 
 TEST(PointTest, NegationRValue) {
     Point p = {1, 2, 3, 4, 5};
     
     Point p1(p);
-    const double * adress = p1.cbegin();
+    auto adress = p1.cbegin();
     
     Point p2 = -std::move(p1);
     
@@ -579,7 +579,7 @@ TEST(PointTest, NegationRValue) {
     p3 = - Point(0);
     
     EXPECT_EQ(0,        p3.dimension());
-    EXPECT_EQ(nullptr,  p3.cbegin());
+    EXPECT_EQ(p3.cend(),  p3.cbegin());
 }
 
 TEST(PointTest, Addition) {
@@ -589,16 +589,16 @@ TEST(PointTest, Addition) {
     Point p2 = {1.9, 343.2, 123.34};
     
     Point p3(p2);
-    const double * p3_address = p3.cbegin();
+    auto p3_address = p3.cbegin();
     
     Point p4(p1);
-    const double * p4_address = p4.cbegin();
+    auto p4_address = p4.cbegin();
     
     Point p5(p1);
-    const double * p5_address = p5.cbegin();
+    auto p5_address = p5.cbegin();
     
     Point p6(p2);
-    const double * p6_address = p6.cbegin();
+    auto p6_address = p6.cbegin();
     
     Point p7    = p1            + p2;
     Point p8    = p1            + std::move(p3);
@@ -657,16 +657,16 @@ TEST(PointTest, Subtraction) {
     Point p2 = {1.9, 343.2, 123.34};
     
     Point p3(p2);
-    const double * p3_address = p3.cbegin();
+    auto p3_address = p3.cbegin();
     
     Point p4(p1);
-    const double * p4_address = p4.cbegin();
+    auto p4_address = p4.cbegin();
     
     Point p5(p1);
-    const double * p5_address = p5.cbegin();
+    auto p5_address = p5.cbegin();
     
     Point p6(p2);
-    const double * p6_address = p6.cbegin();
+    auto p6_address = p6.cbegin();
     
     Point p7 = p1 - p2;
     Point p8 = p1 - std::move(p3);
@@ -742,7 +742,7 @@ TEST(PointTest, ScalarProduct) {
     Point p5 = p4 * d1;
     
     EXPECT_EQ(0,        p5.dimension());
-    EXPECT_EQ(nullptr,  p5.cbegin());
+    EXPECT_EQ(p5.cend(),  p5.cbegin());
 
 }
 

@@ -126,6 +126,9 @@ void ParetoPrep::preprocess(const ForwardStar& reverse_star,
         }
     }
 
+    ideal_point_ = std::move(node_entries[source].temp_lower_bounds);
+
+#ifndef NDEBUG
     std::cout << "ideal point:" << std::endl;
     std::cout << node_entries[source].temp_lower_bounds << std::endl;
 
@@ -153,6 +156,7 @@ void ParetoPrep::preprocess(const ForwardStar& reverse_star,
         }
     }
     std::cout << "deleted nodes: " << deleted_nodes << std::endl;
+#endif
 }
 
 void ParetoPrep::construct_path(const ForwardStar& reverse_star,

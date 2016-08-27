@@ -316,8 +316,8 @@ void EpTsaggourisModule::calculate_ideal_heuristic(const Graph& graph,
                                               target,
                                               predecessor,
                                               distances[i],
-                                              directed ? DijkstraModes::Backward :
-                                              DijkstraModes::Undirected);
+                                              directed ? DijkstraModes<>::Backward :
+                                              DijkstraModes<>::Undirected);
     }
 
 }

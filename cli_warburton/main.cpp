@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
         cmd_line.add(test_only_arg);
         cmd_line.add(ideal_bounds_arg);
         
-        CliOutputFormatter<list<edge>> output_formatter(&cmd_line);
+        CliOutputFormatter<list<ogdf::edge>> output_formatter(&cmd_line);
         
         output_formatter.initialize_cmd_line();
         
@@ -120,8 +120,8 @@ int main(int argc, char** argv) {
         Graph graph;
         EdgeArray<Point> raw_costs(graph);
         unsigned dimension;
-        node source;
-        node target;
+        ogdf::node source;
+        ogdf::node target;
             
         TemporaryGraphParser parser;
         parser.getGraph(filename, graph, raw_costs, dimension, source, target);
@@ -134,23 +134,23 @@ int main(int argc, char** argv) {
                                                 factor,
                                                 costs);
         
-        auto cost_function = [&costs] (edge e) -> Point& {
+        auto cost_function = [&costs] (ogdf::edge e) -> Point& {
             return costs[e];
         };
         
-        auto cost_function2 = [&costs] (edge e) {
+        auto cost_function2 = [&costs] (ogdf::edge e) {
             return &costs[e];
         };
         
         Point ideal_bound(numeric_limits<double>::infinity(), dimension);
         
         vector<NodeArray<double>> distances(dimension, graph);
-        NodeArray<edge> predecessor(graph);
+        NodeArray<ogdf::edge> predecessor(graph);
         
         for(unsigned i = 0; i < dimension; ++i) {
             Dijkstra<double, PairComparator<double, std::less<double>>> sssp_solver;
             
-            auto mono_cost = [&costs, i] (edge e) {
+            auto mono_cost = [&costs, i] (ogdf::edge e) {
                 return costs[e][i];
             };
             
@@ -159,11 +159,11 @@ int main(int argc, char** argv) {
                                                   target,
                                                   predecessor,
                                                   distances[i],
-                                                  directed ? DijkstraModes::Backward :
-                                                  DijkstraModes::Undirected);
+                                                  directed ? DijkstraModes<>::Backward :
+                                                  DijkstraModes<>::Undirected);
         }
         
-        auto heuristic = [&distances] (node n, unsigned objective) {
+        auto heuristic = [&distances] (ogdf::node n, unsigned objective) {
             return distances[objective][n];
         };
         

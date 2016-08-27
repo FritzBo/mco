@@ -41,15 +41,18 @@ using TCLAP::MultiArg;
 #include <mco/ep/brum_shier/ep_solver_bs.h>
 #include <mco/ep/brum_shier/ep_solver_bs_bi.h>
 #include <mco/ep/brum_shier/ep_solver_bs_td.h>
+#include <mco/ep/brum_shier/ep_solver_bs_pc.h>
 #include <mco/ep/ep_lc_ls.h>
 #include <mco/ep/dual_benson/ep_dual_benson.h>
 #include <mco/benchmarks/temporary_graphs_parser.h>
 #include <mco/basic/point.h>
 #include <mco/cli/parse_util.h>
+#include <mco/ep/preprocessing/paretoprep.h>
 
 using mco::EpSolverBS;
 using mco::EpSolverBSBi;
 using mco::EpSolverBSTd;
+using mco::EpSolverBSPc;
 using mco::EpLcLs;
 using mco::TemporaryGraphParser;
 using mco::Point;
@@ -66,6 +69,11 @@ using mco::edge;
 using mco::FSEdgeArray;
 using mco::FSNodeArray;
 using mco::ForwardStarFileReader;
+using mco::ReverseStarConstructor;
+using mco::ReverseEdgeArray;
+using mco::EdgeTrace;
+
+using mco::ParetoPrep;
 
 // Todo: Delete
 #include <chrono>
@@ -90,6 +98,8 @@ void EpBsModule::perform(int argc, char** argv) {
 
         SwitchArg tree_deletion_arg("t", "tree-deletion", "Enabling tree deletion heuristic", false);
 
+        SwitchArg parent_check_arg("p", "parent-checking", "Enabling parent-checking heuristic", false);
+
         cmd.add(file_name_argument);
         cmd.add(is_directed_arg);
         cmd.add(ideal_bounds_arg);
@@ -97,6 +107,7 @@ void EpBsModule::perform(int argc, char** argv) {
         cmd.add(do_first_phase_argument);
         cmd.add(label_select_arg);
         cmd.add(tree_deletion_arg);
+        cmd.add(parent_check_arg);
 
         cmd.parse(argc, argv);
         
@@ -105,6 +116,7 @@ void EpBsModule::perform(int argc, char** argv) {
         bool do_first_phase = do_first_phase_argument.getValue();
         bool label_select = label_select_arg.getValue();
         bool tree_deletion = tree_deletion_arg.getValue();
+        bool parent_check = parent_check_arg.getValue();
 
         ForwardStar graph;
         FSNodeArray<int> extern_ids(graph);
@@ -125,6 +137,19 @@ void EpBsModule::perform(int argc, char** argv) {
         num_nodes_ = graph.numberOfNodes();
         num_edges_ = graph.numberOfEdges();
         num_objectives_ = dimension;
+
+
+        // ParetoPrep
+//        ForwardStar reverse_star;
+//        EdgeTrace trace(reverse_star);
+//        ReverseStarConstructor rs_constructor;
+//        rs_constructor.construct_reverse_star(graph, reverse_star, trace);
+//        ReverseEdgeArray<Point> reverse_weights(raw_costs, trace);
+//
+//        ParetoPrep prep;
+//
+//        prep.preprocess(reverse_star, reverse_weights, dimension, source, target);
+
 
 //        FSEdgeArray<Point> costs(graph, Point(dimension));
 //        Point factor(100.0, dimension);
@@ -233,15 +258,26 @@ void EpBsModule::perform(int argc, char** argv) {
 
 //        if(dimension == 2)
 //        {
-//
-////            solver.set_bounds(bounds);
-////            solver.set_heuristic(ideal_heuristic);
 //            EpSolverBSBi solver;
 //
 //            steady_clock::time_point start = steady_clock::now();
 //
+//            FSEdgeArray<pair<int, int>> bi_costs(graph);
+//
+//            for(auto e : graph.edges)
+//            {
+//                pair<int, int> cost;
+//                cost.first = raw_costs[e][0];
+//                cost.second = raw_costs[e][1];
+//                bi_costs[e] = cost;
+//            }
+//
+//            auto bi_cost_function = [&bi_costs] (edge e) {
+//                return &bi_costs[e];
+//            };
+//
 //            solver.Solve(graph,
-//                         cost_function,
+//                         bi_cost_function,
 //                         dimension,
 //                         source,
 //                         target);
@@ -296,6 +332,36 @@ void EpBsModule::perform(int argc, char** argv) {
 
                 method_ = "ns-td";
             }
+//            else if(parent_check)
+//            {
+//                EpSolverBSPc solver;
+//
+//                steady_clock::time_point start = steady_clock::now();
+//
+//                solver.Solve(graph,
+//                             cost_function,
+//                             dimension,
+//                             source,
+//                             target);
+//
+//                steady_clock::time_point end = steady_clock::now();
+//                duration<double> computation_span
+//                = duration_cast<duration<double>>(end - start);
+//                solution_time_ = computation_span.count();
+//
+//                solutions_.insert(solutions_.begin(),
+//                                  solver.solutions().cbegin(),
+//                                  solver.solutions().cend());
+//
+//                label_compares_ = solver.label_compares();
+//                deleted_tree_labels_ = solver.deleted_tree_labels();
+//                recursive_deletions_ = solver.recursive_deletions();
+//                arc_pushes_ = solver.arc_pushes();
+//                touched_recursively_deleted_label_ = solver.touched_recursively_deleted_label();
+//                deleted_labels_ = solver.deleted_labels();
+//
+//                method_ = "ns-pc";
+//            }
             else
             {
                 EpSolverBS solver;

@@ -44,7 +44,7 @@ check_domination(vector<Label>& new_labels,
 //    merge(new_labels, neighbor_labels);
 //    changed = merge(new_labels, neighbor_new_labels, true);
 
-    foo(new_labels, neighbor_labels, neighbor_new_labels);
+    merge(new_labels, neighbor_labels, neighbor_new_labels);
 
     return !neighbor_new_labels.empty();
 }
@@ -83,12 +83,13 @@ recursive_delete(Label& label)
 
 bool EpSolverBSBi::check_heuristic_prunable(const Label& label) {
 
-    for(unsigned i = 0; i < dimension_; ++i)
+    if(label.cost.first + heuristic_(label.n, 0) > bounds_[0])
     {
-        if(label.cost[i] + heuristic_(label.n, i) > bounds_[i])
-        {
-            return true;
-        }
+        return true;
+    }
+    else if(label.cost.second + heuristic_(label.n, 1) > bounds_[1])
+    {
+        return true;
     }
 
     return false;
@@ -96,7 +97,7 @@ bool EpSolverBSBi::check_heuristic_prunable(const Label& label) {
 
 
 void EpSolverBSBi::Solve(const ForwardStar& graph,
-                       std::function<const Point*(const edge)> weights,
+                       std::function<const BiPoint*(const edge)> weights,
                        unsigned dimension,
                        const node source,
                        const node target) {
@@ -108,7 +109,7 @@ void EpSolverBSBi::Solve(const ForwardStar& graph,
     ring_buffer<node> queue(graph.numberOfNodes() + 1);
 	FSNodeArray<NodeEntry> node_entries(graph);
 
-    node_entries[source].new_labels().emplace_back(Point(0.0, dimension),
+    node_entries[source].new_labels().emplace_back(BiPoint(0, 0),
                                                    source,
                                                    nulledge,
                                                    0,
@@ -130,6 +131,8 @@ void EpSolverBSBi::Solve(const ForwardStar& graph,
 
             auto& current_new_labels = current_node_entry.new_labels();
 
+            vector<Label> new_labels;
+
             for(auto current_edge : graph.adj_edges(current_node))
             {
                 node neighbor = graph.head(current_edge);
@@ -147,7 +150,7 @@ void EpSolverBSBi::Solve(const ForwardStar& graph,
 
     //			cout << neighbor << ", ";
 
-                vector<Label> new_labels;
+                new_labels.resize(0);
 
                 unsigned size = 0;
 
@@ -254,7 +257,9 @@ void EpSolverBSBi::Solve(const ForwardStar& graph,
 
             path.reverse();
 
-            add_solution(path, label.cost);
+//            add_solution(path, label.cost);
+            add_solution(path, Point({static_cast<double>(label.cost.first),
+                                        static_cast<double>(label.cost.second)}));
 #if defined USE_TREE_DELETION || defined STATS
         }
 #endif
@@ -262,16 +267,19 @@ void EpSolverBSBi::Solve(const ForwardStar& graph,
 }
 
 int EpSolverBSBi::compare(Label const &a, Label const &b) {
-    if (a.cost[0] <= b.cost[0] && a.cost[1] < b.cost[1]) return -1;
-    if (a.cost[0] < b.cost[0] && a.cost[1] <= b.cost[1]) return -1;
-    if (a.cost[0] >= b.cost[0] && a.cost[1] > b.cost[1]) return 1;
-    if (a.cost[0] > b.cost[0] && a.cost[1] >= b.cost[1]) return 1;
+    if (a.cost.first <= b.cost.first && a.cost.second < b.cost.second) return -1;
+    if (a.cost.first < b.cost.first && a.cost.second <= b.cost.second) return -1;
+    if (a.cost.first >= b.cost.first && a.cost.second >= b.cost.second) return 1;
+//    if (a.cost.first > b.cost.first && a.cost.second >= b.cost.second) return 1;
     return 0;
 }
 
-void EpSolverBSBi::foo(vector<Label> &N,
-                       vector<Label> &pushed,
-                       vector<Label> &pending) {
+void EpSolverBSBi::merge(vector<Label> &N,
+                         vector<Label> &pushed,
+                         vector<Label> &pending) {
+
+    bool print_pushed = false;
+
     vector<bool> nDeleted(N.size(), false);
     int nIndex = 0;
     auto nIt = N.begin();
@@ -289,7 +297,7 @@ void EpSolverBSBi::foo(vector<Label> &N,
                 ++nIndex;
                 break;
             case 0:
-                if (nIt->cost[0] > pushedIt->cost[0]) {
+                if (nIt->cost.first > pushedIt->cost.first) {
                     using std::iter_swap;
                     iter_swap(pushedIt, pushedIt - deletedCount);
                     ++pushedIt;
@@ -307,8 +315,17 @@ void EpSolverBSBi::foo(vector<Label> &N,
     }
     pushed.resize(pushed.size() - deletedCount);
 
+    if(print_pushed)
+    {
+        for(auto& l : pushed)
+        {
+            std::cout << l.cost.first << ", " << l.cost.second << std::endl;
+        }
+    }
+
     auto pendingIt = pending.begin();
     nIt = N.begin();
+    nIndex = 0;
     while (nIt != N.end() && nDeleted[nIndex]) {
         ++nIt;
         ++nIndex;
@@ -330,7 +347,7 @@ void EpSolverBSBi::foo(vector<Label> &N,
                 }
                 break;
             case 0:
-                if (nIt->cost[0] > pendingIt->cost[0]) {
+                if (nIt->cost.first > pendingIt->cost.first) {
                     using std::iter_swap;
                     iter_swap(pendingIt, pendingIt - deletedCount);
                     ++pendingIt;
@@ -348,7 +365,7 @@ void EpSolverBSBi::foo(vector<Label> &N,
     }
     pending.resize(pending.size() - deletedCount);
     size_t oldPendingCount = pending.size();
-    
+
     nIndex = 0;
     for (auto& a : N) {
         if (!nDeleted[nIndex]) {
@@ -356,8 +373,8 @@ void EpSolverBSBi::foo(vector<Label> &N,
         }
         ++nIndex;
     }
-    
-    std::inplace_merge(pending.begin(), pending.begin() + oldPendingCount, pending.end(), [] (const Label& a, const Label& b) {return LexPointComparator::is_lex_leq(a.cost, b.cost, 0);});
+
+    std::inplace_merge(pending.begin(), pending.begin() + oldPendingCount, pending.end(), [] (const Label& a, const Label& b) {return a.cost < b.cost;});
 }
 
 

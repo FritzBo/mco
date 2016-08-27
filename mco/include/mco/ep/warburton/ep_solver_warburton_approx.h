@@ -14,11 +14,11 @@
 
 namespace mco {
 
-class EpSolverWarburtonApprox : public AbstractSolver<std::list<edge>> {
+class EpSolverWarburtonApprox : public AbstractSolver<std::list<ogdf::edge>> {
 
 public:
 	bool Solve(ogdf::Graph& graph,
-               std::function<Point&(edge)> cost_function,
+               std::function<Point&(ogdf::edge)> cost_function,
                unsigned dimension,
                const ogdf::node source,
                const ogdf::node target,
@@ -50,9 +50,9 @@ private:
                                    const Point& ub);
     
     bool lagrange_prune(const Graph& graph,
-                        std::function<Point*(edge)> cost_function,
-                        const node source,
-                        const node target,
+                        std::function<Point*(ogdf::edge)> cost_function,
+                        const ogdf::node source,
+                        const ogdf::node target,
                         bool directed,
                         Point label_limits,
                         unsigned skip_function,

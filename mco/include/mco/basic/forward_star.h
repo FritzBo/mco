@@ -151,6 +151,28 @@ class ForwardStar
         ForwardStar& fs_;
     };
 
+    class EdgeCollection
+    {
+    public:
+        inline EdgeCollection(ForwardStar& fs)
+        :   fs_(fs)
+        {
+        }
+
+        inline GraphObjectIterator begin() const
+        {
+            return GraphObjectIterator(0);
+        }
+
+        inline GraphObjectIterator end() const
+        {
+            return GraphObjectIterator(fs_.no_edges);
+        }
+
+    private:
+        ForwardStar& fs_;
+    };
+
     unsigned no_nodes;
     unsigned no_edges;
 
@@ -160,6 +182,7 @@ public:
     :   no_nodes(0),
         no_edges(0),
         nodes(*this),
+        edges(*this),
         first_edge_(0),
         heads_(*this),
         tails_(*this)
@@ -172,6 +195,7 @@ public:
     :   no_nodes(no_nodes),
         no_edges(no_edges),
         nodes(*this),
+        edges(*this),
         first_edge_(no_nodes + 1),
         heads_(*this),
         tails_(*this)
@@ -183,6 +207,7 @@ public:
                 bool directed);
 
     NodeCollection nodes;
+    EdgeCollection edges;
 
     inline AdjacencyCollection adj_edges(node n) const
     {
@@ -191,11 +216,21 @@ public:
 
     inline node head(edge e) const
     {
+        if(e == nulledge)
+        {
+            return nullnode;
+        }
+
         return heads_[e];
     }
 
     inline node tail(edge e) const
     {
+        if(e == nulledge)
+        {
+            return nullnode;
+        }
+        
         return tails_[e];
     }
 

@@ -29,6 +29,7 @@ find_library(OGDF-DBG
 find_path(OGDF_INCLUDE_PATH
     NAMES ogdf/basic/Graph.h
     PATHS /usr/local/
+          /usr/local/include
 )
 
 find_library(COIN

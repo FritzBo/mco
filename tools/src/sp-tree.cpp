@@ -46,9 +46,9 @@ using mco::LexPointComparator;
 using mco::EqualityPointComparator;
 
 
-using cost_function_type = std::function<Point*(edge)>;
+using cost_function_type = std::function<Point*(ogdf::edge)>;
 
-void print_sidetracks(std::vector<edge>& sidetracks,
+void print_sidetracks(std::vector<ogdf::edge>& sidetracks,
                       EdgeArray<bool>& filter,
                       cost_function_type costs,
                       bool weighted)
@@ -71,9 +71,9 @@ void print_sidetracks(std::vector<edge>& sidetracks,
 }
 
 void filter_edges(Graph& graph,
-                  node target,
-                  NodeArray<edge>& predecessors,
-                  vector<edge>& sidetracks,
+                  ogdf::node target,
+                  NodeArray<ogdf::edge>& predecessors,
+                  vector<ogdf::edge>& sidetracks,
                   EdgeArray<bool>& filter)
 {
 
@@ -129,9 +129,9 @@ void filter_edges(Graph& graph,
 
 void find_sidetracks(Graph& graph,
                      cost_function_type costs,
-                     NodeArray<edge>& predecessors,
+                     NodeArray<ogdf::edge>& predecessors,
                      NodeArray<Point*>& distances,
-                     vector<edge>& sidetracks)
+                     vector<ogdf::edge>& sidetracks)
 {
     EdgeArray<bool> sp_edges(graph, false);
 
@@ -152,8 +152,8 @@ void find_sidetracks(Graph& graph,
             continue;
         }
 
-        node tail = e->source();
-        node head = e->target();
+        ogdf::node tail = e->source();
+        ogdf::node head = e->target();
 
         if(eq(*distances[tail] + *costs(e), *distances[head]))
         {
@@ -163,17 +163,17 @@ void find_sidetracks(Graph& graph,
 }
 
 void print_root_to_leaf_path(EdgeArray <Point>& costs,
-                             NodeArray<edge>& predecessors,
+                             NodeArray<ogdf::edge>& predecessors,
                              NodeArray<Point*>& distances,
                              NodeArray<bool>& printed_nodes,
                              EdgeArray<bool> filter,
-                             node source,
-                             node n,
+                             ogdf::node source,
+                             ogdf::node n,
                              unsigned dimension,
                              bool weighted)
 {
     Point cost(dimension);
-    deque<node> path;
+    deque<ogdf::node> path;
     auto curr = n;
     path.push_front(curr);
 
@@ -211,8 +211,8 @@ void print_root_to_leaf_path(EdgeArray <Point>& costs,
 }
 
 void compute_leaves(Graph& graph,
-                    NodeArray<edge>& predecessors,
-                    vector<node>& leaves)
+                    NodeArray<ogdf::edge>& predecessors,
+                    vector<ogdf::node>& leaves)
 {
     NodeArray<bool> leaf_candidate(graph, true);
     for(auto n : graph.nodes)
@@ -254,7 +254,7 @@ Point parse_weight(ValueArg<string>& argument,
 void double_edges(Graph& graph,
                   EdgeArray<Point>& costs)
 {
-    vector<edge> edges;
+    vector<ogdf::edge> edges;
     for(auto e : graph.edges)
     {
         edges.push_back(e);
@@ -299,7 +299,7 @@ int main(int argc, char** argv)
         Graph graph;
         EdgeArray<Point> costs(graph);
         unsigned dimension;
-        node source, target;
+        ogdf::node source, target;
 
         TemporaryGraphParser parser;
 
@@ -311,11 +311,11 @@ int main(int argc, char** argv)
         }
 
         NodeArray<Point*> distances(graph);
-        NodeArray<edge> predecessors(graph);
+        NodeArray<ogdf::edge> predecessors(graph);
 
         LexDijkstra sssp;
 
-        std::function<Point*(edge)> cost_function;
+        std::function<Point*(ogdf::edge)> cost_function;
         EdgeArray<Point>* weighted_cost = nullptr;
         bool weighted;
 
@@ -339,7 +339,7 @@ int main(int argc, char** argv)
                 distances[n] = new Point(dimension + 1);
             }
 
-            cost_function = [weighted_cost] (edge e) {
+            cost_function = [weighted_cost] (ogdf::edge e) {
                 return &(*weighted_cost)[e];
             };
 
@@ -348,14 +348,14 @@ int main(int argc, char** argv)
                                            source,
                                            distances,
                                            predecessors,
-                                           DijkstraModes::Forward);
+                                           DijkstraModes<>::Forward);
 
             weighted = true;
 
 
 
         } else {
-            cost_function = [&costs] (edge e) {
+            cost_function = [&costs] (ogdf::edge e) {
                 return &costs[e];
             };
 
@@ -368,13 +368,13 @@ int main(int argc, char** argv)
                                            source,
                                            distances,
                                            predecessors,
-                                           DijkstraModes::Forward);
+                                           DijkstraModes<>::Forward);
 
             weighted = false;
             
         }
 
-        vector<node> leaves;
+        vector<ogdf::node> leaves;
         compute_leaves(graph, predecessors, leaves);
 
         if(count_only)
@@ -383,7 +383,7 @@ int main(int argc, char** argv)
         }
         else
         {
-            vector<edge> sidetracks;
+            vector<ogdf::edge> sidetracks;
             find_sidetracks(graph, cost_function, predecessors, distances, sidetracks);
 
             EdgeArray<bool> filter(graph, false);

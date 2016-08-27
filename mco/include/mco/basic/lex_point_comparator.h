@@ -28,7 +28,12 @@ public:
      */
     inline LexPointComparator(double epsilon = 0, bool strict = true)
     : epsilon_(epsilon), strict_(strict) {}
-    
+
+    LexPointComparator& operator=(const LexPointComparator& other)
+    {
+        return *this;
+    }
+
     inline bool operator()(const Point * p1,
                            const Point * p2) const noexcept;
     

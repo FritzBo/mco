@@ -9,8 +9,9 @@
 #ifndef __mco__lc_approx__
 #define __mco__lc_approx__
 
-#include <ogdf/basic/Graph.h>
+#include <ogdf/basic/graph.h>
 
+#include <mco/basic/forward_star.h>
 #include <mco/basic/abstract_solver.h>
 
 namespace mco {
@@ -103,12 +104,11 @@ private:
               const LCApprox& app)
         :   cost(cost),
             pos(app.compute_pos(cost)),
-            n(n),
             sum(0),
+            n(n),
             pred_edge(p_edge),
             pred_label(p_label),
             deleted(false) {
-
 
             auto it = cost.cbegin();
             while(it != cost.cend()) {
@@ -127,14 +127,13 @@ private:
         
         NodeEntry()
         :   in_queue(false),
-            labels_(),
-            labels_end_(0),
-            new_labels_(),
-            new_labels_end_(0)
-            { }
+            labels_(0),
+            new_labels_(0)
+        { }
 
-        void push_back(Label* label) {
-            add_label(new_labels_, new_labels_end_, label);
+        void push_back(Label* label)
+        {
+            new_labels_.push_back(label);
         }
         
         void erase(std::vector<Label*>& arr,
@@ -145,34 +144,26 @@ private:
 
             delete arr[index];
 
-            if(&arr == &labels_) {
-                arr[index] = arr[labels_end_ - 1];
+            arr[index] = arr[arr.size() - 1];
 #ifndef NDEBUG
-                arr[labels_end_ - 1] = nullptr;
+            arr[arr.size() - 1] = nullptr;
 #endif
-                --labels_end_;
-            } else {
-                arr[index] = arr[new_labels_end_ - 1];
-#ifndef NDEBUG
-                arr[new_labels_end_ - 1] = nullptr;
-#endif
-                --new_labels_end_;
-
-            }
+            arr.pop_back();
         }
         
         void proceed_labels_it() {
-            for(unsigned i = 0; i < new_labels_end_; ++i) {
-                add_label(labels_, labels_end_, new_labels_[i]);
+            for(unsigned i = 0; i < new_labels_.size(); ++i) {
+                labels_.push_back(new_labels_[i]);
 #ifndef NDEBUG
                 new_labels_[i] = nullptr;
 #endif
             }
-            new_labels_end_ = 0;
+
+            new_labels_.clear();
         }
         
         bool has_new_labels() {
-            return new_labels_end_ > 0;
+            return !new_labels_.empty();
         }
         
         std::vector<Label*>& labels() {
@@ -183,37 +174,12 @@ private:
             return new_labels_;
         }
 
-        unsigned labels_end() {
-            return labels_end_;
-        }
-
-        unsigned new_labels_end() {
-            return new_labels_end_;
-        }
-
     private:
         std::vector<Label*> labels_;
-        unsigned labels_end_;
-
         std::vector<Label*> new_labels_;
-        unsigned new_labels_end_;
-
-        void add_label(std::vector<Label*>& arr,
-                       unsigned& end_pointer,
-                       Label* label) {
-
-            if(arr.size() > end_pointer) {
-                arr[end_pointer] = label;
-            } else {
-                arr.push_back(label);
-            }
-            ++end_pointer;
-
-        }
     };
     
     bool check_domination(std::vector<Label*>& new_labels,
-                          unsigned new_labels_end,
                           NodeEntry& neighbor_entry);
     
     bool check_heuristic_prunable(const Label& label,

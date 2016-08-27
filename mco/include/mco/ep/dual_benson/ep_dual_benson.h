@@ -109,7 +109,7 @@ operator()(const Point& weighting,
                                                    source_,
                                                    distance,
                                                    predecessor,
-                                                   DijkstraModes::Undirected);
+                                                   DijkstraModes<>::Undirected);
     
     Point& target_cost = *distance[target_];
     
@@ -160,10 +160,10 @@ Solve(const ogdf::Graph& graph,
 
     dual_benson_solver.Calculate_solutions(frontier);
     
-    std::list<std::pair<std::list<edge>, Point>> solutions;
+    std::list<std::pair<std::list<ogdf::edge>, Point>> solutions;
     
     for(auto point : frontier) {
-        solutions.push_back(make_pair(std::list<edge>(), *point));
+        solutions.push_back(make_pair(std::list<ogdf::edge>(), *point));
         extreme_points_.push_back(point);
     }
 

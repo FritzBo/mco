@@ -23,6 +23,11 @@ public:
                     node source,
                     node target);
 
+    Point ideal_point()
+    {
+        return ideal_point_;
+    }
+
 private:
     class NodeEntry
     {
@@ -44,6 +49,8 @@ private:
                         node target,
                         unsigned objective,
                         Point& new_upper_bound);
+
+    Point ideal_point_;
 };
 }
 

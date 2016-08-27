@@ -25,7 +25,8 @@ double EpLagrangeBisect::find_lagrange_multi(const ogdf::Graph& graph,
                                              bool directed,
                                              const Point& bounds,
                                              Point& lambda) {
-    
+
+
     LagrangeBisect bisect;
     
     return bisect.find_multiplier(DijkstraAdaptor(graph,
@@ -48,7 +49,7 @@ operator()(const Point& weighting,
     
     Dijkstra<double, PairComparator<double, std::less<double>>> sssp_solver;
     
-    auto weight = [&weighting, this] (edge e) {
+    auto weight = [&weighting, this] (ogdf::edge e) {
         return this->costs_(e) * weighting;
     };
     
@@ -57,14 +58,14 @@ operator()(const Point& weighting,
                                           source_,
                                           predecessor,
                                           distance,
-                                          directed_ ? DijkstraModes::Forward : DijkstraModes::Undirected);
+                                          directed_ ? DijkstraModes<>::Forward : DijkstraModes<>::Undirected);
     
     for(unsigned i = 0; i < dimension_; ++i) {
         value[i] = 0;
     }
     
-    node current_node = target_;
-    edge predecessor_edge;
+    ogdf::node current_node = target_;
+    ogdf::edge predecessor_edge;
     while(current_node != source_) {
         predecessor_edge = predecessor[current_node];
         value += costs_(predecessor_edge);

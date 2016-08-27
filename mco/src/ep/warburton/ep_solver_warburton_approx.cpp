@@ -42,7 +42,7 @@ using ogdf::edge;
 namespace mco {
 
 bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
-                                    std::function<Point&(edge)> cost_function,
+                                    std::function<Point&(ogdf::edge)> cost_function,
                                     unsigned dimension,
                                     const ogdf::node source,
                                     const ogdf::node target,
@@ -110,13 +110,13 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
     
     current_log_bound[skip_function] = numeric_limits<double>::quiet_NaN();
     
-    list<pair<list<edge>, Point>> solutions;
+    list<pair<list<ogdf::edge>, Point>> solutions;
     
     list<Point> nondominated_cells;
     
     Dijkstra<double, PairComparator<double, std::less<double>>> sssp_solver;
     NodeArray<double> distances(graph);
-	NodeArray<edge> predecessor(graph);
+	NodeArray<ogdf::edge> predecessor(graph);
     
     while(true) {
         
@@ -171,7 +171,7 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
                 scaled_costs[e] = std::move(scaled_cost);
             }
             
-            auto scaled_cost_function = [&scaled_costs] (edge e) {
+            auto scaled_cost_function = [&scaled_costs] (ogdf::edge e) {
                 return &scaled_costs[e];
             };
             
@@ -179,7 +179,7 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
             
             for(unsigned k = 0; k < dimension; ++k) {
                 
-                auto weight = [scaled_cost_function, k] (edge e) {
+                auto weight = [scaled_cost_function, k] (ogdf::edge e) {
                     return scaled_cost_function(e)->operator[](k);
                 };
                 
@@ -188,13 +188,13 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
                                                       target,
                                                       predecessor,
                                                       heuristic_lower_bounds[k],
-                                                      directed ? DijkstraModes::Backward :
-                                                      DijkstraModes::Undirected);
+                                                      directed ? DijkstraModes<>::Backward :
+                                                      DijkstraModes<>::Undirected);
             }
             
             
             
-            auto heuristic = [&heuristic_lower_bounds] (node n, unsigned objective) {
+            auto heuristic = [&heuristic_lower_bounds] (ogdf::node n, unsigned objective) {
                 return heuristic_lower_bounds[objective][n];
             };
             
@@ -325,9 +325,9 @@ compute_skip_function(unsigned dimension,
     
 bool EpSolverWarburtonApprox::
 lagrange_prune(const Graph& graph,
-               function<Point*(edge)> cost_function,
-               const node source,
-               const node target,
+               function<Point*(ogdf::edge)> cost_function,
+               const ogdf::node source,
+               const ogdf::node target,
                bool directed,
                Point label_limits,
                unsigned skip_function,
@@ -338,13 +338,13 @@ lagrange_prune(const Graph& graph,
     Point* lambda = nullptr;
     Point* temp_label_limits = nullptr;
     
-    function<Point&(edge)> lagrange_cost_function;
+    function<Point&(ogdf::edge)> lagrange_cost_function;
     
     std::list<Point> points;
     
     if(label_limits[skip_function] == numeric_limits<double>::infinity()) {
         
-        lagrange_cost_function = [cost_function, skip_function, dimension, &points] (edge e) -> Point&{
+        lagrange_cost_function = [cost_function, skip_function, dimension, &points] (ogdf::edge e) -> Point&{
             points.emplace_front(dimension - 1);
             Point& new_point = *points.begin();
             Point& target_point = *cost_function(e);
@@ -373,7 +373,7 @@ lagrange_prune(const Graph& graph,
         
     } else {
         
-        lagrange_cost_function = [cost_function] (edge e) -> Point& {
+        lagrange_cost_function = [cost_function] (ogdf::edge e) -> Point& {
             return *cost_function(e);
         };
         
@@ -401,11 +401,11 @@ lagrange_prune(const Graph& graph,
     
 bool EpSolverWarburtonApprox::
 computeBounds(const Graph& graph,
-              std::function<Point&(edge)> cost_function,
+              std::function<Point&(ogdf::edge)> cost_function,
               const Point& epsilon,
               const Point& bound,
-              const node source,
-              const node target,
+              const ogdf::node source,
+              const ogdf::node target,
               double theta,
               unsigned dimension,
               bool directed,
@@ -422,7 +422,7 @@ computeBounds(const Graph& graph,
     
     Dijkstra<double, PairComparator<double, std::less<double>>> sssp_solver;
     NodeArray<double> distances(graph);
-	NodeArray<edge> predecessor(graph);
+	NodeArray<ogdf::edge> predecessor(graph);
 
     for(unsigned int k = 0; k < dimension; ++k) {
         
@@ -484,7 +484,7 @@ computeBounds(const Graph& graph,
             double Tk = epsilon[k] * pow(theta, i) / (number_nodes - 1);
             
             // Compute a scaled weight function for i
-            auto scaled_weight_function = [cost_function, k, &Tk] (edge e) {
+            auto scaled_weight_function = [cost_function, k, &Tk] (ogdf::edge e) {
                 return floor(cost_function(e)[k] / Tk);
             };
             
@@ -494,7 +494,7 @@ computeBounds(const Graph& graph,
                                                   target,
                                                   predecessor,
                                                   distances,
-                                                  directed ? DijkstraModes::Backward : DijkstraModes::Undirected);
+                                                  directed ? DijkstraModes<>::Backward : DijkstraModes<>::Undirected);
             
 #ifndef NDEBUG
             cout << "Shortest path distance: " << distances[source] << endl;

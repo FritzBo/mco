@@ -16,32 +16,51 @@
 #include <ogdf/internal/heap/PairingHeap.h>
 
 #include <mco/basic/point.h>
+#include <mco/basic/forward_star.h>
 
 namespace mco {
 
 //! TODO doxygen
+template<typename NODE = ogdf::node, typename EDGE = ogdf::edge>
 struct DijkstraModes {
 
     // TODO doxygen
-    static std::function<bool(ogdf::node,ogdf::edge)> const Forward;
+    static std::function<bool(NODE, EDGE)> const Forward;
 
     // TODO doxygen
-    static std::function<bool(ogdf::node,ogdf::edge)> const Backward;
+    static std::function<bool(NODE, EDGE)> const Backward;
 
     // TODO doxygen
-    static std::function<bool(ogdf::node,ogdf::edge)> const Undirected;
+    static std::function<bool(NODE, EDGE)> const Undirected;
 
 };
 
-template<typename T, typename C>
+template<typename NODE, typename EDGE>
+std::function<bool(NODE, EDGE)> const DijkstraModes<NODE, EDGE>::Forward =
+[](NODE v, EDGE e) {
+    return v == e->source();
+};
+
+template<typename NODE, typename EDGE>
+std::function<bool(NODE,EDGE)> const DijkstraModes<NODE, EDGE>::Backward =
+[](NODE v, EDGE e) {
+    return v == e->target();
+};
+template<typename NODE, typename EDGE>
+std::function<bool(NODE,EDGE)> const DijkstraModes<NODE, EDGE>::Undirected =
+[](NODE, EDGE) {
+    return true;
+};
+
+template<typename T, typename C, typename NODE = ogdf::node>
 class PairComparator {
 public:
     PairComparator& operator=(const PairComparator& that) {
         return *this;
     }
 
-    bool operator()(std::pair<T, ogdf::node>& p1,
-                    std::pair<T, ogdf::node>& p2) {
+    bool operator()(std::pair<T, NODE>& p1,
+                    std::pair<T, NODE>& p2) {
         return comp_(p1.first, p2.first);
     }
 private:
@@ -49,19 +68,19 @@ private:
 };
 
 //! TODO doxygen
-template<typename T, typename C>
+template<typename T, typename C, typename GRAPH = ogdf::Graph, typename NODE = ogdf::node, typename EDGE = ogdf::edge, typename NODE_ARRAY_E = ogdf::NodeArray<ogdf::edge>, typename NODE_ARRAY_T = ogdf::NodeArray<T>>
 class Dijkstra {
 
 public:
 
     //! TODO doxygen
     bool singleSourceShortestPaths(
-            ogdf::Graph const &graph,
-            std::function<T(ogdf::edge)> weight,
-            ogdf::node const source,
-            ogdf::NodeArray<ogdf::edge> &predecessor,
-            ogdf::NodeArray<T> &distance,
-            std::function<bool(ogdf::node,ogdf::edge)> mode=DijkstraModes::Forward) {
+            GRAPH const &graph,
+            std::function<T(EDGE)> weight,
+            NODE const source,
+            NODE_ARRAY_E &predecessor,
+            NODE_ARRAY_T &distance,
+            std::function<bool(NODE, EDGE)> mode = DijkstraModes<NODE, EDGE>::Forward) {
 
         using std::pair;
         using std::make_pair;
@@ -70,7 +89,7 @@ public:
         using ogdf::PairingHeapNode;
         using ogdf::NodeArray;
 
-        using queue_element = pair<T, ogdf::node>;
+        using queue_element = pair<T, NODE>;
 
         // Initialization: populate priority queue
         PairingHeap<queue_element, C> queue;
@@ -105,7 +124,6 @@ public:
 
 };
 
-
 //! TODO doxygen
 class LexDijkstra {
 
@@ -118,7 +136,7 @@ public:
             ogdf::node const source,
             ogdf::NodeArray<Point *> &distance,
             ogdf::NodeArray<ogdf::edge> &predecessor,
-            std::function<bool(ogdf::node,ogdf::edge)> mode=DijkstraModes::Forward);
+            std::function<bool(ogdf::node,ogdf::edge)> mode =DijkstraModes<>::Forward);
 
 };
 

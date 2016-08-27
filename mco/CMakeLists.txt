@@ -53,6 +53,7 @@ include/mco/ep/basic/ep_lagrange_bisect.h
 include/mco/ep/brum_shier/ep_solver_bs.h
 include/mco/ep/brum_shier/ep_solver_bs_bi.h
 include/mco/ep/brum_shier/ep_solver_bs_td.h
+include/mco/ep/brum_shier/ep_solver_bs_pc.h
 include/mco/ep/brum_shier/ep_solver_bs_par.h
 include/mco/ep/brum_shier/ep_weighted_bs.h
 include/mco/ep/ep_lc_ls.h

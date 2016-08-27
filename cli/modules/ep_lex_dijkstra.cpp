@@ -120,7 +120,7 @@ void EpLDModule::perform(int argc, char** argv) {
                                            source,
                                            distances,
                                            predecessors,
-                                           is_directed ? DijkstraModes::Forward : DijkstraModes::Undirected);
+                                           is_directed ? DijkstraModes<>::Forward : DijkstraModes<>::Undirected);
 
 
 
@@ -138,7 +138,7 @@ void EpLDModule::perform(int argc, char** argv) {
                                            source,
                                            distances,
                                            predecessors,
-                                           is_directed ? DijkstraModes::Forward : DijkstraModes::Undirected);
+                                           is_directed ? DijkstraModes<>::Forward : DijkstraModes<>::Undirected);
 
         }
 
