@@ -46,6 +46,13 @@ check_domination(vector<Label>& new_labels,
 
     merge(new_labels, neighbor_labels, neighbor_new_labels);
 
+    assert(is_sorted(new_labels.cbegin(),
+                     new_labels.cend()));
+    assert(is_sorted(neighbor_labels.cbegin(),
+                     neighbor_labels.cend()));
+    assert(is_sorted(neighbor_new_labels.cbegin(),
+                     neighbor_new_labels.cend()));
+
     return !neighbor_new_labels.empty();
 }
 
@@ -152,7 +159,7 @@ void EpSolverBSBi::Solve(const ForwardStar& graph,
 
                 new_labels.resize(0);
 
-                unsigned size = 0;
+                size_t size = 0;
 
                 for(auto& label : current_new_labels)
                 {
@@ -218,7 +225,7 @@ void EpSolverBSBi::Solve(const ForwardStar& graph,
     }
 
     auto& target_entry = node_entries[target];
-    for(unsigned i = 0; i < target_entry.new_labels().size(); ++i)
+    for(size_t i = 0; i < target_entry.new_labels().size(); ++i)
     {
         auto& label = target_entry.new_labels()[i];
         list<node> path;

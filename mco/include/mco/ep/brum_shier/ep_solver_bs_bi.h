@@ -185,6 +185,11 @@ private:
 #endif
             return *this;
         }
+
+        bool operator<(const Label& other) const
+        {
+            return this->cost < other.cost;
+        }
     };
 
     struct NodeEntry
@@ -213,12 +218,17 @@ private:
 
         inline void proceed_labels_it()
         {
+            size_t former_size = labels_.size();
             for(auto& label : new_labels_)
             {
                 labels_.push_back(std::move(label));
             }
 
             new_labels_.clear();
+
+            inplace_merge(labels_.begin(),
+                          labels_.begin() + former_size,
+                          labels_.end());
         }
 
         inline bool has_new_labels()
