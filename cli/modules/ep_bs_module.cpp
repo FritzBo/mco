@@ -100,6 +100,8 @@ void EpBsModule::perform(int argc, char** argv) {
 
         SwitchArg parent_check_arg("p", "parent-checking", "Enabling parent-checking heuristic", false);
 
+        SwitchArg force_node_select_arg("N", "node-select", "Enforcing node-selection strategy and overiding defaults.", false);
+
         cmd.add(file_name_argument);
         cmd.add(is_directed_arg);
         cmd.add(ideal_bounds_arg);
@@ -108,6 +110,7 @@ void EpBsModule::perform(int argc, char** argv) {
         cmd.add(label_select_arg);
         cmd.add(tree_deletion_arg);
         cmd.add(parent_check_arg);
+        cmd.add(force_node_select_arg);
 
         cmd.parse(argc, argv);
         
@@ -117,6 +120,7 @@ void EpBsModule::perform(int argc, char** argv) {
         bool label_select = label_select_arg.getValue();
         bool tree_deletion = tree_deletion_arg.getValue();
         bool parent_check = parent_check_arg.getValue();
+        bool force_node_select = force_node_select_arg.getValue();
 
         ForwardStar graph;
         FSNodeArray<int> extern_ids(graph);
@@ -256,53 +260,52 @@ void EpBsModule::perform(int argc, char** argv) {
 
 //        EdgeArray<Point>* scaled_costs = nullptr;
 
-//        if(dimension == 2)
-//        {
-//            EpSolverBSBi solver;
-//
-//            steady_clock::time_point start = steady_clock::now();
-//
-//            FSEdgeArray<pair<int, int>> bi_costs(graph);
-//
-//            for(auto e : graph.edges)
-//            {
-//                pair<int, int> cost;
-//                cost.first = raw_costs[e][0];
-//                cost.second = raw_costs[e][1];
-//                bi_costs[e] = cost;
-//            }
-//
-//            auto bi_cost_function = [&bi_costs] (edge e) {
-//                return &bi_costs[e];
-//            };
-//
-//            solver.Solve(graph,
-//                         bi_cost_function,
-//                         dimension,
-//                         source,
-//                         target);
-//
-//            steady_clock::time_point end = steady_clock::now();
-//            duration<double> computation_span
-//            = duration_cast<duration<double>>(end - start);
-//            solution_time_ = computation_span.count();
-//
-//            solutions_.insert(solutions_.begin(),
-//                              solver.solutions().cbegin(),
-//                              solver.solutions().cend());
-//
-//            label_compares_ = solver.label_compares();
-//            deleted_tree_labels_ = solver.deleted_tree_labels();
-//            recursive_deletions_ = solver.recursive_deletions();
-//            arc_pushes_ = solver.arc_pushes();
-//            touched_recursively_deleted_label_ = solver.touched_recursively_deleted_label();
-//            deleted_labels_ = solver.deleted_labels();
-//            method_ = "ns-bi";
-//        }
-//        else
-        if(!label_select)
+        if(!force_node_select && !label_select && !tree_deletion && !parent_check && dimension == 2)
         {
-            if(tree_deletion)
+            EpSolverBSBi solver;
+
+            steady_clock::time_point start = steady_clock::now();
+
+            FSEdgeArray<pair<int, int>> bi_costs(graph);
+
+            for(auto e : graph.edges)
+            {
+                pair<int, int> cost;
+                cost.first = raw_costs[e][0];
+                cost.second = raw_costs[e][1];
+                bi_costs[e] = cost;
+            }
+
+            auto bi_cost_function = [&bi_costs] (edge e) {
+                return &bi_costs[e];
+            };
+
+            solver.Solve(graph,
+                         bi_cost_function,
+                         dimension,
+                         source,
+                         target);
+
+            steady_clock::time_point end = steady_clock::now();
+            duration<double> computation_span
+            = duration_cast<duration<double>>(end - start);
+            solution_time_ = computation_span.count();
+
+            solutions_.insert(solutions_.begin(),
+                              solver.solutions().cbegin(),
+                              solver.solutions().cend());
+
+            label_compares_ = solver.label_compares();
+            deleted_tree_labels_ = solver.deleted_tree_labels();
+            recursive_deletions_ = solver.recursive_deletions();
+            arc_pushes_ = solver.arc_pushes();
+            touched_recursively_deleted_label_ = solver.touched_recursively_deleted_label();
+            deleted_labels_ = solver.deleted_labels();
+            method_ = "ns-bi";
+        }
+        else if(!label_select)
+        {
+            if(tree_deletion && !force_node_select)
             {
                 EpSolverBSTd solver;
 
@@ -332,7 +335,7 @@ void EpBsModule::perform(int argc, char** argv) {
 
                 method_ = "ns-td";
             }
-            else if(parent_check)
+            else if(parent_check && !force_node_select)
             {
                 EpSolverBSPc solver;
 
