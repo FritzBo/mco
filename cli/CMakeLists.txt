@@ -34,6 +34,8 @@ modules/ep_benson_module.h
 modules/ep_benson_module.cpp
 modules/ep_bs_module.h
 modules/ep_bs_module.cpp
+modules/ep_ls_module.h
+modules/ep_ls_module.cpp
 modules/ep_bs_par_module.h
 modules/ep_bs_par_module.cpp
 modules/ep_martins_module.h

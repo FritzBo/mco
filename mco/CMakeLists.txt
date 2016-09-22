@@ -73,6 +73,7 @@ include/mco/ep/dual_benson/ep_benson_verifier.h
 include/mco/ep/preprocessing/constrained_reach.h
 include/mco/ep/preprocessing/paretoprep.h
 include/mco/ep/basic/instance_scalarizer.h
+include/mco/ep/label_setting/label_setting.h
 
 
 # MO Spanning Tree
@@ -158,6 +159,7 @@ src/ep/basic/dijkstra.cpp
 src/ep/preprocessing/constrained_reach.cpp
 src/ep/preprocessing/paretoprep.cpp
 src/ep/basic/instance_scalarizer.cpp
+src/ep/label_setting/label_setting.cpp
 
 # MO Spanning Tree
 src/est/basic/kruskal_st_solver.cpp
