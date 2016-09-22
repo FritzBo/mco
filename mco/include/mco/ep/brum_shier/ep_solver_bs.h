@@ -148,6 +148,8 @@ private:
             label_id = node_entry.get_new_id();
         }
 
+        Label(const Label& other) = delete;
+
         Label(Label&& other)
         :   label_id(other.label_id),
             cost(std::move(other.cost)),
@@ -190,7 +192,7 @@ private:
         }
 
         inline void erase(std::vector<Label>& arr,
-                   unsigned index)
+                          unsigned index)
         {
 
             assert(&arr == &labels_ ||
