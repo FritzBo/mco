@@ -173,13 +173,47 @@ void MOSPLabelSetting::Solve(InputDefinition& def)
 
         current_node_entry.close_label(std::move(current_label));
     }
-    
-    std::cout << node_entries[target].closed_labels().size() << std::endl;
 
-//    for(auto& l : node_entries[target].closed_labels())
-//    {
-//        std::cout << l.cost << std::endl;
-//    }
+    // Add labels and paths to solution set
+    auto& target_entry = node_entries[target];
+    for(unsigned i = 0; i < target_entry.closed_labels().size(); ++i)
+    {
+        auto& label = target_entry.closed_labels()[i];
+        std::list<node> path;
+        auto curr = &label;
+
+        while(curr->n != source)
+        {
+            path.push_back(curr->n);
+
+#ifndef NDEBUG
+            Label* test = curr;
+#endif
+            node pred_node = graph.tail(curr->pred_edge);
+
+            assert(pred_node != curr->n);
+
+            for(auto& candidate_label : node_entries[pred_node].closed_labels())
+            {
+                if(candidate_label.label_id == curr->pred_label_id)
+                {
+                    curr = &candidate_label;
+                    break;
+                }
+            }
+
+            assert(test != curr);
+        }
+
+        assert(path.size() > 0);
+
+        path.push_back(source);
+
+        path.reverse();
+
+        add_solution(path, label.cost);
+    }    
+    
 }
 
 }
