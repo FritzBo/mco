@@ -81,6 +81,7 @@ using mco::CddFiles;
 #include "modules/ep_bs_module.h"
 #include "modules/ep_bs_par_module.h"
 #include "modules/ep_lex_dijkstra.h"
+#include "modules/ep_ls_module.h"
 
 #include "modules/est_benson_module.h"
 #include "modules/est_ok10_module.h"
@@ -109,6 +110,7 @@ int main(int argc, char** argv) {
         EpBsParModule bs_par_module;
         EpIdealModule ideal_module;
         EpLDModule ld_module;
+        EpLsModule ls_module;
 
         EstBensonModule est_benson_module;
         EstOk10Module est_ok10_module;
@@ -125,6 +127,7 @@ int main(int argc, char** argv) {
         module_factory.add_module("ep-benson", benson_module);
         module_factory.add_module("ep-martins", martins_module);
         module_factory.add_module("ep-bs", bs_module);
+        module_factory.add_module("ep-ls", ls_module);
         module_factory.add_module("ep-bs-par", bs_par_module);
         module_factory.add_module("lc-approx", lc_approx_module);
         module_factory.add_module("ep-tsaggouris", tsaggouris_module);
