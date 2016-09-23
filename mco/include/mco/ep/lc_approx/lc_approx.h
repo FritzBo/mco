@@ -9,9 +9,8 @@
 #ifndef __mco__lc_approx__
 #define __mco__lc_approx__
 
-#include <ogdf/basic/graph.h>
+#include <ogdf/basic/Graph.h>
 
-#include <mco/basic/forward_star.h>
 #include <mco/basic/abstract_solver.h>
 
 namespace mco {
