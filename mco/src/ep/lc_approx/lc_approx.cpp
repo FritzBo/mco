@@ -280,9 +280,7 @@ Solve(const Graph& graph,
                 
                 auto& neighbor_entry = node_entries[neighbor];
 
-                vector<Label*> new_labels(current_node_entry.new_labels().size(), nullptr);
-
-                unsigned size = 0;
+                vector<Label*> new_labels;
 
                 unsigned current_label_it = 0;
                 while(current_label_it < current_node_entry.new_labels().size()) {
@@ -304,16 +302,15 @@ Solve(const Graph& graph,
                            !check_heuristic_prunable(*new_label,
                                                      scaled_bound,
                                                      scaled_disj_bounds)) {
-                            
-                            new_labels[size] = new_label;
-                            ++size;
+
+                            new_labels.push_back(new_label);
                         }
                     }
 
                     ++current_label_it;
                 }
                 
-                if(size != 0) {
+                if(!new_labels.empty()) {
                 
                     bool changed = check_domination(new_labels,
                                                     neighbor_entry);
