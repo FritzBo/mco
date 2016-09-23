@@ -23,6 +23,7 @@ include/mco/basic/ringbuffer.h
 include/mco/basic/utility.h
 include/mco/basic/cdd_files.h
 include/mco/basic/forward_star.h
+include/mco/basic/heap.h
 
 # Assignment
 include/mco/ap/basic/abstract_ap_solver.h

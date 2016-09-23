@@ -12,7 +12,9 @@
 #include <list>
 #include <functional>
 #include <algorithm>
+#include <vector>
 
+#include <mco/basic/heap.h>
 #include <mco/basic/abstract_solver.h>
 #include <mco/basic/point.h>
 #include <mco/basic/forward_star.h>
@@ -34,6 +36,9 @@ public:
     void Solve(InputDefinition& def);
 
 private:
+
+    static constexpr unsigned D_nodes = 16;
+    static constexpr unsigned D_labels = 4;
 
     struct NodeEntry;
 
@@ -139,9 +144,9 @@ private:
         inline void push_open(Label&& label)
         {
             open_labels_.push_back(std::move(label));
-            std::push_heap(open_labels_.begin(),
-                           open_labels_.end(),
-                           LabelComparator());
+            push_ary_heap<D_labels>(open_labels_.begin(),
+                                    open_labels_.end(),
+                                    LabelComparator());
         }
 
         inline Label& top_open()
@@ -151,9 +156,9 @@ private:
 
         inline void pop_open()
         {
-            std::pop_heap(open_labels_.begin(),
-                          open_labels_.end(),
-                          LabelComparator());
+            pop_ary_heap<D_labels>(open_labels_.begin(),
+                                   open_labels_.end(),
+                                   LabelComparator());
             open_labels_.pop_back();
         }
 

@@ -14,6 +14,8 @@ using std::function;
 using std::vector;
 using std::priority_queue;
 
+using mco::MaxAryHeap;
+
 namespace mco {
 
 bool MOSPLabelSetting::non_dominated(Point new_cost,
@@ -64,7 +66,9 @@ void MOSPLabelSetting::Solve(InputDefinition& def)
     const node target = def.target;
 
     FSNodeArray<NodeEntry> node_entries(graph);
-    priority_queue<node, vector<node>, NodeComparator> queue((NodeComparator(node_entries)));
+
+    vector<node> queue;
+    NodeComparator cmp(node_entries);
 
     {
         Label initial_label(Point(dimension),
@@ -76,15 +80,21 @@ void MOSPLabelSetting::Solve(InputDefinition& def)
         node_entries[source].push_open(std::move(initial_label));
         node_entries[source].in_queue = true;
 
-        queue.push(source);
+        queue.push_back(source);
+        push_ary_heap<D_nodes>(queue.begin(),
+                               queue.end(),
+                               cmp);
     }
 
     Point new_cost(dimension);
 
     while(!queue.empty())
     {
-        auto current_node = queue.top();
-        queue.pop();
+        auto current_node = queue.front();
+        pop_ary_heap<D_nodes>(queue.begin(),
+                              queue.end(),
+                              cmp);
+        queue.pop_back();
 
 
         auto& current_node_entry = node_entries[current_node];
@@ -98,7 +108,10 @@ void MOSPLabelSetting::Solve(InputDefinition& def)
 
         if(current_node_entry.has_open())
         {
-            queue.push(current_node);
+            queue.push_back(current_node);
+            push_ary_heap<D_nodes>(queue.begin(),
+                                   queue.end(),
+                                   cmp);
         } else {
             current_node_entry.in_queue = false;
         }
@@ -142,7 +155,10 @@ void MOSPLabelSetting::Solve(InputDefinition& def)
                 if(neighbor != source &&
                    !neighbor_node_entry.in_queue)
                 {
-                    queue.push(neighbor);
+                    queue.push_back(neighbor);
+                    push_ary_heap<D_nodes>(queue.begin(),
+                                           queue.end(),
+                                           cmp);
                     neighbor_node_entry.in_queue = true;
                 }
 
