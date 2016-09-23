@@ -108,9 +108,15 @@ void EpLsModule::perform(int argc, char** argv) {
         = duration_cast<duration<double>>(end - start);
         solution_time_ = computation_span.count();
 
-        solutions_.insert(solutions_.begin(),
-                          solver.solutions().cbegin(),
-                          solver.solutions().cend());
+        for(auto& solution : solver.solutions())
+        {
+            list<mco::node> path;
+            for(auto n : solution.first)
+            {
+                path.push_back(extern_ids[n]);
+            }
+            solutions_.push_back(make_pair(path, solution.second));
+        }
 
         label_compares_ = 0;
         arc_pushes_ = 0;
