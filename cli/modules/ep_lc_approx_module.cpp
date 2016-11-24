@@ -110,16 +110,20 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         parse_epsilon(epsilon_argument,
                       dimension,
                       epsilon);
-        
+
+        LCApprox::InstanceDescription desc;
+
+        desc.graph = &graph;
+        desc.cost_function = cost_function;
+        desc.dimension = dimension;
+        desc.source = source;
+        desc.target = target;
+        desc.directed = directed;
+        desc.epsilon = &epsilon;
+
         LCApprox solver;
 
-        solver.Solve(graph,
-                     cost_function,
-                     dimension,
-                     source,
-                     target,
-                     directed,
-                     epsilon);
+        solver.Solve(desc);
         
         solutions_.insert(solutions_.begin(),
                           solver.solutions().cbegin(),

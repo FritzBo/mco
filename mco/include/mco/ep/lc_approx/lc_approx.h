@@ -18,14 +18,19 @@ namespace mco {
 class LCApprox : public AbstractSolver<std::list<ogdf::edge>> {
     using cost_function_type = std::function<Point&(ogdf::edge)>;
 public:
-    
-    void Solve(const ogdf::Graph& graph,
-               cost_function_type cost_function,
-               unsigned dimension,
-               const ogdf::node source,
-               const ogdf::node target,
-               bool directed,
-               const Point& epsilon);
+
+    struct InstanceDescription
+    {
+        ogdf::Graph* graph;
+        cost_function_type cost_function;
+        unsigned dimension;
+        ogdf::node source;
+        ogdf::node target;
+        bool directed;
+        Point* epsilon;
+    };
+
+    void Solve(const InstanceDescription& inst_desc);
 
 private:
     

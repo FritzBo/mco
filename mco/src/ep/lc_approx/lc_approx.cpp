@@ -176,14 +176,16 @@ recursive_delete(Label& label) {
 }
     
 void LCApprox::
-Solve(const Graph& graph,
-      cost_function_type cost_function,
-      unsigned dimension,
-      const ogdf::node source,
-      const ogdf::node target,
-      bool directed,
-      const Point& epsilon) {
-    
+Solve(const InstanceDescription& inst_desc) {
+
+    const Graph& graph =                *inst_desc.graph;
+    cost_function_type cost_function =  inst_desc.cost_function;
+    unsigned dimension =                inst_desc.dimension;
+    const ogdf::node source =           inst_desc.source;
+    const ogdf::node target =           inst_desc.target;
+    bool directed =                     inst_desc.directed;
+    const Point& epsilon =              *inst_desc.epsilon;
+
     epsilon_ = epsilon;
     dimension_ = dimension;
     min_e_ = Point(numeric_limits<double>::infinity(),
