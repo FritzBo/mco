@@ -156,32 +156,6 @@ check_domination(vector<Label*>& new_labels,
     
     return changed;
 }
-    
-bool LCApprox::check_heuristic_prunable(const Label& label,
-                                        const Point bound,
-                                        const list<Point>& bounds) {
-    
-    Point heuristic_cost(dimension_);
-    for(unsigned i = 0; i < dimension_; ++i) {
-        heuristic_cost[i] = label.cost[i] + heuristic_(label.n, i);
-    }
-    
-    compute_pos(heuristic_cost, heuristic_cost);
-
-    ComponentwisePointComparator leq(0, false);
-
-    if(!leq(heuristic_cost, bound)) {
-        return true;
-    }
-
-    for(auto& bound : bounds) {
-        if(leq(heuristic_cost, bound)) {
-            return false;
-        }
-    }
-    
-    return bounds.size() > 0;
-}
 
 void LCApprox::
 recursive_delete(Label& label) {
@@ -224,19 +198,6 @@ Solve(const Graph& graph,
     list<Point> scaled_disj_bounds;
     Point scaled_bound(dimension_);
 
-    if(use_bounds_) {
-        compute_pos(bound_, scaled_bound);
-
-        for(auto& bound : disj_bounds_) {
-            Point scaled_disj_bound(dimension_);
-            compute_pos(bound, scaled_disj_bound);
-#ifndef NDEBUG
-            std::cout << scaled_disj_bound << std::endl;
-#endif
-            scaled_disj_bounds.push_back(std::move(scaled_disj_bound));
-        }
-    }
-    
     NodeArray<NodeEntry> node_entries(graph);
     
     list<ogdf::node> queue;
@@ -298,13 +259,8 @@ Solve(const Graph& graph,
                                                    label,
                                                    *this);
                         
-                        if(!use_bounds_ || !use_heuristic_ ||
-                           !check_heuristic_prunable(*new_label,
-                                                     scaled_bound,
-                                                     scaled_disj_bounds)) {
 
-                            new_labels.push_back(new_label);
-                        }
+                        new_labels.push_back(new_label);
                     }
 
                     ++current_label_it;

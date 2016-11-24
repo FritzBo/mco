@@ -28,33 +28,10 @@ public:
 private:
     
     std::list<std::pair<const std::list<ogdf::edge>, const mco::Point>> solutions_;
-    
-    void parse_ideal_bounds(const TCLAP::MultiArg<std::string>& argument,
-                            unsigned dimension,
-                            std::function<double(ogdf::node, unsigned)> heuristic,
-                            const ogdf::node source,
-                            mco::Point& bounds);
 
-    void parse_absolute_bounds(const TCLAP::MultiArg<std::string>& argument,
-                            unsigned dimension,
-                            mco::Point& bounds);
-
-    void parse_disjunctive_bounds(const TCLAP::MultiArg<std::string>& argument,
-                                  unsigned dimension,
-                                  std::list<mco::Point>& bounds);
-    
     void parse_epsilon(const TCLAP::MultiArg<std::string>& epsilon_argument,
                        unsigned dimension,
                        mco::Point& epsilon);
-    
-    void calculate_ideal_heuristic(const ogdf::Graph& graph,
-                                   const ogdf::EdgeArray<mco::Point>& costs,
-                                   unsigned dimension,
-                                   const ogdf::node source,
-                                   const ogdf::node target,
-                                   bool directed,
-                                   std::vector<ogdf::NodeArray<double>>& distances);
-    
     
 };
 

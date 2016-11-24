@@ -17,7 +17,6 @@ namespace mco {
 
 class LCApprox : public AbstractSolver<std::list<ogdf::edge>> {
     using cost_function_type = std::function<Point&(ogdf::edge)>;
-    using heuristic_type = std::function<double(ogdf::node, unsigned)>;
 public:
     
     void Solve(const ogdf::Graph& graph,
@@ -27,43 +26,13 @@ public:
                const ogdf::node target,
                bool directed,
                const Point& epsilon);
-    
-    void set_heuristic(heuristic_type heuristic) {
-        heuristic_ = heuristic;
-        use_heuristic_ = true;
-    }
-
-    void set_bound(Point bound) {
-        bound_ = std::move(bound);
-        use_bounds_ = true;
-    }
-    
-    void add_disjunctive_bound(Point bounds) {
-        disj_bounds_.push_back(std::move(bounds));
-        use_bounds_ = true;
-    }
-
-    template<typename InputIterator>
-    void add_disjunctive_bounds(InputIterator begin,
-                                InputIterator end) {
-
-        disj_bounds_.insert(disj_bounds_.end(),
-                            begin, end);
-        use_bounds_ = true;
-    }
 
 private:
     
     Point min_e_;
     Point epsilon_;
     unsigned dimension_;
-    
-    bool use_heuristic_ = false;
-    heuristic_type heuristic_;
-    bool use_bounds_ = false;
-    std::list<Point> disj_bounds_;
-    Point bound_;
-    
+
     void compute_pos(const Point& cost, Point& pos) const {
         for(unsigned i = 0; i < dimension_; ++i) {
             if(epsilon_[i] != 0.0) {
@@ -181,10 +150,6 @@ private:
     bool check_domination(std::vector<Label*>& new_labels,
                           NodeEntry& neighbor_entry);
     
-    bool check_heuristic_prunable(const Label& label,
-                                  const Point bound,
-                                  const std::list<Point>& bounds);
-
     void recursive_delete(Label& label);
     
 };

@@ -64,23 +64,13 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         UnlabeledValueArg<string> file_name_argument("filename", "Name of the instance file", true, "","filename");
         
         SwitchArg is_directed_arg("d", "directed", "Should the input be interpreted as a directed graph?", false);
-        
-        MultiArg<string> ideal_bounds_arg("I", "ideal-bound", "Bounds the given objective function by factor times the ideal heuristic value of this objective function.", false,
-                                          "objective:factor");
-
-        MultiArg<string> absolute_bounds_arg("i", "absolute-bound", "Bounds the given objective function by the given value.", false, "objective:value");
-
-        MultiArg<string> disjunctive_bound_arg("D", "disjunctive", "Bounds the given objective function by the given value in an OR fashion.", false, "objective:value");
 
         cmd.add(epsilon_argument);
         cmd.add(epsilon_all_argument);
         cmd.add(file_name_argument);
         cmd.add(is_directed_arg);
-        cmd.add(ideal_bounds_arg);
-        cmd.add(absolute_bounds_arg);
         cmd.add(exact_argument);
-        cmd.add(disjunctive_bound_arg);
-        
+
         cmd.parse(argc, argv);
         
         string file_name = file_name_argument.getValue();
@@ -107,56 +97,10 @@ void EpLCApproxModule::perform(int argc, char** argv) {
 
 
         vector<NodeArray<double>> distances(dimension, graph);
-        
-        calculate_ideal_heuristic(graph,
-                                  costs,
-                                  dimension,
-                                  source,
-                                  target,
-                                  directed,
-                                  distances);
-        
-        auto ideal_heuristic = [distances] (node n, unsigned objective) {
-            return distances[objective][n];
-        };
-        
-        Point bounds(numeric_limits<double>::infinity(), dimension);
-        parse_ideal_bounds(ideal_bounds_arg,
-                           dimension,
-                           ideal_heuristic,
-                           source,
-                           bounds);
 
-        parse_absolute_bounds(absolute_bounds_arg,
-                              dimension,
-                              bounds);
-
-        std::list<Point> disjuncitve_bounds;
-        parse_disjunctive_bounds(disjunctive_bound_arg,
-                                 dimension,
-                                 disjuncitve_bounds);
-        
         auto cost_function = [&costs] (edge e) -> Point& {
             return costs[e];
         };
-
-        ConstrainedReachabilityPreprocessing prepro;
-        list<Point> bounds_list;
-        for(unsigned i = 0; i < dimension; ++i) {
-            if(bounds[i] < numeric_limits<double>::infinity()) {
-                Point new_bound(dimension + 1);
-                new_bound[i] = 1;
-                new_bound[dimension] = -bounds[i];
-                bounds_list.push_back(std::move(new_bound));
-            }
-        }
-        prepro.preprocess(graph,
-                          cost_function,
-                          dimension,
-                          source,
-                          target,
-                          bounds_list);
-
         
         Point epsilon(epsilon_all, dimension);
         if(exact_argument.isSet()) {
@@ -169,19 +113,6 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         
         LCApprox solver;
 
-
-//        if(ideal_bounds_arg.getValue().size() > 0 ||
-//           absolute_bounds_arg.getValue().size() > 0) {
-//            solver.set_bound(bounds);
-//        }
-
-        if(disjunctive_bound_arg.getValue().size() > 0) {
-            solver.add_disjunctive_bounds(disjuncitve_bounds.begin(),
-                                          disjuncitve_bounds.end());
-        }
-
-        solver.set_heuristic(ideal_heuristic);
-        
         solver.Solve(graph,
                      cost_function,
                      dimension,
@@ -198,117 +129,6 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
     }
 }
-
-void EpLCApproxModule::parse_ideal_bounds(const MultiArg<string>& argument,
-                                         unsigned dimension,
-                                         function<double(node, unsigned)> heuristic,
-                                         const node source,
-                                         Point& bounds) {
-    
-    auto bounds_it = argument.begin();
-    while(bounds_it != argument.end()) {
-        vector<string> tokens;
-        mco::tokenize(*bounds_it, tokens, ":");
-        
-        if(tokens.size() != 2) {
-            cout << "Error" << endl;
-            return;
-        }
-        
-        unsigned objective_function = stoul(tokens[0]);
-        double factor = stod(tokens[1]);
-        
-        if(objective_function > dimension) {
-            cout << "Error" << endl;
-            return;
-        }
-        
-        if(objective_function == 0) {
-            cout << "Error" << endl;
-            return;
-        }
-        
-        bounds[objective_function - 1] = factor * heuristic(source, objective_function - 1);
-        
-        bounds_it++;
-    }
-    
-    
-}
-
-void EpLCApproxModule::parse_absolute_bounds(const MultiArg<string>& argument,
-                                          unsigned dimension,
-                                          Point& bounds) {
-
-    auto bounds_it = argument.begin();
-    while(bounds_it != argument.end()) {
-        vector<string> tokens;
-        mco::tokenize(*bounds_it, tokens, ":");
-
-        if(tokens.size() != 2) {
-            cout << "Error" << endl;
-            return;
-        }
-
-        unsigned objective_function = stoul(tokens[0]);
-        double value = stod(tokens[1]);
-
-        if(objective_function > dimension) {
-            cout << "Error" << endl;
-            return;
-        }
-
-        if(objective_function == 0) {
-            cout << "Error" << endl;
-            return;
-        }
-
-        bounds[objective_function - 1] = value;
-
-        bounds_it++;
-    }
-
-
-}
-
-void EpLCApproxModule::parse_disjunctive_bounds(const MultiArg<string>& argument,
-                                                unsigned dimension,
-                                                list<Point>& bounds) {
-
-    auto bounds_it = argument.begin();
-    while(bounds_it != argument.end()) {
-        vector<string> tokens;
-        mco::tokenize(*bounds_it, tokens, ":");
-
-        if(tokens.size() != 2) {
-            cout << "Error" << endl;
-            return;
-        }
-
-        unsigned objective_function = stoul(tokens[0]);
-        double value = stod(tokens[1]);
-
-        if(objective_function > dimension) {
-            cout << "Error" << endl;
-            return;
-        }
-
-        if(objective_function == 0) {
-            cout << "Error" << endl;
-            return;
-        }
-
-        Point new_bound(numeric_limits<double>::infinity(), dimension);
-        new_bound[objective_function - 1] = value;
-
-        bounds.push_back(std::move(new_bound));
-        
-        bounds_it++;
-    }
-    
-    
-}
-
 
 void EpLCApproxModule::parse_epsilon(const MultiArg<string>& epsilon_argument,
                                      unsigned dimension,
@@ -343,35 +163,6 @@ void EpLCApproxModule::parse_epsilon(const MultiArg<string>& epsilon_argument,
     }
     
 }
-
-void EpLCApproxModule::calculate_ideal_heuristic(const Graph& graph,
-                                                 const EdgeArray<Point>& costs,
-                                                 unsigned dimension,
-                                                 const node source,
-                                                 const node target,
-                                                 bool directed,
-                                                 vector<NodeArray<double>>& distances) {
-
-    Dijkstra<double, mco::PairComparator<double, std::less<double>>> sssp_solver;
-
-    NodeArray<edge> predecessor(graph);
-
-    for(unsigned i = 0; i < dimension; ++i) {
-        auto length = [&costs, i] (edge e) {
-            return costs[e][i];
-        };
-
-        sssp_solver.singleSourceShortestPaths(graph,
-                                              length,
-                                              target,
-                                              predecessor,
-                                              distances[i],
-                                              directed ? DijkstraModes<>::Backward :
-                                              DijkstraModes<>::Undirected);
-    }
-
-}
-
 
 const list<pair<const list<edge>, const Point>>& EpLCApproxModule::solutions() {
     return solutions_;
