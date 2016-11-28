@@ -9,24 +9,22 @@
 #ifndef __mco__lc_approx__
 #define __mco__lc_approx__
 
-#include <ogdf/basic/Graph.h>
-
+#include <mco/basic/forward_star.h>
 #include <mco/basic/abstract_solver.h>
 
 namespace mco {
 
-class LCApprox : public AbstractSolver<std::list<ogdf::edge>> {
-    using cost_function_type = std::function<Point&(ogdf::edge)>;
+class LCApprox : public AbstractSolver<std::list<node>> {
+    using cost_function_type = std::function<Point&(edge)>;
 public:
 
     struct InstanceDescription
     {
-        ogdf::Graph* graph;
+        ForwardStar* graph;
         cost_function_type cost_function;
         unsigned dimension;
-        ogdf::node source;
-        ogdf::node target;
-        bool directed;
+        node source;
+        node target;
         Point* epsilon;
     };
 
@@ -64,15 +62,15 @@ private:
         const Point cost;
         const Point pos;
         double sum;
-        const ogdf::node n;
-        const ogdf::edge pred_edge;
+        const node n;
+        const edge pred_edge;
         Label* pred_label;
         std::list<Label*> succ_label;
         bool deleted = false;
 
         Label(const Point cost,
-              const ogdf::node n,
-              const ogdf::edge p_edge,
+              const node n,
+              const edge p_edge,
               Label* p_label,
               const LCApprox& app)
         :   cost(cost),
@@ -88,8 +86,6 @@ private:
                 sum += *it;
                 ++it;
             }
-
-
         }
     };
     

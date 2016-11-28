@@ -13,11 +13,6 @@ using std::list;
 using std::vector;
 using std::numeric_limits;
 
-using ogdf::node;
-using ogdf::edge;
-using ogdf::Graph;
-using ogdf::NodeArray;
-
 namespace mco {
 
 bool LCApprox::
@@ -178,12 +173,11 @@ recursive_delete(Label& label) {
 void LCApprox::
 Solve(const InstanceDescription& inst_desc) {
 
-    const Graph& graph =                *inst_desc.graph;
+    const ForwardStar& graph =          *inst_desc.graph;
     cost_function_type cost_function =  inst_desc.cost_function;
     unsigned dimension =                inst_desc.dimension;
-    const ogdf::node source =           inst_desc.source;
-    const ogdf::node target =           inst_desc.target;
-    bool directed =                     inst_desc.directed;
+    const node source =                 inst_desc.source;
+    const node target =                 inst_desc.target;
     const Point& epsilon =              *inst_desc.epsilon;
 
     epsilon_ = epsilon;
@@ -200,14 +194,14 @@ Solve(const InstanceDescription& inst_desc) {
     list<Point> scaled_disj_bounds;
     Point scaled_bound(dimension_);
 
-    NodeArray<NodeEntry> node_entries(graph);
+    FSNodeArray<NodeEntry> node_entries(graph);
     
-    list<ogdf::node> queue;
+    list<node> queue;
     
     {
         auto initial_label = new Label(Point(0.0, dimension),
                                        source,
-                                       nullptr,
+                                       nulledge,
                                        nullptr,
                                        *this);
         
@@ -218,7 +212,7 @@ Solve(const InstanceDescription& inst_desc) {
     node_entries[source].in_queue = true;
     
     while(!queue.empty()) {
-        ogdf::node current_node = queue.front();
+        node current_node = queue.front();
         queue.pop_front();
         
         NodeEntry& current_node_entry = node_entries[current_node];
@@ -228,18 +222,9 @@ Solve(const InstanceDescription& inst_desc) {
 
             auto& current_new_labels = current_node_entry.new_labels();
             
-            for(auto adj : current_node->adjEntries) {
-                ogdf::edge current_edge = adj->theEdge();
-
-                if(current_edge->isSelfLoop()) {
-                    continue;
-                }
-
-                if(directed && current_edge->target() == current_node) {
-                    continue;
-                }
-                
-                auto neighbor = current_edge->opposite(current_node);
+            for(auto current_edge : graph.adj_edges(current_node))
+            {
+                auto neighbor = graph.head(current_edge);
                 
                 auto& neighbor_entry = node_entries[neighbor];
 
@@ -295,15 +280,15 @@ Solve(const InstanceDescription& inst_desc) {
     for(unsigned i = 0; i < node_entries[target].new_labels().size(); ++i) {
         auto label = node_entries[target].new_labels()[i];
 
-        list<ogdf::edge> path;
+        list<node> path;
         const Label* curr = label;
         if(!curr->deleted) {
             while(curr->n != source) {
 
-                assert(curr->pred_edge->source() == curr->n ||
-                       curr->pred_edge->target() == curr->n);
+                assert(graph.head(curr->pred_edge) == curr->n ||
+                       graph.tail(curr->pred_edge) == curr->n);
                 
-                path.push_back(curr->pred_edge);
+                path.push_back(curr->n);
                 curr = curr->pred_label;
                 
             }

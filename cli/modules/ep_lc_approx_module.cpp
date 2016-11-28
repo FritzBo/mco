@@ -18,14 +18,6 @@ using std::numeric_limits;
 using std::cout;
 using std::endl;
 
-#include <ogdf/basic/Graph.h>
-
-using ogdf::Graph;
-using ogdf::EdgeArray;
-using ogdf::NodeArray;
-using ogdf::node;
-using ogdf::edge;
-
 #include <tclap/CmdLine.h>
 
 using TCLAP::CmdLine;
@@ -36,6 +28,7 @@ using TCLAP::SwitchArg;
 using TCLAP::MultiArg;
 
 #include <mco/ep/basic/instance_scalarizer.h>
+#include <mco/basic/forward_star.h>
 #include <mco/ep/basic/dijkstra.h>
 #include <mco/ep/preprocessing/constrained_reach.h>
 #include <mco/ep/lc_approx/lc_approx.h>
@@ -50,6 +43,12 @@ using mco::Dijkstra;
 using mco::DijkstraModes;
 using mco::ConstrainedReachabilityPreprocessing;
 using mco::InstanceScalarizer;
+using mco::ForwardStar;
+using mco::ForwardStarFileReader;
+using mco::FSEdgeArray;
+using mco::FSNodeArray;
+using mco::node;
+using mco::edge;
 
 void EpLCApproxModule::perform(int argc, char** argv) {
     try {
@@ -78,16 +77,17 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         double epsilon_all = epsilon_all_argument.getValue();
         unsigned exact_objective = exact_argument.getValue();
         
-        Graph graph;
-        EdgeArray<Point> raw_costs(graph);
+        ForwardStar graph;
+        FSEdgeArray<Point> raw_costs(graph);
+        FSNodeArray<int> node_ids(graph);
         unsigned dimension;
         node source, target;
-        
-        TemporaryGraphParser parser;
-        
-        parser.getGraph(file_name, graph, raw_costs, dimension, source, target);
 
-        EdgeArray<Point> costs(graph, Point(dimension));
+        ForwardStarFileReader reader;
+
+        reader.read(file_name, graph, node_ids, raw_costs, dimension, source, target, directed);
+
+        FSEdgeArray<Point> costs(graph, Point(dimension));
         Point factor(100.0, dimension);
         InstanceScalarizer::scaleround_instance(graph,
                                                 raw_costs,
@@ -96,7 +96,7 @@ void EpLCApproxModule::perform(int argc, char** argv) {
                                                 costs);
 
 
-        vector<NodeArray<double>> distances(dimension, graph);
+        vector<FSNodeArray<double>> distances(dimension, FSNodeArray<double>(graph));
 
         auto cost_function = [&costs] (edge e) -> Point& {
             return costs[e];
@@ -118,7 +118,6 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         desc.dimension = dimension;
         desc.source = source;
         desc.target = target;
-        desc.directed = directed;
         desc.epsilon = &epsilon;
 
         LCApprox solver;
