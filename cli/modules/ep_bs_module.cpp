@@ -92,6 +92,8 @@ void EpBsModule::perform(int argc, char** argv) {
 
         MultiArg<string> absolute_bounds_arg("i", "absolute-bound", "Bounds the given objective function by the given value.", false, "objective:value");
 
+        ValueArg<double> scale_instance_arg("s", "scale", "Scales and rounds the instance to a specified precision", false, 1, "precision");
+
         SwitchArg do_first_phase_argument("f", "first-phase", "Using dual benson in a first phase", false);
 
         SwitchArg label_select_arg("l", "label-select", "Using a label-selection strategy instead of node selection", false);
@@ -111,6 +113,7 @@ void EpBsModule::perform(int argc, char** argv) {
         cmd.add(tree_deletion_arg);
         cmd.add(parent_check_arg);
         cmd.add(force_node_select_arg);
+        cmd.add(scale_instance_arg);
 
         cmd.parse(argc, argv);
         
@@ -155,13 +158,21 @@ void EpBsModule::perform(int argc, char** argv) {
 //        prep.preprocess(reverse_star, reverse_weights, dimension, source, target);
 
 
-//        FSEdgeArray<Point> costs(graph, Point(dimension));
-//        Point factor(100.0, dimension);
-//        InstanceScalarizer::scaleround_instance(graph,
-//                                                raw_costs,
-//                                                dimension,
-//                                                factor,
-//                                                costs);
+        FSEdgeArray<Point> costs(raw_costs);
+
+        if(scale_instance_arg.isSet())
+        {
+            Point factor(scale_instance_arg.getValue(), dimension);
+            InstanceScalarizer::scaleround_instance(graph,
+                                                    raw_costs,
+                                                    dimension,
+                                                    factor,
+                                                    costs);
+        }
+
+        auto cost_function = [&costs] (edge e) -> Point* {
+            return &costs[e];
+        };
 
 
 //        vector<NodeArray<double>> distances(dimension, graph);
@@ -188,10 +199,6 @@ void EpBsModule::perform(int argc, char** argv) {
 //        parse_absolute_bounds(absolute_bounds_arg,
 //                              dimension,
 //                              bounds);
-
-        auto cost_function = [&raw_costs] (edge e) -> Point* {
-            return &raw_costs[e];
-        };
 
 //        ConstrainedReachabilityPreprocessing prepro;
 //        list<Point> bounds_list;
