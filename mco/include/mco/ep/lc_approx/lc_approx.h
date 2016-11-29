@@ -9,61 +9,33 @@
 #ifndef __mco__lc_approx__
 #define __mco__lc_approx__
 
-#include <ogdf/basic/Graph.h>
-
+#include <mco/basic/forward_star.h>
 #include <mco/basic/abstract_solver.h>
 
 namespace mco {
 
-class LCApprox : public AbstractSolver<std::list<ogdf::edge>> {
-    using cost_function_type = std::function<Point&(ogdf::edge)>;
-    using heuristic_type = std::function<double(ogdf::node, unsigned)>;
+class LCApprox : public AbstractSolver<std::list<node>> {
+    using cost_function_type = std::function<Point&(edge)>;
 public:
-    
-    void Solve(const ogdf::Graph& graph,
-               cost_function_type cost_function,
-               unsigned dimension,
-               const ogdf::node source,
-               const ogdf::node target,
-               bool directed,
-               const Point& epsilon);
-    
-    void set_heuristic(heuristic_type heuristic) {
-        heuristic_ = heuristic;
-        use_heuristic_ = true;
-    }
 
-    void set_bound(Point bound) {
-        bound_ = std::move(bound);
-        use_bounds_ = true;
-    }
-    
-    void add_disjunctive_bound(Point bounds) {
-        disj_bounds_.push_back(std::move(bounds));
-        use_bounds_ = true;
-    }
+    struct InstanceDescription
+    {
+        ForwardStar* graph;
+        cost_function_type cost_function;
+        unsigned dimension;
+        node source;
+        node target;
+        Point* epsilon;
+    };
 
-    template<typename InputIterator>
-    void add_disjunctive_bounds(InputIterator begin,
-                                InputIterator end) {
-
-        disj_bounds_.insert(disj_bounds_.end(),
-                            begin, end);
-        use_bounds_ = true;
-    }
+    void Solve(const InstanceDescription& inst_desc);
 
 private:
     
     Point min_e_;
     Point epsilon_;
     unsigned dimension_;
-    
-    bool use_heuristic_ = false;
-    heuristic_type heuristic_;
-    bool use_bounds_ = false;
-    std::list<Point> disj_bounds_;
-    Point bound_;
-    
+
     void compute_pos(const Point& cost, Point& pos) const {
         for(unsigned i = 0; i < dimension_; ++i) {
             if(epsilon_[i] != 0.0) {
@@ -90,15 +62,15 @@ private:
         const Point cost;
         const Point pos;
         double sum;
-        const ogdf::node n;
-        const ogdf::edge pred_edge;
+        const node n;
+        const edge pred_edge;
         Label* pred_label;
         std::list<Label*> succ_label;
         bool deleted = false;
 
         Label(const Point cost,
-              const ogdf::node n,
-              const ogdf::edge p_edge,
+              const node n,
+              const edge p_edge,
               Label* p_label,
               const LCApprox& app)
         :   cost(cost),
@@ -114,8 +86,6 @@ private:
                 sum += *it;
                 ++it;
             }
-
-
         }
     };
     
@@ -181,10 +151,6 @@ private:
     bool check_domination(std::vector<Label*>& new_labels,
                           NodeEntry& neighbor_entry);
     
-    bool check_heuristic_prunable(const Label& label,
-                                  const Point bound,
-                                  const std::list<Point>& bounds);
-
     void recursive_delete(Label& label);
     
 };

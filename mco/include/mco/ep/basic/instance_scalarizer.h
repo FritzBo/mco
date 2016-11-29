@@ -11,6 +11,7 @@
 
 #include <ogdf/basic/Graph.h>
 
+#include <mco/basic/forward_star.h>
 #include <mco/basic/point.h>
 
 namespace mco {
@@ -24,11 +25,31 @@ public:
                                     ogdf::EdgeArray<Point>& new_cost_array,
                                     bool round = true);
 
+    static void scaleround_instance(const ForwardStar& graph,
+                                    const FSEdgeArray<Point>& cost_array,
+                                    unsigned dimension,
+                                    const Point& factor,
+                                    FSEdgeArray<Point>& new_cost_array,
+                                    bool round = true);
+
     static void scale_instance(const ogdf::Graph& graph,
                                const ogdf::EdgeArray<Point>& cost_array,
                                unsigned dimension,
                                const Point& factor,
                                ogdf::EdgeArray<Point>& new_cost_array) {
+        scaleround_instance(graph,
+                            cost_array,
+                            dimension,
+                            factor,
+                            new_cost_array,
+                            false);
+    }
+
+    static void scale_instance(const ForwardStar& graph,
+                               const FSEdgeArray<Point>& cost_array,
+                               unsigned dimension,
+                               const Point& factor,
+                               FSEdgeArray<Point>& new_cost_array) {
         scaleround_instance(graph,
                             cost_array,
                             dimension,

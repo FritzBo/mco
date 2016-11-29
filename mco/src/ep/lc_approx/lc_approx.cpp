@@ -13,11 +13,6 @@ using std::list;
 using std::vector;
 using std::numeric_limits;
 
-using ogdf::node;
-using ogdf::edge;
-using ogdf::Graph;
-using ogdf::NodeArray;
-
 namespace mco {
 
 bool LCApprox::
@@ -156,32 +151,6 @@ check_domination(vector<Label*>& new_labels,
     
     return changed;
 }
-    
-bool LCApprox::check_heuristic_prunable(const Label& label,
-                                        const Point bound,
-                                        const list<Point>& bounds) {
-    
-    Point heuristic_cost(dimension_);
-    for(unsigned i = 0; i < dimension_; ++i) {
-        heuristic_cost[i] = label.cost[i] + heuristic_(label.n, i);
-    }
-    
-    compute_pos(heuristic_cost, heuristic_cost);
-
-    ComponentwisePointComparator leq(0, false);
-
-    if(!leq(heuristic_cost, bound)) {
-        return true;
-    }
-
-    for(auto& bound : bounds) {
-        if(leq(heuristic_cost, bound)) {
-            return false;
-        }
-    }
-    
-    return bounds.size() > 0;
-}
 
 void LCApprox::
 recursive_delete(Label& label) {
@@ -202,14 +171,15 @@ recursive_delete(Label& label) {
 }
     
 void LCApprox::
-Solve(const Graph& graph,
-      cost_function_type cost_function,
-      unsigned dimension,
-      const ogdf::node source,
-      const ogdf::node target,
-      bool directed,
-      const Point& epsilon) {
-    
+Solve(const InstanceDescription& inst_desc) {
+
+    const ForwardStar& graph =          *inst_desc.graph;
+    cost_function_type cost_function =  inst_desc.cost_function;
+    unsigned dimension =                inst_desc.dimension;
+    const node source =                 inst_desc.source;
+    const node target =                 inst_desc.target;
+    const Point& epsilon =              *inst_desc.epsilon;
+
     epsilon_ = epsilon;
     dimension_ = dimension;
     min_e_ = Point(numeric_limits<double>::infinity(),
@@ -224,27 +194,14 @@ Solve(const Graph& graph,
     list<Point> scaled_disj_bounds;
     Point scaled_bound(dimension_);
 
-    if(use_bounds_) {
-        compute_pos(bound_, scaled_bound);
-
-        for(auto& bound : disj_bounds_) {
-            Point scaled_disj_bound(dimension_);
-            compute_pos(bound, scaled_disj_bound);
-#ifndef NDEBUG
-            std::cout << scaled_disj_bound << std::endl;
-#endif
-            scaled_disj_bounds.push_back(std::move(scaled_disj_bound));
-        }
-    }
+    FSNodeArray<NodeEntry> node_entries(graph);
     
-    NodeArray<NodeEntry> node_entries(graph);
-    
-    list<ogdf::node> queue;
+    list<node> queue;
     
     {
         auto initial_label = new Label(Point(0.0, dimension),
                                        source,
-                                       nullptr,
+                                       nulledge,
                                        nullptr,
                                        *this);
         
@@ -255,7 +212,7 @@ Solve(const Graph& graph,
     node_entries[source].in_queue = true;
     
     while(!queue.empty()) {
-        ogdf::node current_node = queue.front();
+        node current_node = queue.front();
         queue.pop_front();
         
         NodeEntry& current_node_entry = node_entries[current_node];
@@ -265,18 +222,9 @@ Solve(const Graph& graph,
 
             auto& current_new_labels = current_node_entry.new_labels();
             
-            for(auto adj : current_node->adjEntries) {
-                ogdf::edge current_edge = adj->theEdge();
-
-                if(current_edge->isSelfLoop()) {
-                    continue;
-                }
-
-                if(directed && current_edge->target() == current_node) {
-                    continue;
-                }
-                
-                auto neighbor = current_edge->opposite(current_node);
+            for(auto current_edge : graph.adj_edges(current_node))
+            {
+                auto neighbor = graph.head(current_edge);
                 
                 auto& neighbor_entry = node_entries[neighbor];
 
@@ -298,13 +246,8 @@ Solve(const Graph& graph,
                                                    label,
                                                    *this);
                         
-                        if(!use_bounds_ || !use_heuristic_ ||
-                           !check_heuristic_prunable(*new_label,
-                                                     scaled_bound,
-                                                     scaled_disj_bounds)) {
 
-                            new_labels.push_back(new_label);
-                        }
+                        new_labels.push_back(new_label);
                     }
 
                     ++current_label_it;
@@ -337,15 +280,15 @@ Solve(const Graph& graph,
     for(unsigned i = 0; i < node_entries[target].new_labels().size(); ++i) {
         auto label = node_entries[target].new_labels()[i];
 
-        list<ogdf::edge> path;
+        list<node> path;
         const Label* curr = label;
         if(!curr->deleted) {
             while(curr->n != source) {
 
-                assert(curr->pred_edge->source() == curr->n ||
-                       curr->pred_edge->target() == curr->n);
+                assert(graph.head(curr->pred_edge) == curr->n ||
+                       graph.tail(curr->pred_edge) == curr->n);
                 
-                path.push_back(curr->pred_edge);
+                path.push_back(curr->n);
                 curr = curr->pred_label;
                 
             }

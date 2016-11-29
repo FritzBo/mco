@@ -21,7 +21,7 @@ scaleround_instance(const Graph& graph,
                     EdgeArray<Point>& new_cost_array,
                     bool round) {
 
-    for(auto edge : graph.edges) {
+    for(ogdf::edge edge : graph.edges) {
         for(unsigned i = 0; i < dimension; ++i) {
             if(round) {
                 new_cost_array[edge][i] = std::round(cost_array[edge][i] * factor[i]);
@@ -31,5 +31,25 @@ scaleround_instance(const Graph& graph,
         }
     }
 }
+
+void InstanceScalarizer::
+scaleround_instance(const ForwardStar& graph,
+                    const FSEdgeArray<Point>& cost_array,
+                    unsigned dimension,
+                    const Point& factor,
+                    FSEdgeArray<Point>& new_cost_array,
+                    bool round) {
+
+    for(mco::edge edge : graph.edges) {
+        for(unsigned i = 0; i < dimension; ++i) {
+            if(round) {
+                new_cost_array[edge][i] = std::round(cost_array[edge][i] * factor[i]);
+            } else {
+                new_cost_array[edge][i] = cost_array[edge][i] * factor[i];
+            }
+        }
+    }
+}
+
 
 }
