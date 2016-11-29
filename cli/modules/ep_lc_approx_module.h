@@ -28,6 +28,12 @@ public:
 private:
     
     std::list<std::pair<const std::list<ogdf::edge>, const mco::Point>> solutions_;
+
+    std::string filename_;
+    unsigned no_nodes_;
+    unsigned no_edges_;
+    unsigned no_objectives_;
+    double epsilon_;
     
     void parse_ideal_bounds(const TCLAP::MultiArg<std::string>& argument,
                             unsigned dimension,

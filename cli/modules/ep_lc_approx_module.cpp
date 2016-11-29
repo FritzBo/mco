@@ -87,6 +87,8 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         bool directed = is_directed_arg.getValue();
         double epsilon_all = epsilon_all_argument.getValue();
         unsigned exact_objective = exact_argument.getValue();
+
+	filename_ = file_name;
         
         Graph graph;
         EdgeArray<Point> raw_costs(graph);
@@ -96,6 +98,11 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         TemporaryGraphParser parser;
         
         parser.getGraph(file_name, graph, raw_costs, dimension, source, target);
+
+	no_nodes_ = graph.numberOfNodes();
+        no_edges_ = graph.numberOfEdges();
+        no_objectives_ = dimension;
+        epsilon_ = epsilon_all;
 
         EdgeArray<Point> costs(graph, Point(dimension));
         Point factor(100.0, dimension);
@@ -378,6 +385,16 @@ const list<pair<const list<edge>, const Point>>& EpLCApproxModule::solutions() {
 }
 
 string EpLCApproxModule::statistics() {
-    string stats("");
-    return stats;
+std::stringstream sstream;
+    sstream << filename_;
+    sstream << ", ";
+    sstream << no_nodes_;
+    sstream << ", ";
+    sstream << no_edges_;
+    sstream << ", ";
+    sstream << no_objectives_;
+    sstream << ", ";
+    sstream << epsilon_;
+    return sstream.str();
 }
+
