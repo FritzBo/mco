@@ -66,11 +66,11 @@ private:
         const ogdf::edge pred_edge;
         Label* pred_label;
 
-        Label(const Point cost,
+        Label(Point && cost,
               const ogdf::node n,
               const ogdf::edge p_edge,
               Label* p_label)
-        :   cost(cost),
+        :   cost(std::move(cost)),
             n(n),
             pred_edge(p_edge),
             pred_label(p_label) { }

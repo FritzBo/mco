@@ -29,7 +29,7 @@ public:
     inline LexPointComparator(double epsilon = 0, bool strict = true)
     : epsilon_(epsilon), strict_(strict) {}
 
-    LexPointComparator& operator=(const LexPointComparator& other)
+    LexPointComparator& operator=(const LexPointComparator& )
     {
         return *this;
     }

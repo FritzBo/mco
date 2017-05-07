@@ -68,12 +68,12 @@ private:
         std::list<Label*> succ_label;
         bool deleted = false;
 
-        Label(const Point cost,
+        Label(Point && cost,
               const node n,
               const edge p_edge,
               Label* p_label,
               const LCApprox& app)
-        :   cost(cost),
+        :   cost(std::move(cost)),
             pos(app.compute_pos(cost)),
             sum(0),
             n(n),

@@ -167,6 +167,8 @@ public:
     std::vector<double>::iterator end() { return values_.end(); }
 #endif
 
+    friend bool operator==(Point const &, Point const &);
+    friend bool operator!=(Point const &, Point const &);
 	friend std::ostream & operator<<(std::ostream &, const Point &);
     friend void swap(Point& p1, Point& p2);
 
@@ -317,7 +319,7 @@ inline Point Point::operator-(Point that) const & noexcept {
         that[i] = this->operator[](i) - that[i];
     }
     
-    return std::move(that);
+    return that;
 }
     
 inline Point Point::operator-(const Point& that) && noexcept {
@@ -337,6 +339,19 @@ inline double Point::operator*(const Point &point) const noexcept {
     
     return i == dimension_ + 1 ? sum : sum + (*this)[dimension_ - 1] * point[dimension_-1];
 }
+
+//! Two point objects are equal, if they point to the same array of points.
+inline bool operator==(Point const & p1, Point const & p2)
+{
+    return p1.values_ == p2.values_;
+}
+
+//! Two point objects are equal, if they point to the same array of points.
+inline bool operator!=(Point const & p1, Point const & p2)
+{
+    return !(p1 == p2);
+}
+
 
 //! Multiplies the Point object \p p and the scalar value \p d.
 inline Point operator*(Point p, double d) {

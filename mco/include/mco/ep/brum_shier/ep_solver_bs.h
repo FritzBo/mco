@@ -131,12 +131,12 @@ private:
         std::list<Label*> successors;
 #endif
 
-        Label(Point cost,
+        Label(Point && cost,
               node n,
               edge p_edge,
               unsigned p_label_id,
               NodeEntry& node_entry)
-        :   cost(cost),
+        :   cost(std::move(cost)),
             n(n),
             pred_edge(p_edge),
             pred_label_id(p_label_id)
