@@ -18,7 +18,7 @@ using mco::MaxAryHeap;
 
 namespace mco {
 
-bool MOSPLabelSetting::non_dominated(Point new_cost,
+bool MOSPLabelSetting::non_dominated(const Point & new_cost,
                                      NodeEntry& target_node_entry)
 {
     ComponentwisePointComparator comp(0, false);

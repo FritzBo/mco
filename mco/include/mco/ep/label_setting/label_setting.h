@@ -203,7 +203,7 @@ private:
         FSNodeArray<NodeEntry>& node_entries_;
     };
 
-    bool non_dominated(Point new_cost,
+    bool non_dominated(const Point & new_cost,
                        NodeEntry& target_node_entry);
 };
 
