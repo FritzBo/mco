@@ -27,6 +27,12 @@ public:
     
 private:
     
+    std::string filename_;
+    unsigned no_nodes_;
+    unsigned no_edges_;
+    unsigned no_objectives_;
+    double epsilon_;
+    
     std::list<std::pair<const std::list<mco::node>, const mco::Point>> solutions_;
 
     void parse_epsilon(const TCLAP::MultiArg<std::string>& epsilon_argument,
