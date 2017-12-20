@@ -199,14 +199,15 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
             };
             
             
-            if(!lagrange_prune(graph,
-                               scaled_cost_function,
-                               source,
-                               target,
-                               directed,
-                               label_limits,
-                               skip_function,
-                               dimension
+//            if(!lagrange_prune(graph,
+//                               scaled_cost_function,
+//                               source,
+//                               target,
+//                               directed,
+//                               label_limits,
+//                               skip_function,
+//                               dimension
+            if((true
                )) {
             
                 EpSolverMartins solver;

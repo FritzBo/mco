@@ -99,8 +99,8 @@ public:
             distance[v] = numeric_limits<T>::max();
             qpos[v] = queue.push(make_pair(distance[v], v));
         }
-        queue.decrease(qpos[source], make_pair(distance[source], source));
         distance[source] = 0;
+        queue.decrease(qpos[source], make_pair(distance[source], source));
 
         // Dijkstra: empty queue, update distances accordingly
         for(int i = 0; i < graph.numberOfNodes(); ++i) {
@@ -113,6 +113,7 @@ public:
                 auto w = e->opposite(v);
                 T newDist = distance[v] + weight(e);
                 if(distance[w] > newDist) {
+                    distance[w] = newDist;
                     queue.decrease(qpos[w], make_pair(distance[w], w));
                     predecessor[w] = e;
                 }

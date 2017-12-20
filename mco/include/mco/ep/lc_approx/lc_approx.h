@@ -74,7 +74,7 @@ private:
               Label* p_label,
               const LCApprox& app)
         :   cost(std::move(cost)),
-            pos(app.compute_pos(cost)),
+            pos(app.compute_pos(this->cost)),
             sum(0),
             n(n),
             pred_edge(p_edge),

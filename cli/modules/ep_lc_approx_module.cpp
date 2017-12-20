@@ -85,14 +85,14 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         unsigned dimension;
         node source, target;
 
+        ForwardStarFileReader reader;
+
+        reader.read(file_name, graph, node_ids, raw_costs, dimension, source, target, directed);
+
 	no_nodes_ = graph.numberOfNodes();
         no_edges_ = graph.numberOfEdges();
         no_objectives_ = dimension;
         epsilon_ = epsilon_all;
-
-        ForwardStarFileReader reader;
-
-        reader.read(file_name, graph, node_ids, raw_costs, dimension, source, target, directed);
 
         FSEdgeArray<Point> costs(graph, Point(dimension));
         Point factor(100.0, dimension);
