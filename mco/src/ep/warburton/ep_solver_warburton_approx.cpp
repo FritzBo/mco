@@ -78,8 +78,10 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
     const unsigned number_nodes = graph.numberOfNodes();
     unsigned skip_function = compute_skip_function(dimension, lb, ub);
     label_limits[skip_function] = bound[skip_function];
-    
+
+#ifndef NDEBUG
     cout << label_limits << endl;
+#endif
     
     if(test_only) {
         unsigned number_subproblems = 1;
@@ -139,9 +141,9 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
         
         if(!dominated_cell) {
             
-//#ifndef NDEBUG
+#ifndef NDEBUG
             cout << "Computing for bound: " << current_log_bound << endl;
-//#endif
+#endif
 
         
             list<Point> new_bounds;

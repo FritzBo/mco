@@ -11,6 +11,7 @@
 #include <string>
 #include <iostream>
 #include <limits>
+#include <chrono>
 
 using std::list;
 using std::pair;
@@ -19,6 +20,9 @@ using std::string;
 using std::numeric_limits;
 using std::cout;
 using std::endl;
+using std::chrono::steady_clock;
+using std::chrono::duration;
+using std::chrono::duration_cast;
 
 #include <tclap/CmdLine.h>
 
@@ -188,6 +192,7 @@ int main(int argc, char** argv) {
             prepro.preprocess(graph, cost_function2, dimension, source, target, linear_bounds);
         }
 
+        steady_clock::time_point start = steady_clock::now();
             
         EpSolverWarburtonApprox solver;
             
@@ -200,10 +205,21 @@ int main(int argc, char** argv) {
                      ideal_bound,
                      test_only,
                      directed);
+
+        steady_clock::time_point end = steady_clock::now();
+        duration<double> computation_span
+                                     = duration_cast<duration<double>>(end - start);
         
-        output_formatter.print_output(cout,
-                                      solver.solutions().begin(),
-                                      solver.solutions().end());
+//        output_formatter.print_output(cout,
+//                                      solver.solutions().begin(),
+//                                      solver.solutions().end());
+
+        cout << filename << ", " <<
+             graph.numberOfNodes() << ", " <<
+             graph.numberOfEdges() << ", " <<
+             dimension << ",  " <<
+             computation_span.count() << ", " <<
+             solver.solutions().size() << endl;
         
     } catch(TCLAP::ArgException& e) {
         cout << e.typeDescription() << endl;
