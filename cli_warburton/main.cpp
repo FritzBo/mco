@@ -218,6 +218,7 @@ int main(int argc, char** argv) {
              graph.numberOfNodes() << ", " <<
              graph.numberOfEdges() << ", " <<
              dimension << ",  " <<
+             epsilon << ", " <<
              computation_span.count() << ", " <<
              solver.solutions().size() << endl;
         
