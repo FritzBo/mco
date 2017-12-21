@@ -177,7 +177,7 @@ void EpSolverTsaggourisApprox::Solve()
     {
 		a = log(graph.numberOfNodes() * c_max_[i]) / log(epsilon_[i]) + 1;
         bases_[i] = size;
-		size *= static_cast<unsigned int>(floor(a));
+		size *= static_cast<unsigned int>(ceil(a));
 	}
 
 //    std::cout << "bases: ";

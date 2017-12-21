@@ -217,7 +217,7 @@ int main(int argc, char** argv) {
         cout << filename << ", " <<
              graph.numberOfNodes() << ", " <<
              graph.numberOfEdges() << ", " <<
-             dimension << ",  " <<
+             dimension << ", " <<
              epsilon << ", " <<
              computation_span.count() << ", " <<
              solver.solutions().size() << endl;
