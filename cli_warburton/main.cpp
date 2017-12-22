@@ -101,6 +101,10 @@ int main(int argc, char** argv) {
                                           "of this objective function",
                                           false,
                                           "objective:factor");
+
+        SwitchArg print_front_arg("f",
+        "print-fronrt",
+        "Print the whole nondominated set instead of statistics only.", false);
             
         cmd_line.add(filename_arg);
         cmd_line.add(epsilon_arg);
@@ -108,6 +112,7 @@ int main(int argc, char** argv) {
         cmd_line.add(directed_arg);
         cmd_line.add(test_only_arg);
         cmd_line.add(ideal_bounds_arg);
+        cmd_line.add(print_front_arg);
         
         CliOutputFormatter<list<ogdf::edge>> output_formatter(&cmd_line);
         
@@ -120,6 +125,7 @@ int main(int argc, char** argv) {
         bool do_preprocessing   = do_preprocessing_arg.getValue();
         bool directed           = directed_arg.getValue();
         bool test_only          = test_only_arg.getValue();
+        bool print_front        = print_front_arg.getValue();
             
         Graph graph;
         EdgeArray<Point> raw_costs(graph);
@@ -209,18 +215,25 @@ int main(int argc, char** argv) {
         steady_clock::time_point end = steady_clock::now();
         duration<double> computation_span
                                      = duration_cast<duration<double>>(end - start);
-        
-//        output_formatter.print_output(cout,
-//                                      solver.solutions().begin(),
-//                                      solver.solutions().end());
 
-        cout << filename << ", " <<
-             graph.numberOfNodes() << ", " <<
-             graph.numberOfEdges() << ", " <<
-             dimension << ", " <<
-             epsilon << ", " <<
-             computation_span.count() << ", " <<
-             solver.solutions().size() << endl;
+        if(not print_front)
+        {
+            cout << filename << ", " << graph.numberOfNodes() << ", " << graph.numberOfEdges()
+                 << ", " << dimension << ", " << epsilon << ", " << computation_span.count() << ", "
+                 << solver.solutions().size() << endl;
+        }
+        else
+        {
+            for(auto solution : solver.solutions())
+            {
+                for(unsigned i = 0; i < solution.second.dimension(); ++i)
+                {
+                    cout << solution.second[i] << ", ";
+                }
+                cout << endl;
+            }
+        }
+
         
     } catch(TCLAP::ArgException& e) {
         cout << e.typeDescription() << endl;

@@ -237,7 +237,7 @@ void EpSolverTsaggourisApprox::Solve()
         delete new_Py;
     }
 
-	list<pair<csolution_type, const Point>> target_points;
+	vector<pair<csolution_type, const Point>> target_points;
     for(auto label : (*old_Py)[instance().target()])
     {
 		if(label != nullptr)
