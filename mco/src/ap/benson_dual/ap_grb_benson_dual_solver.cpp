@@ -73,8 +73,8 @@ double APGRBBensonDualSolver<OnlineVertexEnumerator>::Solve_scalarization(Point&
 	list<GRBConstr> constraints;
 
 	unsigned int i = 0;
-    for(auto e : instance().graph()->edges) {
-		obj += variables_[i] * (*(*instance().weights())[e] * weights);
+    for(auto e : instance().graph().edges) {
+		obj += variables_[i] * (*(instance().weights())[e] * weights);
 		++i;
 	}
 
@@ -87,8 +87,8 @@ double APGRBBensonDualSolver<OnlineVertexEnumerator>::Solve_scalarization(Point&
 	for(unsigned int j = 0; j < instance().dimension(); ++j) {
 		obj = 0;
 		i = 0;
-        for(auto e : instance().graph()->edges) {
-			obj += variables_[i] * (*(*instance().weights())[e])[j];
+        for(auto e : instance().graph().edges) {
+			obj += variables_[i] * (*(instance().weights())[e])[j];
 			++i;
 		}
 

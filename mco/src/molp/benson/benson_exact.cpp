@@ -170,7 +170,7 @@ void PrimalBensonMolpSolver<OnlineVertexEnumerator>::Solve() {
 
 		// Vertex is inside S and thus an efficient vertex, proceed
 		if(p2_->model()->get(GRB_DoubleAttr_ObjVal) < epsilon_) {
-			add_solution(y);
+			add_solution(std::list<unsigned>(), *y);
 			continue;
 		}
 

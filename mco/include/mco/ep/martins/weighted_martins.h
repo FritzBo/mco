@@ -12,8 +12,8 @@
 
 #include <mco/basic/abstract_solver.h>
 
-#include <setoper.h>
-#include <cdd_f.h>
+#include <cdd/setoper.h>
+#include <cdd/cdd_f.h>
 
 namespace mco {
 

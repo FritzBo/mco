@@ -11,6 +11,7 @@
 
 #include <valarray>
 #include <vector>
+#include <ostream>
 
 namespace mco {
 

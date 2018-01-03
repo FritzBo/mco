@@ -8,6 +8,8 @@
 
 #include "ep_benson_module.h"
 
+#include <functional>
+
 using std::map;
 using std::string;
 using std::list;

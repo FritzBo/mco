@@ -11,6 +11,7 @@
 
 #include <list>
 #include <string>
+#include <functional>
 
 #include <ogdf/basic/Graph.h>
 

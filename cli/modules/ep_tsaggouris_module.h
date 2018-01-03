@@ -10,6 +10,7 @@
 #define __mco__ep_tsaggouris_module__
 
 #include <string>
+#include <functional>
 
 #include <ogdf/basic/Graph.h>
 

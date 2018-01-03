@@ -10,6 +10,7 @@
 
 #include <thread>
 #include <sstream>
+#include <functional>
 
 using std::map;
 using std::string;

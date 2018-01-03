@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.1)
 
 project(mco)
 
@@ -106,7 +106,8 @@ PATHS   /usr/
 )
 
 ## Threads ##
-find_package(Threads)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 
 add_subdirectory(mco)
 add_subdirectory(cdd)

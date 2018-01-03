@@ -8,6 +8,8 @@
 
 #include "est_ok10_module.h"
 
+#include<functional>
+
 using std::string;
 using std::list;
 using std::pair;

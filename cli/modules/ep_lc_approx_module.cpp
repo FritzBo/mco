@@ -8,6 +8,8 @@
 
 #include "ep_lc_approx_module.h"
 
+#include <functional>
+
 using std::map;
 using std::string;
 using std::list;

@@ -11,6 +11,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <functional>
 
 using std::map;
 using std::string;

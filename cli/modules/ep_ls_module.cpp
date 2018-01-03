@@ -9,6 +9,7 @@
 #include "ep_ls_module.h"
 
 #include <sstream>
+#include <functional>
 
 using std::map;
 using std::string;

@@ -9,6 +9,7 @@
 #include "ap_ok10_module.h"
 
 #include <set>
+#include <functional>
 
 using std::set;
 using std::string;

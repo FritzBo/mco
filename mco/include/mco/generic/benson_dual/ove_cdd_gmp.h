@@ -12,8 +12,8 @@
 #include <list>
 #include <iostream>
 
-#include <setoper.h>
-#include <cdd.h>
+#include <cdd/setoper.h>
+#include <cdd/cdd.h>
 
 #include <mco/basic/point.h>
 #include <mco/generic/benson_dual/abstract_online_vertex_enumerator.h>

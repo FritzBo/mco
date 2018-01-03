@@ -10,6 +10,7 @@
 #define __mco__constrained_reach__
 
 #include <list>
+#include <functional>
 
 #include <ogdf/basic/Graph.h>
 

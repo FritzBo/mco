@@ -13,8 +13,8 @@
 #include <functional>
 #include <set>
 
-#include <setoper.h>
-#include <cdd.h>
+#include <cdd/setoper.h>
+#include <cdd/cdd.h>
 
 #include <mco/basic/point.h>
 

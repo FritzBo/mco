@@ -9,6 +9,10 @@
 #include "ap_bf_module.h"
 
 #include <set>
+#include <functional>
+#include <string>
+#include <set>
+#include <list>
 
 using std::set;
 using std::string;

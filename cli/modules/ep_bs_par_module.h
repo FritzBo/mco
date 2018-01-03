@@ -9,6 +9,8 @@
 #ifndef __mco__ep_bs_par_module__
 #define __mco__ep_bs_par_module__
 
+#include <functional>
+
 #include <ogdf/basic/Graph.h>
 
 #include "../basic/modules.h"

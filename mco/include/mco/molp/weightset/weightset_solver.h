@@ -42,7 +42,7 @@ class WeightSetMolpSolver : AbstractSolver<std::list<unsigned>> {
 
 	void lexopt_on_face(double *l, char sense, unsigned int variables, unsigned int objectives, double *x, double *y);
 
-	string print_point(double * point, unsigned int dimension);
+	std::string print_point(double * point, unsigned int dimension);
 
 public:
 	WeightSetMolpSolver() = delete;
