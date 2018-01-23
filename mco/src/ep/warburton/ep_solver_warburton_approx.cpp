@@ -122,24 +122,24 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
     
     while(true) {
         
-        bool dominated_cell = false;
-        for(auto& cell : nondominated_cells) {
-            bool dominates = true;
-            for(unsigned i = 0; i < dimension; ++i) {
-                if(i != skip_function) {
-                    if(cell[i] >= current_log_bound[i]) {
-                        dominates = false;
-                        break;
-                    }
-                }
-            }
-            if(dominates) {
-                dominated_cell = true;
-                break;
-            }
-        }
+//        bool dominated_cell = false;
+//        for(auto& cell : nondominated_cells) {
+//            bool dominates = true;
+//            for(unsigned i = 0; i < dimension; ++i) {
+//                if(i != skip_function) {
+//                    if(cell[i] >= current_log_bound[i]) {
+//                        dominates = false;
+//                        break;
+//                    }
+//                }
+//            }
+//            if(dominates) {
+//                dominated_cell = true;
+//                break;
+//            }
+//        }
         
-        if(!dominated_cell) {
+//        if(!dominated_cell) {
             
 #ifndef NDEBUG
             cout << "Computing for bound: " << current_log_bound << endl;
@@ -276,7 +276,7 @@ bool EpSolverWarburtonApprox::Solve(ogdf::Graph& graph,
 #endif
             }
             
-        }
+//        }
         
         if(current_log_bound[k] < ub[k] - 1) {
             current_log_bound[k] += 1;
