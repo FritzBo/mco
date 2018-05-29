@@ -12,6 +12,7 @@
 #include <list>
 #include <set>
 #include <deque>
+#include <limits>
 
 using std::function;
 using std::list;
