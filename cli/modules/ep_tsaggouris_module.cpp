@@ -17,14 +17,6 @@ using std::function;
 using std::cout;
 using std::endl;
 
-#include <ogdf/basic/Graph.h>
-
-using ogdf::Graph;
-using ogdf::EdgeArray;
-using ogdf::NodeArray;
-using ogdf::node;
-using ogdf::edge;
-
 #include <tclap/CmdLine.h>
 
 using TCLAP::CmdLine;
@@ -41,6 +33,7 @@ using TCLAP::MultiArg;
 #include <mco/ep/tsaggouris/ep_solver_tsaggouris_approx.h>
 #include <mco/benchmarks/temporary_graphs_parser.h>
 #include <mco/basic/point.h>
+#include <mco/basic/forward_star.h>
 #include <mco/cli/parse_util.h>
 
 using mco::EpInstance;
@@ -51,6 +44,11 @@ using mco::Dijkstra;
 using mco::DijkstraModes;
 using mco::ConstrainedReachabilityPreprocessing;
 using mco::InstanceScalarizer;
+using mco::ForwardStar;
+using mco::FSEdgeArray;
+using mco::FSNodeArray;
+using mco::node;
+using mco::ForwardStarFileReader;
 
 void EpTsaggourisModule::perform(int argc, char** argv) {
     try {
@@ -86,24 +84,31 @@ void EpTsaggourisModule::perform(int argc, char** argv) {
         double epsilon_all = epsilon_all_argument.getValue();
         unsigned exact_objective = exact_argument.getValue();
         
-        Graph graph;
-        EdgeArray<Point> costs(graph);
+        ForwardStar graph;
+        FSEdgeArray<Point> costs(graph);
+        FSNodeArray<int> extern_ids(graph);
         unsigned dimension;
         node source, target;
-        
-        TemporaryGraphParser parser;
-        
-        parser.getGraph(file_name, graph, costs, dimension, source, target);
 
-//        EdgeArray<Point> costs(graph, Point(dimension));
-//        Point factor(100.0, dimension);
-//        InstanceScalarizer::scaleround_instance(graph,
-//                                                raw_costs,
-//                                                dimension,
-//                                                factor,
-//                                                costs);
-//
-//
+        ForwardStarFileReader parser;
+
+        parser.read(file_name, graph, extern_ids, costs, dimension, source, target, directed);
+
+        no_edges_ = graph.numberOfEdges();
+        no_nodes_ = graph.numberOfNodes();
+        no_objectives_ = dimension;
+        filename_ = file_name;
+        epsilon_ = epsilon_all;
+
+        FSEdgeArray<Point> costs_rounded(graph, Point(dimension));
+        Point factor(100.0, dimension);
+        InstanceScalarizer::scaleround_instance(graph,
+                                                costs,
+                                                dimension,
+                                                factor,
+                                                costs);
+
+
 //        vector<NodeArray<double>> distances(dimension, graph);
 
 //        calculate_ideal_heuristic(graph,
@@ -160,25 +165,25 @@ void EpTsaggourisModule::perform(int argc, char** argv) {
                       dimension,
                       epsilon);
 
-        EdgeArray<Point *> ptr_costs(graph);
+        FSEdgeArray<Point *> ptr_costs(graph);
 
         for(auto e : graph.edges) {
             ptr_costs[e] = &costs[e];
         }
 
-        EpInstance instance(graph,
-                            ptr_costs,
-                            dimension,
-                            source,
-                            target);
+        mco::EpSolverTsaggourisApprox::Instance instance;
+        instance.graph      = &graph;
+        instance.costs      = &ptr_costs;
+        instance.dimension  = dimension;
+        instance.source     = source;
+        instance.target     = target;
 
-        mco::EpSolverTsaggourisApprox solver(instance, epsilon);
+        mco::EpSolverTsaggourisApprox solver;
+        solver.Solve(instance, epsilon);
         
 //        solver.set_bounds(bounds);
 //        solver.set_heuristic(ideal_heuristic);
 
-        solver.Solve();
-        
         solutions_.insert(solutions_.begin(),
                           solver.solutions().cbegin(),
                           solver.solutions().cend());
@@ -188,42 +193,42 @@ void EpTsaggourisModule::perform(int argc, char** argv) {
     }
 }
 
-void EpTsaggourisModule::parse_ideal_bounds(const MultiArg<string>& argument,
-                                         unsigned dimension,
-                                         function<double(node, unsigned)> heuristic,
-                                         const node source,
-                                         Point& bounds) {
-    
-    auto bounds_it = argument.begin();
-    while(bounds_it != argument.end()) {
-        vector<string> tokens;
-        mco::tokenize(*bounds_it, tokens, ":");
-        
-        if(tokens.size() != 2) {
-            cout << "Error" << endl;
-            return;
-        }
-        
-        unsigned objective_function = stoul(tokens[0]);
-        double factor = stod(tokens[1]);
-        
-        if(objective_function > dimension) {
-            cout << "Error" << endl;
-            return;
-        }
-        
-        if(objective_function == 0) {
-            cout << "Error" << endl;
-            return;
-        }
-        
-        bounds[objective_function - 1] = factor * heuristic(source, objective_function - 1);
-        
-        bounds_it++;
-    }
-    
-    
-}
+//void EpTsaggourisModule::parse_ideal_bounds(const MultiArg<string>& argument,
+//                                         unsigned dimension,
+//                                         function<double(node, unsigned)> heuristic,
+//                                         const node source,
+//                                         Point& bounds) {
+//
+//    auto bounds_it = argument.begin();
+//    while(bounds_it != argument.end()) {
+//        vector<string> tokens;
+//        mco::tokenize(*bounds_it, tokens, ":");
+//
+//        if(tokens.size() != 2) {
+//            cout << "Error" << endl;
+//            return;
+//        }
+//
+//        unsigned objective_function = stoul(tokens[0]);
+//        double factor = stod(tokens[1]);
+//
+//        if(objective_function > dimension) {
+//            cout << "Error" << endl;
+//            return;
+//        }
+//
+//        if(objective_function == 0) {
+//            cout << "Error" << endl;
+//            return;
+//        }
+//
+//        bounds[objective_function - 1] = factor * heuristic(source, objective_function - 1);
+//
+//        bounds_it++;
+//    }
+//
+//
+//}
 
 void EpTsaggourisModule::parse_absolute_bounds(const MultiArg<string>& argument,
                                           unsigned dimension,
@@ -294,40 +299,49 @@ void EpTsaggourisModule::parse_epsilon(const MultiArg<string>& epsilon_argument,
     
 }
 
-void EpTsaggourisModule::calculate_ideal_heuristic(const Graph& graph,
-                                                 const EdgeArray<Point>& costs,
-                                                 unsigned dimension,
-                                                 const node source,
-                                                 const node target,
-                                                 bool directed,
-                                                 vector<NodeArray<double>>& distances) {
+//void EpTsaggourisModule::calculate_ideal_heuristic(const Graph& graph,
+//                                                 const EdgeArray<Point>& costs,
+//                                                 unsigned dimension,
+//                                                 const node source,
+//                                                 const node target,
+//                                                 bool directed,
+//                                                 vector<NodeArray<double>>& distances) {
+//
+//    Dijkstra<double, mco::PairComparator<double, std::less<double>>> sssp_solver;
+//
+//    NodeArray<edge> predecessor(graph);
+//
+//    for(unsigned i = 0; i < dimension; ++i) {
+//        auto length = [&costs, i] (edge e) {
+//            return costs[e][i];
+//        };
+//
+//        sssp_solver.singleSourceShortestPaths(graph,
+//                                              length,
+//                                              target,
+//                                              predecessor,
+//                                              distances[i],
+//                                              directed ? DijkstraModes<>::Backward :
+//                                              DijkstraModes<>::Undirected);
+//    }
+//
+//}
 
-    Dijkstra<double, mco::PairComparator<double, std::less<double>>> sssp_solver;
 
-    NodeArray<edge> predecessor(graph);
-
-    for(unsigned i = 0; i < dimension; ++i) {
-        auto length = [&costs, i] (edge e) {
-            return costs[e][i];
-        };
-
-        sssp_solver.singleSourceShortestPaths(graph,
-                                              length,
-                                              target,
-                                              predecessor,
-                                              distances[i],
-                                              directed ? DijkstraModes<>::Backward :
-                                              DijkstraModes<>::Undirected);
-    }
-
-}
-
-
-const list<pair<const list<edge>, const Point>>& EpTsaggourisModule::solutions() {
-    return solutions_;
-}
+//const list<pair<const list<edge>, const Point>>& EpTsaggourisModule::solutions() {
+//    return solutions_;
+//}
 
 string EpTsaggourisModule::statistics() {
-    string stats("");
-    return stats;
+    std::stringstream sstream;
+    sstream << filename_;
+    sstream << ", ";
+    sstream << no_nodes_;
+    sstream << ", ";
+    sstream << no_edges_;
+    sstream << ", ";
+    sstream << no_objectives_;
+    sstream << ", ";
+    sstream << epsilon_;
+    return sstream.str();
 }
