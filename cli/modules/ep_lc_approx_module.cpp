@@ -52,25 +52,30 @@ using mco::FSNodeArray;
 using mco::node;
 using mco::edge;
 
+double compute_r(double, double);
+
 void EpLCApproxModule::perform(int argc, char** argv) {
     try {
         CmdLine cmd("Label Correcting Approximation for the Efficient Path Problem.", ' ', "0.1");
         
-        MultiArg<string> epsilon_argument("E", "epsilon", "The approximation factor to use.", false, "epsilon");
+//        MultiArg<string> epsilon_argument("E", "epsilon", "The approximation factor to use.", false, "epsilon");
         
         ValueArg<double> epsilon_all_argument("e", "epsilon-all", "The approximation factor to use for all objective functions.", false, 0.0, "epsilon");
 
         ValueArg<unsigned> exact_argument("X", "exact", "When using the epsilon-all or e parameter, this objective function will not be approximated.", false, 0, "objective function");
+
+        ValueArg<unsigned> no_edges_upper("N", "no_edges", "Upper bound on the number of edges in a longest efficient path", false, 0, "natural number");
         
         UnlabeledValueArg<string> file_name_argument("filename", "Name of the instance file", true, "","filename");
         
         SwitchArg is_directed_arg("d", "directed", "Should the input be interpreted as a directed graph?", false);
 
-        cmd.add(epsilon_argument);
+//        cmd.add(epsilon_argument);
         cmd.add(epsilon_all_argument);
         cmd.add(file_name_argument);
         cmd.add(is_directed_arg);
         cmd.add(exact_argument);
+        cmd.add(no_edges_upper);
 
         cmd.parse(argc, argv);
         
@@ -79,7 +84,7 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         double epsilon_all = epsilon_all_argument.getValue();
         unsigned exact_objective = exact_argument.getValue();
 
-	filename_ = file_name;
+	    filename_ = file_name;
         
         ForwardStar graph;
         FSEdgeArray<Point> raw_costs(graph);
@@ -91,10 +96,19 @@ void EpLCApproxModule::perform(int argc, char** argv) {
 
         reader.read(file_name, graph, node_ids, raw_costs, dimension, source, target, directed);
 
-	no_nodes_ = graph.numberOfNodes();
+	    no_nodes_ = graph.numberOfNodes();
         no_edges_ = graph.numberOfEdges();
         no_objectives_ = dimension;
         epsilon_ = epsilon_all;
+
+        if(no_edges_upper.isSet())
+        {
+            r_ = compute_r(epsilon_all, no_edges_upper.getValue());
+        }
+        else
+        {
+            r_ = compute_r(epsilon_all, no_nodes_ - 1);
+        }
 
         FSEdgeArray<Point> costs(graph, Point(dimension));
         Point factor(100.0, dimension);
@@ -111,14 +125,14 @@ void EpLCApproxModule::perform(int argc, char** argv) {
             return costs[e];
         };
         
-        Point epsilon(epsilon_all, dimension);
+        Point epsilon(r_, dimension);
         if(exact_argument.isSet()) {
             epsilon[exact_objective - 1] = 0.0;
         }
         
-        parse_epsilon(epsilon_argument,
-                      dimension,
-                      epsilon);
+//        parse_epsilon(epsilon_argument,
+//                      dimension,
+//                      epsilon);
 
         LCApprox::InstanceDescription desc;
 
@@ -176,6 +190,11 @@ void EpLCApproxModule::parse_epsilon(const MultiArg<string>& epsilon_argument,
     
 }
 
+double compute_r(double epsilon, double no_edges)
+{
+    return std::pow(epsilon, 1/no_edges);
+}
+
 const list<pair<const list<edge>, const Point>>& EpLCApproxModule::solutions() {
     return solutions_;
 }
@@ -191,6 +210,8 @@ std::stringstream sstream;
     sstream << no_objectives_;
     sstream << ", ";
     sstream << epsilon_;
+    sstream << ", ";
+    sstream << r_;
     return sstream.str();
 }
 

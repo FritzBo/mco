@@ -32,6 +32,7 @@ private:
     unsigned no_edges_;
     unsigned no_objectives_;
     double epsilon_;
+    double r_;
     
     std::list<std::pair<const std::list<mco::node>, const mco::Point>> solutions_;
 
