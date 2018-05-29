@@ -2,5 +2,6 @@ Debug/**
 Release/**
 .*
 cmake*/**
+build/**
 instances/ep/grid80*
 instances/ep/grid90*
