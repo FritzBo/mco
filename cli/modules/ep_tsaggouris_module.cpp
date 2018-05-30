@@ -50,6 +50,8 @@ using mco::FSNodeArray;
 using mco::node;
 using mco::ForwardStarFileReader;
 
+#include "../basic/FrontWriter.h"
+
 void EpTsaggourisModule::perform(int argc, char** argv) {
     try {
         CmdLine cmd("Label Correcting Approximation for the Efficient Path Problem.", ' ', "0.1");
@@ -59,6 +61,8 @@ void EpTsaggourisModule::perform(int argc, char** argv) {
         ValueArg<double> epsilon_all_argument("e", "epsilon-all", "The approximation factor to use for all objective functions.", false, 0.0, "epsilon");
 
         ValueArg<unsigned> exact_argument("X", "exact", "When using the epsilon-all or e parameter, this objective function will not be approximated.", false, 0, "objective function");
+
+        ValueArg<string> front_file_arg("F", "front-file", "Saves the nondominated set to a seperate file", false, "", "file name");
         
         UnlabeledValueArg<string> file_name_argument("filename", "Name of the instance file", true, "","filename");
         
@@ -76,6 +80,7 @@ void EpTsaggourisModule::perform(int argc, char** argv) {
         cmd.add(ideal_bounds_arg);
         cmd.add(absolute_bounds_arg);
         cmd.add(exact_argument);
+        cmd.add(front_file_arg);
         
         cmd.parse(argc, argv);
         
@@ -101,7 +106,7 @@ void EpTsaggourisModule::perform(int argc, char** argv) {
         epsilon_ = epsilon_all;
 
         FSEdgeArray<Point> costs_rounded(graph, Point(dimension));
-        Point factor(100.0, dimension);
+        Point factor(1.0, dimension);
         InstanceScalarizer::scaleround_instance(graph,
                                                 costs,
                                                 dimension,
@@ -187,6 +192,12 @@ void EpTsaggourisModule::perform(int argc, char** argv) {
         solutions_.insert(solutions_.begin(),
                           solver.solutions().cbegin(),
                           solver.solutions().cend());
+
+        if(front_file_arg.isSet())
+        {
+            FrontWriter writer;
+            writer.WriteToFile(front_file_arg.getValue(), solutions_.begin(), solutions_.end());
+        }
         
     } catch(ArgException& e) {
         std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;

@@ -116,7 +116,7 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         }
 
         FSEdgeArray<Point> costs(graph, Point(dimension));
-        Point factor(100.0, dimension);
+        Point factor(1.0, dimension);
         InstanceScalarizer::scaleround_instance(graph,
                                                 raw_costs,
                                                 dimension,
