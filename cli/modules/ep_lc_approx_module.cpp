@@ -52,6 +52,8 @@ using mco::FSNodeArray;
 using mco::node;
 using mco::edge;
 
+#include "../basic/FrontWriter.h"
+
 double compute_r(double, double);
 
 void EpLCApproxModule::perform(int argc, char** argv) {
@@ -65,6 +67,8 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         ValueArg<unsigned> exact_argument("X", "exact", "When using the epsilon-all or e parameter, this objective function will not be approximated.", false, 0, "objective function");
 
         ValueArg<unsigned> no_edges_upper("N", "no_edges", "Upper bound on the number of edges in a longest efficient path", false, 0, "natural number");
+
+        ValueArg<string> front_file_arg("F", "front-file", "Saves the nondominated set to a seperate file", false, "", "file name");
         
         UnlabeledValueArg<string> file_name_argument("filename", "Name of the instance file", true, "","filename");
         
@@ -76,6 +80,7 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         cmd.add(is_directed_arg);
         cmd.add(exact_argument);
         cmd.add(no_edges_upper);
+        cmd.add(front_file_arg);
 
         cmd.parse(argc, argv);
         
@@ -150,6 +155,12 @@ void EpLCApproxModule::perform(int argc, char** argv) {
         solutions_.insert(solutions_.begin(),
                           solver.solutions().cbegin(),
                           solver.solutions().cend());
+
+        if(front_file_arg.isSet())
+        {
+            FrontWriter writer;
+            writer.WriteToFile(front_file_arg.getValue(), solutions_.begin(), solutions_.end());
+        }
         
     } catch(ArgException& e) {
         std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;

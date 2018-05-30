@@ -50,7 +50,7 @@ modules/ep_lex_dijkstra.h
 modules/ep_lex_dijkstra.cpp
 modules/ui_verifier.h
 modules/ui_verifier.cpp
-)
+        basic/FrontWriter.h)
 
 add_definitions(-DGMPRATIONAL)
 
