@@ -191,7 +191,7 @@ void EpSolverTsaggourisApprox::Solve(Instance &instance,
 
     (*old_Py)[instance.source][0] = new Label(Point(dimension), -1, nullptr);
 
-    for(unsigned i = 1; i < graph.numberOfNodes(); ++i)
+    for(unsigned i = 0; i < graph.numberOfNodes(); ++i)
     {
 //        std::cout << i << std::endl;
 
