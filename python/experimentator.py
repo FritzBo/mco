@@ -6,6 +6,9 @@ Script for making experimentor's life easier.
 Example:
 {
     "executable" : "/home/fritz/programming/mco/build/cli/mco_cli",
+    "threads" : 15
+    "time_limit" : 3600
+    "memory_limit" : 16000
     "output" : "test_output",
     "parameter" : [
         { "short" : "-cst", "type" : "switch" },
@@ -28,6 +31,9 @@ from pathlib import Path
 # keyword definition
 EXECUTABLE = "executable"
 OUTPUT = "output"
+THREADS = "threads"
+TIME_LIMIT = "time_limit"       # seconds
+MEMORY_LIMIT = "memory_limit"   # MB
 
 PARAMETERS = "parameters"
 SHORT = "short"
@@ -42,7 +48,7 @@ EXTENSION = "extension"
 FOLDER = "folder"
 
 def expand_parameters(parameters):
-    
+
 
 
 def find_instances(instance_defs):
@@ -53,7 +59,7 @@ def find_instances(instance_defs):
 
         p = Path(folder)
         if not p.exists():
-            raise Exception("Instance folder", folder, "does not exist.")
+            raise Exception("Instance folder" + str(folder) + "does not exist.")
 
         instances += list(p.glob('*.' + str(extension)))
 
@@ -86,6 +92,9 @@ def process_json(filename):
 
     if OUTPUT not in json_content.keys():
         raise Exception("No output filename specified.")
+
+    if THREADS not in json_content.keys():
+        json_content[THREADS] = 1
 
     instances = json_content["instances"]
 
