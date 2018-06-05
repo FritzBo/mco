@@ -6,17 +6,18 @@ Script for making experimentor's life easier.
 Example:
 {
     "executable" : "/home/fritz/programming/mco/build/cli/mco_cli",
-    "threads" : 15
-    "time_limit" : 3600
-    "memory_limit" : 16000
+    "threads" : 15,
+    "time_limit" : 3600,
+    "memory_limit" : 16000,
     "output" : "test_output",
     "parameter" : [
         { "short" : "-cst", "type" : "switch" },
         { "short" : "ep-tsaggouris", "type" : "switch" },
+        { "type" : "instance" },
         { "short" : "-e", "type" : "constants", "values": [2, 1.5, 1.25, 1.1] },
         { "short" : "-d", "type" : "switch" },
         { "short" : "-F", "type" : "instance_attached", "extension" : "front" }
-    ]
+    ],
     "instances" : [
             { "extension" : "graph", "folder" : "Grid/" },
             { "extension" : "graph", "folder" : "Random/" }
@@ -27,6 +28,7 @@ Example:
 from sys import argv
 import json
 from pathlib import Path
+from itertools import product
 
 # keyword definition
 EXECUTABLE = "executable"
@@ -35,9 +37,10 @@ THREADS = "threads"
 TIME_LIMIT = "time_limit"       # seconds
 MEMORY_LIMIT = "memory_limit"   # MB
 
-PARAMETERS = "parameters"
+PARAMETERS = "parameter"
 SHORT = "short"
 TYPE = "type"
+INSTANCE = "instance"
 SWITCH = "switch"
 CONSTANTS = "constants"
 VALUES = "values"
@@ -47,30 +50,28 @@ INSTANCES = "instances"
 EXTENSION = "extension"
 FOLDER = "folder"
 
-def expand_parameters(parameters):
-    idxs = {}
-    for parameter in parameters:
-        parameter_string = ""
+def expand_parameters(parameters, instance_filename):
+    parameter_strings = []
 
+    for parameter in parameters:
         if parameter[TYPE] == SWITCH:
-            parameter_string += parameter[SHORT] + " "
+            parameter_strings += [[parameter[SHORT]]]
 
         elif parameter[TYPE] == CONSTANTS:
+            values = []
+            for value in parameter[VALUES]:
+                values += [parameter[SHORT] + " " + str(value)]
 
-            if parameter[SHORT] not in idxs.keys():
-                parameter[SHORT] = 0
+            parameter_strings += [values]
 
-            idxs[SHORT] += 1
-
-            if idxs[SHORT] == len(parameter[VALUES]):
-                idxs[SHORT] = 0
-
-            parameter_string += parameter[SHORT] + " " + str(VALUES[idxs[SHORT]]) + " "
-
+        elif parameter[TYPE] == INSTANCE:
+            parameter_strings += [[str(instance_filename)]]
 
         elif parameter[TYPE] == INSTANCE_ATTACHED:
+            parameter_strings += [[parameter[SHORT] + " " + str(instance_filename) + "." + parameter[EXTENSION]]]
 
-        yield parameter_string
+    for parameter_set in product(*parameter_strings):
+        yield " ".join(parameter_set)
 
 
 def expand_instances(instance_defs):
@@ -80,7 +81,7 @@ def expand_instances(instance_defs):
 
         p = Path(folder)
         if not p.exists():
-            raise Exception("Instance folder" + str(folder) + "does not exist.")
+            raise Exception("Instance folder " + str(folder) + " does not exist.")
 
         for filename in list(p.glob('*.' + str(extension))):
             yield filename
@@ -90,19 +91,19 @@ def perform_experiment(experiment_def):
     executable = experiment_def[EXECUTABLE]
     instance_defs = experiment_def[INSTANCES]
     output_file_name = experiment_def[OUTPUT]
-    parameter_list = []
+    parameters = []
 
     if PARAMETERS in experiment_def.keys():
         parameters = experiment_def[PARAMETERS]
 
     for instance_filename in expand_instances(instance_defs):
-        for parameter_string in expand_parameters(parameters):
-            None
+        for parameter_string in expand_parameters(parameters, instance_filename):
+            print(executable, parameter_string, ">>", output_file_name)
 
 
 def process_json(filename):
     json_file = open(filename, "r")
-    json_content = json.loads(json_file)
+    json_content = json.load(json_file)
 
     # Sanity checking
     if EXECUTABLE not in json_content.keys():
