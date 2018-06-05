@@ -16,7 +16,7 @@ Example:
         { "type" : "instance" },
         { "short" : "-e", "type" : "constants", "values": [2, 1.5, 1.25, 1.1] },
         { "short" : "-d", "type" : "switch" },
-        { "short" : "-F", "type" : "instance_attached", "extension" : "front" }
+        { "short" : "-F", "type" : "instance_attached", "extension" : "front", "attach" : "tsag" }
     ],
     "instances" : [
             { "extension" : "graph", "folder" : "Grid/" },
@@ -45,33 +45,54 @@ SWITCH = "switch"
 CONSTANTS = "constants"
 VALUES = "values"
 INSTANCE_ATTACHED = "instance_attached"
+ATTACH = "attach"
 
 INSTANCES = "instances"
 EXTENSION = "extension"
 FOLDER = "folder"
 
 def expand_parameters(parameters, instance_filename):
-    parameter_strings = []
+    # visit parameters to collect index sets
 
+    index_sets = []
+
+    i = 0
     for parameter in parameters:
-        if parameter[TYPE] == SWITCH:
-            parameter_strings += [[parameter[SHORT]]]
+        if parameter[TYPE] == CONSTANTS:
+            index_sets.append(range(len(parameter[VALUES])))
+            parameter["index"] = i
+            i += 1
 
-        elif parameter[TYPE] == CONSTANTS:
-            values = []
-            for value in parameter[VALUES]:
-                values += [parameter[SHORT] + " " + str(value)]
 
-            parameter_strings += [values]
+    for indices in product(*index_sets):
 
-        elif parameter[TYPE] == INSTANCE:
-            parameter_strings += [[str(instance_filename)]]
+        parameter_string = []
 
-        elif parameter[TYPE] == INSTANCE_ATTACHED:
-            parameter_strings += [[parameter[SHORT] + " " + str(instance_filename) + "." + parameter[EXTENSION]]]
+        instance_attachement = ""
 
-    for parameter_set in product(*parameter_strings):
-        yield " ".join(parameter_set)
+        for parameter in parameters:
+            if parameter[TYPE] == SWITCH:
+                parameter_string += [parameter[SHORT]]
+
+            elif parameter[TYPE] == CONSTANTS:
+                parameter_string += [parameter[SHORT] + " " + str(parameter[VALUES][indices[parameter[
+                    "index"]]])]
+
+                instance_attachement += parameter[SHORT].strip("-") + str(parameter[VALUES][
+                                                                               indices[
+                    parameter[
+                    "index"]]]) + "."
+
+            elif parameter[TYPE] == INSTANCE:
+                parameter_string += [str(instance_filename)]
+
+            elif parameter[TYPE] == INSTANCE_ATTACHED:
+                parameter_string += [parameter[SHORT] + " " + str(instance_filename) + "." +
+                                     parameter[ATTACH] + "." +
+                                     instance_attachement +
+                                     parameter[EXTENSION]]
+
+        yield " ".join(parameter_string)
 
 
 def expand_instances(instance_defs):
