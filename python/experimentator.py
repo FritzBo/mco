@@ -48,11 +48,32 @@ EXTENSION = "extension"
 FOLDER = "folder"
 
 def expand_parameters(parameters):
+    idxs = {}
+    for parameter in parameters:
+        parameter_string = ""
+
+        if parameter[TYPE] == SWITCH:
+            parameter_string += parameter[SHORT] + " "
+
+        elif parameter[TYPE] == CONSTANTS:
+
+            if parameter[SHORT] not in idxs.keys():
+                parameter[SHORT] = 0
+
+            idxs[SHORT] += 1
+
+            if idxs[SHORT] == len(parameter[VALUES]):
+                idxs[SHORT] = 0
+
+            parameter_string += parameter[SHORT] + " " + str(VALUES[idxs[SHORT]]) + " "
 
 
+        elif parameter[TYPE] == INSTANCE_ATTACHED:
 
-def find_instances(instance_defs):
-    instances = []
+        yield parameter_string
+
+
+def expand_instances(instance_defs):
     for instance_def in instance_defs:
         folder = instance_def[FOLDER]
         extension = instance_def[EXTENSION]
@@ -61,9 +82,8 @@ def find_instances(instance_defs):
         if not p.exists():
             raise Exception("Instance folder" + str(folder) + "does not exist.")
 
-        instances += list(p.glob('*.' + str(extension)))
-
-    return instances
+        for filename in list(p.glob('*.' + str(extension))):
+            yield filename
 
 
 def perform_experiment(experiment_def):
@@ -74,9 +94,10 @@ def perform_experiment(experiment_def):
 
     if PARAMETERS in experiment_def.keys():
         parameters = experiment_def[PARAMETERS]
-        parameter_list = expand_parameters(parameters)
 
-    instance_list = find_instances(instance_defs)
+    for instance_filename in expand_instances(instance_defs):
+        for parameter_string in expand_parameters(parameters):
+            None
 
 
 def process_json(filename):
