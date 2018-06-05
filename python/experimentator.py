@@ -6,6 +6,9 @@ Script for making experimentor's life easier.
 Example:
 {
     "executable" : "/home/fritz/programming/mco/build/cli/mco_cli",
+    "threads" : 15
+    "time_limit" : 3600
+    "memory_limit" : 16000
     "output" : "test_output",
     "parameter" : [
         { "short" : "-cst", "type" : "switch" },
@@ -28,6 +31,9 @@ from pathlib import Path
 # keyword definition
 EXECUTABLE = "executable"
 OUTPUT = "output"
+THREADS = "threads"
+TIME_LIMIT = "time_limit"       # seconds
+MEMORY_LIMIT = "memory_limit"   # MB
 
 PARAMETERS = "parameters"
 SHORT = "short"
@@ -42,22 +48,42 @@ EXTENSION = "extension"
 FOLDER = "folder"
 
 def expand_parameters(parameters):
-    
+    idxs = {}
+    for parameter in parameters:
+        parameter_string = ""
+
+        if parameter[TYPE] == SWITCH:
+            parameter_string += parameter[SHORT] + " "
+
+        elif parameter[TYPE] == CONSTANTS:
+
+            if parameter[SHORT] not in idxs.keys():
+                parameter[SHORT] = 0
+
+            idxs[SHORT] += 1
+
+            if idxs[SHORT] == len(parameter[VALUES]):
+                idxs[SHORT] = 0
+
+            parameter_string += parameter[SHORT] + " " + str(VALUES[idxs[SHORT]]) + " "
 
 
-def find_instances(instance_defs):
-    instances = []
+        elif parameter[TYPE] == INSTANCE_ATTACHED:
+
+        yield parameter_string
+
+
+def expand_instances(instance_defs):
     for instance_def in instance_defs:
         folder = instance_def[FOLDER]
         extension = instance_def[EXTENSION]
 
         p = Path(folder)
         if not p.exists():
-            raise Exception("Instance folder", folder, "does not exist.")
+            raise Exception("Instance folder" + str(folder) + "does not exist.")
 
-        instances += list(p.glob('*.' + str(extension)))
-
-    return instances
+        for filename in list(p.glob('*.' + str(extension))):
+            yield filename
 
 
 def perform_experiment(experiment_def):
@@ -68,9 +94,10 @@ def perform_experiment(experiment_def):
 
     if PARAMETERS in experiment_def.keys():
         parameters = experiment_def[PARAMETERS]
-        parameter_list = expand_parameters(parameters)
 
-    instance_list = find_instances(instance_defs)
+    for instance_filename in expand_instances(instance_defs):
+        for parameter_string in expand_parameters(parameters):
+            None
 
 
 def process_json(filename):
@@ -86,6 +113,9 @@ def process_json(filename):
 
     if OUTPUT not in json_content.keys():
         raise Exception("No output filename specified.")
+
+    if THREADS not in json_content.keys():
+        json_content[THREADS] = 1
 
     instances = json_content["instances"]
 
