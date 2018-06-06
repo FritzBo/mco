@@ -29,6 +29,8 @@ from sys import argv
 import json
 from pathlib import Path
 from itertools import product
+from multiprocessing import Pool
+from subprocess import Popen
 
 # keyword definition
 EXECUTABLE = "executable"
@@ -51,8 +53,11 @@ INSTANCES = "instances"
 EXTENSION = "extension"
 FOLDER = "folder"
 
+def execute_worker(executable, parameters):
+    None
 
-def expand_parameters(parameters, instance_filename):
+
+def expand_parameters(parameters, filename_iterator):
     # visit parameters to collect index sets
 
     index_sets = []
@@ -64,10 +69,11 @@ def expand_parameters(parameters, instance_filename):
             parameter["index"] = i
             i += 1
 
-    for indices in product(*index_sets):
+    for indices in product(*index_sets, filename_iterator):
 
         parameter_string = []
 
+        instance_filename = ""
         instance_attachement = ""
 
         for parameter in parameters:
@@ -84,7 +90,8 @@ def expand_parameters(parameters, instance_filename):
                     "index"]]]) + "."
 
             elif parameter[TYPE] == INSTANCE:
-                parameter_string += [str(instance_filename)]
+                instance_filename = str(indices[-1])
+                parameter_string += [instance_filename]
 
             elif parameter[TYPE] == INSTANCE_ATTACHED:
                 parameter_string += [parameter[SHORT] + " " + str(instance_filename) + "." +
@@ -92,7 +99,7 @@ def expand_parameters(parameters, instance_filename):
                                      instance_attachement +
                                      parameter[EXTENSION]]
 
-        yield " ".join(parameter_string)
+        yield list(parameter_string)
 
 
 def expand_instances(instance_defs):
@@ -117,9 +124,12 @@ def perform_experiment(experiment_def):
     if PARAMETERS in experiment_def.keys():
         parameters = experiment_def[PARAMETERS]
 
-    for instance_filename in expand_instances(instance_defs):
-        for parameter_string in expand_parameters(parameters, instance_filename):
-            print(executable, parameter_string, ">>", output_file_name)
+    thread_pool = Pool(processes=int(experiment_def[THREADS]))
+
+    thread_pool.imap_unordered(execute_worker, product([executable], expand_parameters(parameters, expand_instances(instance_defs))))
+
+    for parameter_string in expand_parameters(parameters, expand_instances(instance_defs)):
+        print(executable, str(parameter_string), ">>", output_file_name)
 
 
 def process_json(filename):
