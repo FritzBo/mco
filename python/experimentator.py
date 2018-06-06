@@ -51,6 +51,7 @@ INSTANCES = "instances"
 EXTENSION = "extension"
 FOLDER = "folder"
 
+
 def expand_parameters(parameters, instance_filename):
     # visit parameters to collect index sets
 
@@ -62,7 +63,6 @@ def expand_parameters(parameters, instance_filename):
             index_sets.append(range(len(parameter[VALUES])))
             parameter["index"] = i
             i += 1
-
 
     for indices in product(*index_sets):
 
