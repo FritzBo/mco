@@ -16,11 +16,11 @@ Example:
         { "type" : "instance" },
         { "short" : "-e", "type" : "constants", "values": [2, 1.5, 1.25, 1.1] },
         { "short" : "-d", "type" : "switch" },
-        { "short" : "-F", "type" : "instance_attached", "extension" : "front", "attach" : "tsag" }
+        { "short" : "-F", "type" : "instance_attached", "extension" : "front", "attach" : "tsag", depth = 3}
     ],
     "instances" : [
-            { "extension" : "graph", "folder" : "Grid/" },
-            { "extension" : "graph", "folder" : "Random/" }
+            { "extension" : "graph", "folder" : "Grid/K*/" },
+            { "extension" : "graph", "folder" : "Random/K*/" }
         ]
 }
 '''
@@ -50,6 +50,7 @@ CONSTANTS = "constants"
 VALUES = "values"
 INSTANCE_ATTACHED = "instance_attached"
 ATTACH = "attach"
+DEPTH = "depth"
 
 INSTANCES = "instances"
 EXTENSION = "extension"
@@ -73,7 +74,11 @@ def execute_worker(parameter_tuple, time_limit, memory_limit):
 
     output_file = open(output_file_name, "w")
 
-    cmd = Popen([executable] + parameters, preexec_fn=limit_thread_wrapper, stdout=output_file)
+    print([executable] + parameters)
+
+    # cmd = Popen([executable] + parameters, preexec_fn=limit_thread_wrapper, stdout=output_file)
+    #
+    # cmd.wait()
 
 
 def expand_parameters(parameters, filename_iterator):
@@ -109,10 +114,11 @@ def expand_parameters(parameters, filename_iterator):
                     "index"]]]) + "."
 
             elif parameter[TYPE] == INSTANCE:
-                instance_filename = str(indices[-1])
-                parameter_string += [instance_filename]
+                instance_file_url = indices[-1]
+                parameter_string += [str(instance_filename)]
 
             elif parameter[TYPE] == INSTANCE_ATTACHED:
+                instance_filename = "/".join(instance_file_url.parts[-(parameter[DEPTH] + 1):])
                 parameter_string += [parameter[SHORT] + " " + str(instance_filename) + "." +
                                      parameter[ATTACH] + "." +
                                      instance_attachement +
@@ -126,12 +132,18 @@ def expand_instances(instance_defs):
         folder = instance_def[FOLDER]
         extension = instance_def[EXTENSION]
 
-        p = Path(folder)
-        if not p.exists():
-            raise Exception("Instance folder " + str(folder) + " does not exist.")
+        if "*" in folder:
+            paths = Path(folder[:folder.find('*') - 1]).glob(folder[folder.rfind('*'):])
+        else:
+            paths = [Path(folder)]
 
-        for filename in list(p.glob('*.' + str(extension))):
-            yield filename
+        # if not paths.first.is_dir():
+        #     raise Exception("Instance folder " + str(folder) + " does not exist.")
+
+        print([x for x in paths])
+        for path in paths:
+            for filename in list(path.glob('/*.' + str(extension))):
+                yield filename
 
 
 def perform_experiment(experiment_def):
@@ -154,14 +166,15 @@ def perform_experiment(experiment_def):
     execute_worker_wrapper = functools.partial(execute_worker, time_limit=time_limit,
                                         memory_limit=memory_limit)
 
-    thread_pool = Pool(experiment_def[THREADS])
+    thread_pool = Pool(processes=experiment_def[THREADS])
 
-    thread_pool.map(execute_worker_wrapper,
+    for x in thread_pool.imap_unordered(execute_worker_wrapper,
                     product([executable],
                             expand_parameters(parameters, expand_instances(instance_defs)),
                             [output_file_name]
                             )
-                    )
+                    ):
+        None
 
     thread_pool.close()
 
