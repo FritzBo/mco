@@ -31,6 +31,8 @@ from pathlib import Path
 from itertools import product
 from multiprocessing import Pool
 from subprocess import Popen
+import resource
+import functools
 
 # keyword definition
 EXECUTABLE = "executable"
@@ -53,8 +55,25 @@ INSTANCES = "instances"
 EXTENSION = "extension"
 FOLDER = "folder"
 
-def execute_worker(executable, parameters):
-    None
+
+def limit_thread(time_limit, memory_limit):
+    if time_limit is not None:
+        resource.setrlimit(resource.RLIMIT_CPU, (time_limit, time_limit))
+    if memory_limit is not None:
+        resource.setrlimit(resource.RLIMIT_RSS, (memory_limit, memory_limit)) # VMEM needs Posix
+        # system
+
+
+def execute_worker(parameter_tuple, time_limit, memory_limit):
+    executable = parameter_tuple[0]
+    parameters = parameter_tuple[1]
+    output_file_name = parameter_tuple[2]
+
+    limit_thread_wrapper = functools.partial(limit_thread, time_limit=time_limit, memory_limit=memory_limit)
+
+    output_file = open(output_file_name, "w")
+
+    cmd = Popen([executable] + parameters, preexec_fn=limit_thread_wrapper, stdout=output_file)
 
 
 def expand_parameters(parameters, filename_iterator):
@@ -124,12 +143,33 @@ def perform_experiment(experiment_def):
     if PARAMETERS in experiment_def.keys():
         parameters = experiment_def[PARAMETERS]
 
-    thread_pool = Pool(processes=int(experiment_def[THREADS]))
+    time_limit = None
+    if TIME_LIMIT in experiment_def.keys():
+        time_limit = experiment_def[TIME_LIMIT]
 
-    thread_pool.imap_unordered(execute_worker, product([executable], expand_parameters(parameters, expand_instances(instance_defs))))
+    memory_limit = None
+    if MEMORY_LIMIT in experiment_def.keys():
+        memory_limit = experiment_def[MEMORY_LIMIT] * 1000 * 1000
 
-    for parameter_string in expand_parameters(parameters, expand_instances(instance_defs)):
-        print(executable, str(parameter_string), ">>", output_file_name)
+    execute_worker_wrapper = functools.partial(execute_worker, time_limit=time_limit,
+                                        memory_limit=memory_limit)
+
+    thread_pool = Pool(experiment_def[THREADS])
+
+    thread_pool.map(execute_worker_wrapper,
+                    product([executable],
+                            expand_parameters(parameters, expand_instances(instance_defs)),
+                            [output_file_name]
+                            )
+                    )
+
+    thread_pool.close()
+
+    thread_pool.join()
+
+    # for parameter_tuple in product([executable], expand_parameters(parameters, expand_instances(
+    #         instance_defs)), [output_file_name]):
+    #     execute_worker_wrapper(parameter_tuple)
 
 
 def process_json(filename):
