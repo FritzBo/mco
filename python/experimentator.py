@@ -72,7 +72,7 @@ def execute_worker(parameter_tuple, time_limit, memory_limit):
 
     limit_thread_wrapper = functools.partial(limit_thread, time_limit=time_limit, memory_limit=memory_limit)
 
-    output_file = open(output_file_name, "w")
+    output_file = open(output_file_name, "a")
 
     cmd = Popen([executable] + parameters, preexec_fn=limit_thread_wrapper, stdout=output_file)
     cmd.wait()
