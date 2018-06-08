@@ -112,7 +112,7 @@ def expand_parameters(parameters, filename_iterator):
 
             elif parameter[TYPE] == INSTANCE:
                 instance_file_url = indices[-1]
-                parameter_string += [str(instance_filename)]
+                parameter_string += [str(instance_file_url)]
 
             elif parameter[TYPE] == INSTANCE_ATTACHED:
                 instance_filename = "/".join(instance_file_url.parts[-(parameter[DEPTH] + 1):])
