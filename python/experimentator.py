@@ -74,11 +74,8 @@ def execute_worker(parameter_tuple, time_limit, memory_limit):
 
     output_file = open(output_file_name, "w")
 
-    print([executable] + parameters)
-
-    # cmd = Popen([executable] + parameters, preexec_fn=limit_thread_wrapper, stdout=output_file)
-    #
-    # cmd.wait()
+    cmd = Popen([executable] + parameters, preexec_fn=limit_thread_wrapper, stdout=output_file)
+    cmd.wait()
 
 
 def expand_parameters(parameters, filename_iterator):
@@ -127,13 +124,23 @@ def expand_parameters(parameters, filename_iterator):
         yield list(parameter_string)
 
 
+def compute_star_paths(folder):
+    first_star_pos = folder.find('*')
+    last_slash_before_star = folder[:first_star_pos].rfind('/')
+    root_folder = Path(folder[:last_slash_before_star])
+
+    search_pattern = folder[last_slash_before_star + 1:]
+
+    return list(root_folder.glob(search_pattern))
+
+
 def expand_instances(instance_defs):
     for instance_def in instance_defs:
         folder = instance_def[FOLDER]
         extension = instance_def[EXTENSION]
 
         if "*" in folder:
-            paths = Path(folder[:folder.find('*') - 1]).glob(folder[folder.rfind('*'):])
+            paths = compute_star_paths(folder)
         else:
             paths = [Path(folder)]
 
@@ -142,7 +149,7 @@ def expand_instances(instance_defs):
 
         print([x for x in paths])
         for path in paths:
-            for filename in list(path.glob('/*.' + str(extension))):
+            for filename in list(path.glob('*.' + str(extension))):
                 yield filename
 
 
