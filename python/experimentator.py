@@ -16,7 +16,7 @@ Example:
         { "type" : "instance" },
         { "short" : "-e", "type" : "constants", "values": [2, 1.5, 1.25, 1.1] },
         { "short" : "-d", "type" : "switch" },
-        { "short" : "-F", "type" : "instance_attached", "extension" : "front", "attach" : "tsag", depth = 3}
+        { "short" : "-F", "type" : "instance_attached", "extension" : "front", "attach" : "tsag", "depth" : 3}
     ],
     "instances" : [
             { "extension" : "graph", "folder" : "Grid/K*/" },
@@ -144,13 +144,12 @@ def expand_instances(instance_defs):
         else:
             paths = [Path(folder)]
 
-        # if not paths.first.is_dir():
-        #     raise Exception("Instance folder " + str(folder) + " does not exist.")
-
-        print([x for x in paths])
         for path in paths:
-            for filename in list(path.glob('*.' + str(extension))):
-                yield filename
+            if not path.is_dir():
+                raise Exception("Instance folder " + str(folder) + " does not exist.")
+            else:
+                for filename in list(path.glob('*.' + str(extension))):
+                    yield filename
 
 
 def perform_experiment(experiment_def):
